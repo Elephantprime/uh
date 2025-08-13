@@ -61,6 +61,38 @@
   </main>
 
   <!-- IMPORTANT: Firebase first, then profile.js (do not swap) -->
+  <script type="module">
+/* DEBUG HELPER – safe to keep in prod
+   Shows why the page is stuck on "Loading…" */
+const statusEl = document.getElementById('status');
+const box = document.getElementById('profileBox');
+const emailEl = document.getElementById('email');
+const nameEl = document.getElementById('displayName');
+
+// Show JS errors in the status line
+window.addEventListener('error',  e => statusEl.textContent = 'Error: ' + (e.message || 'script error'));
+window.addEventListener('unhandledrejection', e => statusEl.textContent = 'Error: ' + (e.reason?.message || 'promise rejected'));
+
+// Try to read auth state directly (in case profile.js isn’t running)
+try {
+  const { auth } = await import('./js/firebase.js');
+  const { onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      statusEl.textContent = 'Not signed in. Redirecting to login…';
+      setTimeout(()=> location.replace('./login.html'), 1200);
+      return;
+    }
+    // We are signed in — show the UI at minimum
+    statusEl.textContent = 'Signed in.';
+    emailEl.textContent = user.email || '—';
+    box.style.display = '';
+  });
+} catch (err) {
+  statusEl.textContent = 'Failed to load Firebase: ' + (err?.message || err);
+}
+</script>
   <script type="module" src="./js/firebase.js"></script>
   <script type="module" src="./js/profile.js"></script>
 </body>
