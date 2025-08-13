@@ -1,99 +1,42 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Your Profile • UNHINGED</title>
-  <meta name="theme-color" content="#E11D2A">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profile</title>
   <style>
-    :root{
-      --red:#E11D2A; --ink:#0F0F12; --charcoal:#141418; --muted:#b8b9c6;
-      --panel:#16171d; --ui:#0f0f12; --border:rgba(255,255,255,.08);
-      --radius:14px; --shadow:0 14px 36px rgba(0,0,0,.28)
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;background:linear-gradient(180deg,#0e0e12,#141418);color:#fff;font:500 16px/1.5 Inter,system-ui,Segoe UI,Roboto,Arial}
-    a{color:inherit;text-decoration:none}
-    .wrap{max-width:1120px;margin:0 auto;padding:18px}
-    header{background:#0f0f12;border-bottom:1px solid var(--border)}
-    .bar{display:flex;justify-content:space-between;align-items:center;gap:12px}
-    .logo{font-weight:1000;letter-spacing:.02em}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
-    .ghost{background:#202028;border:1px solid var(--border);color:#e9e9ef}
-    .primary{background:var(--red);border:0;color:#fff}
-    .btn{appearance:none;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer}
-    .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow)}
-    .muted{color:var(--muted)}
-    input{width:100%;background:#0c0c0c;border:1px solid #2a2a2a;color:#fff;padding:12px;border-radius:12px;outline:none}
-    input:focus{border-color:#E11D2A55;box-shadow:0 0 0 3px #e11d2a22}
-    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    body { font-family: Arial, sans-serif; background: #0e0e12; color: white; text-align: center; padding: 40px; }
+    input { padding: 10px; border-radius: 6px; border: none; margin: 10px 0; width: 250px; }
+    button { padding: 10px 20px; background: #E11D2A; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #c01021; }
   </style>
 </head>
 <body>
-  <header>
-    <div class="wrap bar">
-      <strong class="logo">UNHINGED</strong>
-      <div class="row">
-        <a class="btn ghost" href="./index.html">Home</a>
-        <button id="logout" class="btn ghost" type="button">Sign out</button>
-      </div>
-    </div>
-  </header>
+  <h1>Set Up Your Profile</h1>
+  <input type="text" id="username" placeholder="Enter your username"/>
+  <br/>
+  <button id="saveBtn">Save</button>
+  <p id="status"></p>
 
-  <main class="wrap">
-    <h1>Your Profile</h1>
-    <p id="status" class="muted">Loading…</p>
-
-    <!-- Keep this exact structure & IDs for profile.js -->
-    <div id="profileBox" class="card" style="display:none;padding:16px;margin-top:12px">
-      <div class="row" style="align-items:center">
-        <input id="displayName" placeholder="Display name" autocomplete="name">
-        <div class="actions">
-          <button id="save" class="btn primary" type="button">Save</button>
-          <button id="deleteAcct" class="btn ghost" type="button">Delete account</button>
-        </div>
-      </div>
-
-      <div style="margin-top:16px;opacity:.9">
-        Email: <span id="email">—</span>
-      </div>
-    </div>
-  </main>
-
-  <!-- IMPORTANT: Firebase first, then profile.js (do not swap) -->
-  <script type="module">
-/* DEBUG HELPER – safe to keep in prod
-   Shows why the page is stuck on "Loading…" */
-const statusEl = document.getElementById('status');
-const box = document.getElementById('profileBox');
-const emailEl = document.getElementById('email');
-const nameEl = document.getElementById('displayName');
-
-// Show JS errors in the status line
-window.addEventListener('error',  e => statusEl.textContent = 'Error: ' + (e.message || 'script error'));
-window.addEventListener('unhandledrejection', e => statusEl.textContent = 'Error: ' + (e.reason?.message || 'promise rejected'));
-
-// Try to read auth state directly (in case profile.js isn’t running)
-try {
-  const { auth } = await import('./js/firebase.js');
-  const { onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
-
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      statusEl.textContent = 'Not signed in. Redirecting to login…';
-      setTimeout(()=> location.replace('./login.html'), 1200);
-      return;
+  <script>
+    // If username already exists, skip to app
+    const existingUser = localStorage.getItem("username");
+    if (existingUser) {
+      window.location.href = "app.html"; // change if your app file has a different name
     }
-    // We are signed in — show the UI at minimum
-    statusEl.textContent = 'Signed in.';
-    emailEl.textContent = user.email || '—';
-    box.style.display = '';
-  });
-} catch (err) {
-  statusEl.textContent = 'Failed to load Firebase: ' + (err?.message || err);
-}
-</script>
-  <script type="module" src="./js/firebase.js"></script>
-  <script type="module" src="./js/profile.js"></script>
+
+    document.getElementById("saveBtn").addEventListener("click", function() {
+      const username = document.getElementById("username").value.trim();
+      if (username) {
+        localStorage.setItem("username", username);
+        document.getElementById("status").textContent = "Saved!";
+        setTimeout(() => {
+          window.location.href = "app.html"; // change if needed
+        }, 500);
+      } else {
+        document.getElementById("status").textContent = "Please enter a username.";
+      }
+    });
+  </script>
 </body>
 </html>
