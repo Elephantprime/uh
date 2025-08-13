@@ -1,324 +1,672 @@
-<!DOCTYPE html><html lang="en">  
-<head>  
-<meta charset="utf-8">  
-<meta name="viewport" content="width=device-width, initial-scale=1">  
-<title>UNHINGED — Dating as a game</title>  
-<meta name="theme-color" content="#E11D2A">  
-<style>  
-  :root{--red:#E11D2A;--yellow:#F6C31C;--ink:#0F0F12;--charcoal:#141418;--muted:#b8b9c6;--radius:18px;--shadow:0 14px 36px rgba(0,0,0,.28)}  
-  *{box-sizing:border-box}  
-  html,body{margin:0;background:linear-gradient(180deg,#0e0e12,#141418);color:#fff;font:500 16px/1.5 Inter,system-ui,Segoe UI,Roboto,Arial}  
-  a{color:inherit;text-decoration:none}  
-  .wrap{max-width:1100px;margin:0 auto;padding:18px}  
-  header{position:relative;background:linear-gradient(180deg,#0e0e12 70%,rgba(14,14,18,.6));border-bottom:1px solid rgba(255,255,255,.06)}  
-  .bar{display:flex;justify-content:space-between;align-items:center;gap:12px}  
-  .logo{display:flex;align-items:center;gap:12px}  
-  .mark{width:28px;height:28px;background:conic-gradient(from 180deg at 50% 50%, var(--red) 0 75%, #fff 75%);border-radius:7px;position:relative;box-shadow:0 0 0 0 rgba(225,29,42,.55);animation:pulse 2.4s infinite}  
-  .mark:after{content:"";position:absolute;left:7px;top:7px;width:14px;height:14px;border:2px solid #fff;border-left-color:transparent;border-bottom-color:transparent;transform:rotate(-45deg)}  
-  @keyframes pulse{50%{box-shadow:0 0 0 16px rgba(225,29,42,0)}}  
-  .word{position:relative;font-weight:1000;letter-spacing:.02em;font-size:30px;transform:rotate(-3.2deg);transform-origin:left bottom;margin-top:6px}  
-  .word .dating{position:absolute;right:-18px;bottom:-10px;font-size:11px;letter-spacing:.16em;color:#e9e9ef;opacity:.9;transform:rotate(3deg)}  
-  .topnav{background:#0f0f12;border-bottom:1px solid rgba(255,255,255,.06)}  
-  .topnav .wrap{display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap;padding:10px 18px}  
-  nav{display:flex;gap:10px;flex-wrap:wrap}  
-  .navbtn{padding:8px 12px;border-radius:12px;background:#202028;border:1px solid rgba(255,255,255,.08);white-space:nowrap}  
-  .navbtn.cta{background:var(--red);border:none}  
-  .quiz-cta{display:flex;flex-direction:column;align-items:center;gap:8px;margin:12px 0 0}  
-  .quiz-cta .big{padding:12px 18px;border-radius:14px;cursor:pointer;font-weight:900;background:var(--red);border:0;color:#fff;box-shadow:0 8px 24px rgba(225,29,42,.35)}  
-  .quiz-cta .sub{color:#ffdbe0;font-size:14px;opacity:.95}  
-  .tagline{color:#e9e9ef;opacity:.95;font-weight:700;margin:8px 0 10px;min-height:1.6em;transition:opacity .25s}  
-  .fade{opacity:0}  
-  .rail-wrap{border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;background:#0f0f12;box-shadow:var(--shadow)}  
-  .rail{display:flex;gap:12px;padding:12px;white-space:nowrap;animation:scroll 22s linear infinite}  
-  .rail:hover{animation-play-state:paused}  
-  @keyframes scroll{to{transform:translateX(-50%)}}  
-  .card{min-width:280px;max-width:280px;background:#16171d;border:1px solid rgba(255,255,255,.08);border-radius:14px;overflow:hidden}  
-  .card img{display:block;width:100%;height:170px;object-fit:cover}  
-  .body{padding:10px}  
-  .top{display:flex;justify-content:space-between;align-items:center}  
-  .meta{font-size:12px;color:#cfd0de}  
-  .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}  
-  .badge{font-size:12px;padding:4px 8px;border-radius:999px;background:#282a33;border:1px solid rgba(255,255,255,.09)}  
-  .badge.red{background:#8f171e}  
-  .meter{height:8px;background:#1d1f27;border-radius:999px;overflow:hidden;border:1px solid #2a2d36;margin-top:8px}  
-  .fill{height:100%;background:linear-gradient(90deg,#ff6b6b,#ff2a2a)}  
-  section{padding:28px 0}  
-  .h2{font-size:24px;margin:0 0 10px}  
-  .board{background:#111217;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;box-shadow:var(--shadow)}  
-  .pins{display:grid;grid-template-columns:repeat(1,1fr);gap:12px}  
-  @media (min-width:760px){ .pins{grid-template-columns:repeat(2,1fr)} }  
-  @media (min-width:1020px){ .pins{grid-template-columns:repeat(3,1fr)} }  
-  .note{position:relative;background:#1a1b22;border:1px dashed #2e2f3a;border-radius:12px;padding:12px 12px 14px}  
-  .tack{position:absolute;top:-8px;left:12px;width:16px;height:16px;border-radius:50%;background:var(--red);box-shadow:0 3px 0 #0008}  
-  .nf{font-weight:800;margin:0 0 4px}  
-  .nmeta{display:flex;gap:8px;align-items:center;color:#cfd0de;font-size:13px}  
-  .scale{height:8px;background:#1d1f27;border:1px solid #2e2d36;border-radius:999px;overflow:hidden;margin-top:8px}  
-  .scale .fill{background:linear-gradient(90deg,#ffb54d,#ff2a2a);height:100%}  
-  .livebox{position:relative;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:#18181d;border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow)}  
-  .static{position:absolute;inset:0;background:repeating-linear-gradient(0deg,#2a2a2a 0 2px,#303030 2px 4px),repeating-linear-gradient(90deg,#2b2b2b 0 2px,#313131 2px 4px);opacity:.85;animation:noise .9s steps(6,end) infinite}  
-  @keyframes noise{50%{filter:brightness(1.05)}}  
-  .livebadge{position:absolute;top:10px;left:10px;background:var(--red);padding:6px 10px;border-radius:10px;font-weight:900;animation:blink 1.2s infinite}  
-  .hud{position:absolute;right:10px;bottom:10px;background:#0008;padding:8px 12px;border-radius:999px}  
-  @keyframes blink{50%{opacity:.3}}  
-  .wall{display:grid;grid-template-columns:1fr;gap:12px}  
-  @media (min-width:880px){ .wall{grid-template-columns:1fr 1fr} }  
-  .rev{background:#15161b;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px}  
-  .rhead{display:flex;justify-content:space-between;align-items:center}  
-  .flames{color:#ff5b40;font-weight:900}  
-  .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}  
-  .tag{font-size:12px;padding:4px 8px;border-radius:999px;background:#23242e;border:1px solid rgba(255,255,255,.08)}  
-  .signup{background:#0f0f12;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;box-shadow:var(--shadow)}  
-  .label{display:block;margin-top:10px;margin-bottom:6px;color:#e8e8e8;font-size:14px}  
-  .input{width:100%;background:#0c0c0c;border:1px solid #2a2a2a;color:#fff;padding:14px;border-radius:12px;outline:none}  
-  .input:focus{border-color:var(--yellow);box-shadow:0 0 0 3px #f6c31c33}  
-  .btn{appearance:none;border:0;border-radius:14px;padding:14px 16px;font-weight:800;cursor:pointer}  
-  .btn.primary{background:var(--red);color:#fff;margin-top:12px;width:100%}  
-  .noteText{font-size:12px;color:#bdbdcc;margin-top:8px}  
-  .ok{color:#7CFF7C}.warn{color:#F6C31C}  
-  .pay{display:inline-block;margin:5px 8px 0 0;padding:8px 14px;font-weight:bold;color:#fff;text-decoration:none;border-radius:8px;transition:transform .18s}  
-  .pay:hover{transform:scale(1.05)}  
-  .pay.venmo{background:#1D62F0}  
-  .pay.cashapp{background:#00D64B;color:#071B0C}  
-  footer{padding:26px 0;color:#b8b8c2;text-align:center;border-top:1px solid rgba(255,255,255,.06);margin-top:10px}  
-</style>  
-</head>  
-<body>  
-  
-<header>  
-  <div class="topnav">  
-    <div class="wrap">  
-      <nav>  
-        <a href="chaos.html" class="navbtn">Chaos Board</a>  
-        <a href="#live" class="navbtn">Live</a>  
-        <a href="reviews.html" class="navbtn">Reviews</a>  
-        <a href="badges.html" class="navbtn">Badges</a>  
-        <a href="redflags.html" class="navbtn">Red Flags</a>  
-        <a href="casualties.html" class="navbtn">Casualties</a>  
-        <a href="chat.html" class="navbtn">Chat</a>  
-        <a href="#friends" class="navbtn">Friends</a>  
-        <a href="#fwb" class="navbtn">Friends with Benefits</a>  
-        <a href="profile.html" class="navbtn">Profiles</a>  
-        <a href="signup.html" class="navbtn cta">Join</a>  
-      </nav>  
-    </div>  
-  </div>  
-  
-  <div class="wrap bar" style="padding-top:8px">  
-    <div class="logo">  
-      <div class="mark"></div>  
-      <div class="word">UNHINGED <span class="dating">DATING</span></div>  
-    </div>  
-  </div>  
-  
-  <div class="wrap">  
-    <div id="tagline" class="tagline">Admit the 🚩 first. Flirt second.</div>  
-    <div class="quiz-cta">  
-      <button id="openQuiz" class="big">Take the Red Flag Quiz →</button>  
-      <div class="sub">How many red flags are you starting with?</div>  
-      <div class="noteText" style="text-align:center;margin-top:6px">Beta only — functionality coming soon.</div>  
-    </div>  
-  </div>  
-</header>  
-  
-<main class="wrap">  
-  <section id="profiles">  
-    <div class="rail-wrap">  
-      <div class="rail" id="rail"></div>  
-    </div>  
-  </section>  
-  
-  <section id="chaos">  
-    <h2 class="h2">Chaos Board</h2>  
-    <div class="board">  
-      <div class="pins">  
-        <div class="note"><span class="tack"></span>  
-          <div class="nf">“Started a fight club in college because I was bored.”</div>  
-          <div class="nmeta">🚩 <span>Red Flags: 3</span> · 👍 212</div>  
-          <div class="scale"><div class="fill" style="width:78%"></div></div>  
-        </div>  
-        <div class="note"><span class="tack"></span>  
-          <div class="nf">“Still hooks up with my ex every few months. It’s seasonal.”</div>  
-          <div class="nmeta">🚩 <span>Red Flags: 4</span> · 👍 168</div>  
-          <div class="scale"><div class="fill" style="width:86%"></div></div>  
-        </div>  
-        <div class="note"><span class="tack"></span>  
-          <div class="nf">“Forgot three birthdays in a row. But I’m very fun in May.”</div>  
-          <div class="nmeta">🚩 <span>Red Flags: 2</span> · 👍 94</div>  
-          <div class="scale"><div class="fill" style="width:52%"></div></div>  
-        </div>  
-      </div>  
-    </div>  
-  </section>  
-  
-  <section id="live">  
-    <h2 class="h2">Right now on Unhinged Live</h2>  
-    <p class="noteText" style="color:#d7d7de">Broadcast your questionable decisions in real time.</p>  
-    <div class="livebox" style="margin-top:10px">  
-      <span class="livebadge">LIVE</span>  
-      <div class="static" aria-hidden="true"></div>  
-      <div class="hud">🔥 1,842 watching</div>  
-    </div>  
-  </section>  
-  
-  <section id="reviews">  
-    <h2 class="h2">Wall of Shame — past dates say</h2>  
-    <div class="wall">  
-      <div class="rev">  
-        <div class="rhead"><strong>@Jamie27</strong><span class="flames">🔥🔥🔥</span></div>  
-        <div class="tags"><span class="tag">Ghosts for months</span><span class="tag">Drama magnet</span></div>  
-        <p style="margin:8px 0 0;color:#d9d9e3">“Fun, chaotic, disappears for weeks. 7/10 would text again.”</p>  
-      </div>  
-      <div class="rev">  
-        <div class="rhead"><strong>@Andre31</strong><span class="flames">🔥🔥</span></div>  
-        <div class="tags"><span class="tag">Financial chaos</span><span class="tag">Sleeps till 2PM</span></div>  
-        <p style="margin:8px 0 0;color:#d9d9e3">“Nice but schedules dates like a crypto chart.”</p>  
-      </div>  
-      <div class="rev">  
-        <div class="rhead"><strong>@Rae25</strong><span class="flames">🔥🔥🔥🔥</span></div>  
-        <div class="tags"><span class="tag">Receipts ready</span><span class="tag">Most ghosted</span></div>  
-        <p style="margin:8px 0 0;color:#d9d9e3">“Screenshots. For. Everything.”</p>  
-      </div>  
-      <div class="rev">  
-        <div class="rhead"><strong>@Leo29</strong><span class="flames">🔥🔥</span></div>  
-        <div class="tags"><span class="tag">Commitment? eh.</span></div>  
-        <p style="margin:8px 0 0;color:#d9d9e3">“Sincere, allergic to labels. Great playlists though.”</p>  
-      </div>  
-    </div>  
-  </section>  
-  
-  <section id="casualties" style="padding:28px 0">  
-    <h2 class="h2">Casualties of Modern Dating</h2>  
-    <p style="color:#cfd0de;margin-top:-6px">Short, raw stories from the front lines. Submit yours, read others.</p>  
-    <div id="casGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:12px"></div>  
-    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">  
-      <a class="navbtn cta" href="casualties.html" style="background:#E11D2A;border:none">Read the Series</a>  
-      <a class="navbtn" href="https://formsubmit.co/unfavorablejosh@gmail.com" target="_blank" rel="noopener">Submit a Story</a>  
-    </div>  
-  </section>  
-    </a>  
-      <div id="joinMsg" class="noteText">Create your account on the next screen.</div>
-      <form id="joinForm" action="https://formsubmit.co/unfavorablejosh@gmail.com" method="POST">  
-        <input type="hidden" name="_captcha" value="false">  
-        <input type="hidden" name="_subject" value="New Unhinged Signup">  
-        <label class="label">Name</label>  
-        <input class="input" type="text" name="name" required placeholder="Your name">  
-        <label class="label">Email</label>  
-        <input class="input" type="email" name="email" required placeholder="you@email.com">  
-        <button class="btn primary" type="submit">Join the chaos</button>  
-        <div id="joinMsg" class="noteText">Ready.</div>  
-      </form>  
-      <div class="noteText" style="margin-top:14px;color:#e3e3ea">  
-        Help this startup get off the ground — chip in if you’re feeling chaotic.  
-        <br><strong>$150 Lifetime Membership</strong> for early supporters.  
-      </div>  
-      <div style="margin-top:8px">  
-        <a class="pay venmo" href="https://venmo.com/Joshua-Kirkley" target="_blank" rel="noopener">Contribute via Venmo</a>  
-        <a class="pay cashapp" href="https://cash.app/$Jkirk007" target="_blank" rel="noopener">Contribute via Cash App</a>  
-      </div>  
-    </div>  
-  </section>  
-</main>  
-  
-<footer>  
-  © <span id="year"></span> UNHINGED — dating for people who admit they’re the problem.  
-</footer>  
-  
-<script type="module">  
-  // (Optional) Firebase import is safe to miss
-  try { await import('./js/app.firebase.js'); } catch(e) {}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UNHINGED - App (SHIP build)</title>
+  <meta name="theme-color" content="#E11D2A">
+  <style>
+    :root{
+      --red:#E11D2A;--yellow:#F6C31C;--ink:#0F0F12;--charcoal:#141418;
+      --card:#161821;--muted:#b8b9c6;--radius:16px;--shadow:0 14px 36px rgba(0,0,0,.28)
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:linear-gradient(180deg,#0e0e12,#141418);color:#fff;font:500 16px/1.5 Inter,system-ui,Segoe UI,Roboto,Arial}
+    a{color:inherit;text-decoration:none}
+    img{max-width:100%;display:block}
+    .wrap{max-width:1160px;margin:0 auto;padding:18px}
 
-  document.getElementById('year').textContent = new Date().getFullYear();  
-  
-  // quiz button placeholder (non-functional)  
-  document.getElementById('openQuiz').addEventListener('click', ()=> {  
-    alert('Red Flag Quiz is coming soon.');  
-  });  
-  
-  // tagline rotator  
-  const taglines = [  
-    "Admit the 🚩 first. Flirt second.",  
-    "Match by mayhem. Own your chaos.",  
-    "If they still want you after this… game on."  
-  ];  
-  const tl = document.getElementById('tagline'); let ti = 0;  
-  setInterval(()=>{  
-    tl.classList.add('fade');  
-    setTimeout(()=>{ ti=(ti+1)%taglines.length; tl.textContent=taglines[ti]; tl.classList.remove('fade'); },250);  
-  },6500);  
-  
-  // profiles  
-  const profiles = [  
-    { name:'Jamie, 27', img:'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80', chaos:72, badges:['Still texts ex','Drama magnet','Ghosts sometimes'] },  
-    { name:'Andre, 31', img:'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?auto=format&fit=crop&w=1200&q=80', chaos:58, badges:['Financial chaos','Sleeps till 2PM'] },  
-    { name:'Rae, 25',   img:'https://images.unsplash.com/photo-1541534401786-2077eed87a57?auto=format&fit=crop&w=1200&q=80', chaos:81, badges:['Ghosts for months','Receipts ready'] },  
-    { name:'Leo, 29',   img:'https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?auto=format&fit=crop&w=1200&q=80', chaos:46, badges:['Commitment? eh.'] },  
-    { name:'Maya, 26',  img:'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=1200&q=80', chaos:67, badges:['Drama magnet','Most ghosted'] },  
-    { name:'Sam, 30',   img:'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=1200&q=80', chaos:74, badges:['Partied too hard','Second Chance Champ'] },  
-  ];  
-  const rail = document.getElementById('rail');  
-  function card(p){  
-    const el = document.createElement('div'); el.className='card';  
-    el.innerHTML = `  
-      <img src="${p.img}" alt="" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80'">  
-      <div class="body">  
-        <div class="top"><strong>${p.name}</strong><span class="meta">${Math.round(p.chaos/10)}/10</span></div>  
-        <div class="badges">  
-          ${p.badges.slice(0,3).map(b=>{  
-            const cls = /ghost|drama|party|ex|fire|chaos/i.test(b)?'badge red':'badge';  
-            return `<span class="${cls}">${b}</span>`;  
-          }).join('')}  
-        </div>  
-        <div class="meter"><div class="fill" style="width:${p.chaos}%"></div></div>  
-      </div>`;  
-    return el;  
-  }  
-  [...profiles,...profiles].forEach(p=> rail.appendChild(card(p)));  
-  
-  // casualties teaser  
-  const casualties = [  
-    { t:"The Soft Launch That Never Launched", tag:"ghosting", line:"Three months of hints, zero dates, one lesson."},  
-    { t:"Situationship Tax", tag:"mixed signals", line:"Paid in time, attention, and gas money."},  
-    { t:"Breadcrumb Diet", tag:"bread‑crumbing", line:"Tiny crumbs, never a meal."},  
-    { t:"DM Olympics", tag:"overlap", line:"Competing with a whole roster you can’t see."},  
-    { t:"Romance as Content", tag:"clout", line:"Was it a date… or a B‑roll opportunity?"},  
-    { t:"Right Person, Wrong App", tag:"misaligned", line:"FWB button was on, hearts were not."},  
-  ];  
-  const casGrid = document.getElementById('casGrid');  
-  if (casGrid) casGrid.innerHTML = casualties.map(c=>`  
-    <div style="background:#15161b;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px">  
-      <div style="font-weight:900">${c.t}</div>  
-      <div style="margin:6px 0 8px;color:#d9d9e3">${c.line}</div>  
-      <span style="font-size:12px;padding:4px 8px;border-radius:999px;background:#23242e;border:1px solid rgba(255,255,255,.08)">#${c.tag}</span>  
-    </div>  
-  `).join('');  
-  
-  // ——— mark member on successful signup ———  
-  const form = document.getElementById('joinForm');  
-  const msg  = document.getElementById('joinMsg');  
-  if (form) {  
-    form.addEventListener('submit', async (e)=>{  
-      e.preventDefault();  
-      msg.textContent='Sending…';  
-      try{  
-        const res = await fetch(form.action,{method:'POST',headers:{'Accept':'application/json'},body:new FormData(form)});  
-        if(res.ok){  
-          form.reset();  
-localStorage.setItem('uh_member', '1'); // member flag
-          msg.classList.remove('warn'); msg.classList.add('ok');  
-          msg.textContent='You’re in. Check your inbox.';  
-        } else {  
-          msg.classList.remove(ok); msg.classList.add(warn);  
-          msg.textContent='Couldn’t send. Try again.';  
-        }  
-      }catch{  
-        msg.classList.remove(ok); msg.classList.add(warn);  
-        msg.textContent='Network hiccup. Try again.';  
-      }  
-    });  
-  }  
-</script>  
-   <!-- Firebase scripts -->
-<script type="module" src="./js/firebase.js"></script>
-<script type="module" src="./js/auth.js"></script>
+    /* Header */
+    header{border-bottom:1px solid rgba(255,255,255,.08);background:#0f0f12;position:sticky;top:0;z-index:10}
+    .bar{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .logo{display:flex;align-items:center;gap:10px}
+    .mark{width:28px;height:28px;background:conic-gradient(from 180deg at 50% 50%, var(--red) 0 75%, #8b0e16 75% 100%);border-radius:8px;box-shadow:0 6px 22px rgba(225,29,42,.35)}
+    .word{font-weight:1000;letter-spacing:.02em}
+    nav{display:flex;gap:8px;flex-wrap:wrap}
+
+    /* Buttons (brighter + readable) */
+    .btn{display:inline-flex;gap:8px;align-items:center;border:1px solid rgba(255,255,255,.35);padding:10px 14px;border-radius:12px;font-weight:800;background:#2f3344;cursor:pointer;color:#fff}
+    .btn:hover{filter:brightness(1.06)}
+    .btn:focus{outline:2px solid rgba(255,255,255,.6);outline-offset:2px}
+    .btn.ghost{background:#1b1e28;border-color:rgba(255,255,255,.35);color:#e9ebf6}
+    .btn.primary{background:var(--red);border-color:var(--red);color:#fff}
+    .pill{display:inline-flex;gap:8px;align-items:center;border:1px dashed rgba(255,255,255,.35);padding:8px 12px;border-radius:999px;color:#e3e4ef}
+
+    /* App layout */
+    .appgrid{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-top:14px}
+    @media (max-width:960px){ .appgrid{grid-template-columns:1fr} }
+
+    /* Module shell (clear separation) */
+    .module { background:#23252f; border:2px solid rgba(255,255,255,0.28); border-radius:16px; box-shadow:0 14px 36px rgba(0,0,0,.35); overflow:hidden; margin-bottom:18px; }
+    .m-head { display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:rgba(255,255,255,0.08); border-bottom:1px solid rgba(255,255,255,0.28); }
+    .m-title{margin:0;font-size:15px;letter-spacing:.02em}
+    .m-body{padding:12px}
+
+    /* Filters row */
+    .filters{display:flex;gap:8px;flex-wrap:wrap}
+    .fbtn{appearance:none;border:1px solid rgba(255,255,255,.35);background:#2f3344;color:#fff;padding:8px 12px;border-radius:999px;font-weight:800;cursor:pointer}
+    .fbtn:hover{filter:brightness(1.08)}
+    .fbtn.active{background:#9a1b23;border-color:#9a1b23}
+
+    /* Cards & grids */
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    @media (max-width:980px){ .grid{grid-template-columns:1fr 1fr} }
+    @media (max-width:620px){ .grid{grid-template-columns:1fr} }
+    .card { background:#2b2f3b; border:1px solid rgba(255,255,255,0.35); border-radius:12px; }
+    .card-body{padding:10px}
+    .pimg{width:100%;height:220px;object-fit:cover}
+    .row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+    .badge{font-size:11px;padding:4px 8px;border-radius:999px;background:#2f3342;border:1px solid rgba(255,255,255,.28);display:inline-block;margin:3px 4px 0 0}
+    .red{background:#9a1b23;border-color:#9a1b23}
+    .meta{color:#e0e2ef;font-size:12px}
+
+    /* Rails */
+    .rail{display:flex;gap:10px;overflow:auto;padding-bottom:4px}
+    .rail .card { background:#2b2f3b; border:1px solid rgba(255,255,255,0.35); border-radius:12px; }
+
+    /* Chaos + Reviews */
+    .note { position:relative;background:#2b2f3b; border:1px solid rgba(255,255,255,0.35); border-radius:12px; padding:8px }
+    .tack{position:absolute;top:-8px;left:12px;width:16px;height:16px;border-radius:50%;background:var(--red);box-shadow:0 3px 0 #0008}
+    .review { background:#2b2f3b; border:1px solid rgba(255,255,255,0.35); border-radius:12px; padding:10px }
+    .rhead{display:flex;justify-content:space-between;align-items:center}
+    .flames{color:#ff5b40;font-weight:900}
+
+    /* Games */
+    .games{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .gbtn{display:inline-flex;align-items:center;justify-content:center;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.35);background:#2f3344;font-weight:800;color:#fff}
+
+    /* Assign Badges & Flags */
+    .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.35);background:#2f3344;margin:6px 6px 0 0;cursor:pointer;font-size:13px}
+    .chip.sel{background:#9a1b23;border-color:#9a1b23}
+    .rowbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+    /* Chat */
+    .chat-wrap{display:grid;grid-template-columns:220px 1fr;gap:10px;height:340px}
+    .channels{background:#131522;border:1px solid rgba(255,255,255,.35);border-radius:10px;padding:8px;overflow:auto}
+    .chan{display:block;padding:8px 10px;border-radius:8px;margin-bottom:6px;background:#1e2233;border:1px solid rgba(255,255,255,.25)}
+    .chan.active{background:#9a1b23;border-color:#9a1b23}
+    .chat-pane{display:flex;flex-direction:column;background:#131522;border:1px solid rgba(255,255,255,.35);border-radius:10px;overflow:hidden}
+    .chat-log{flex:1;overflow:auto;padding:10px}
+    .msg{display:inline-block;background:#24283a;border-radius:14px;padding:8px 10px;margin:6px 0;max-width:78%}
+    .me{align-self:flex-end;background:#E11D2A;color:#fff}
+    .composer{border-top:1px solid rgba(255,255,255,.35);display:flex;gap:8px;padding:8px;background:#101321}
+    .input{flex:1;background:#0b0c10;border:1px solid #3a3e52;color:#fff;padding:10px;border-radius:10px}
+
+    /* Live stream */
+    .live{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#18181d;border:1px solid rgba(255,255,255,.28)}
+    .static{position:absolute;inset:0;background:repeating-linear-gradient(0deg,#2a2a2a 0 2px,#303030 2px 4px),repeating-linear-gradient(90deg,#2b2b2b 0 2px,#313131 2px 4px);opacity:.85;animation:noise .9s steps(6,end) infinite}
+    @keyframes noise{50%{filter:brightness(1.05)}}
+    .livebadge{position:absolute;top:10px;left:10px;background:var(--red);padding:6px 10px;border-radius:10px;font-weight:900;animation:blink 1.2s infinite}
+
+    /* Footer */
+    footer{padding:26px 0;color:#cdd0e2;text-align:center;border-top:1px solid rgba(255,255,255,.2);margin-top:16px}
+
+    /* ===== Compact Swipe Deck ===== */
+    .sw-head-hint{font-size:12px;color:#e0e2ef}
+    .swipe-stage{
+      position:relative;height:320px;border:1px solid rgba(255,255,255,.28);
+      border-radius:16px;background:linear-gradient(180deg,#151826,#111520);
+      box-shadow:0 14px 36px rgba(0,0,0,.28), inset 0 0 0 1px rgba(255,255,255,.06);
+      overflow:hidden;margin:6px auto 10px;max-width:420px
+    }
+    .swipe-card{
+      --rot: 0deg;
+      position:absolute;inset:8px;display:flex;flex-direction:column;
+      border-radius:14px;background:#171a26;border:1px solid rgba(0,0,0,.7);
+      box-shadow:0 12px 28px rgba(0,0,0,.32), inset 0 0 0 1px rgba(255,255,255,.06);
+      transform:translate(var(--tx,0px),var(--ty,0px)) rotate(var(--rot));
+      transition:transform 160ms ease, opacity 200ms ease;
+      touch-action:none;user-select:none
+    }
+    .swipe-card img{width:100%;height:62%;object-fit:cover;background:#0f0f12;border-top-left-radius:14px;border-top-right-radius:14px}
+    .swipe-info{flex:1;padding:8px 10px}
+    .swipe-badges,.swipe-flags{margin-top:6px;display:flex;flex-wrap:wrap;gap:6px}
+    .swipe-chip{font-size:11px;padding:4px 8px;border-radius:999px;background:#2f3342;border:1px solid rgba(255,255,255,.28)}
+    .swipe-chip.red{background:#9a1b23;border-color:#9a1b23}
+    .swipe-hint{
+      position:absolute;top:10px;left:10px;padding:6px 10px;border-radius:999px;
+      font-weight:900;letter-spacing:.04em;border:2px solid;opacity:0;transform:scale(.9);
+      transition:all .15s ease
+    }
+    .swipe-hint.like{color:#19d47d;border-color:#19d47d;background:#0a2a1e}
+    .swipe-hint.pass{right:10px;left:auto;color:#ff5d5d;border-color:#ff5d5d;background:#2a0a0a}
+    .swipe-ctrls{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:6px}
+    .swipe-btn{
+      min-width:74px;height:42px;border-radius:999px;border:2px solid rgba(255,255,255,.35);
+      background:#2f3344;display:inline-flex;align-items:center;justify-content:center;
+      font-size:14px;cursor:pointer;color:#fff;padding:0 14px;font-weight:800;
+    }
+    .swipe-btn:hover{filter:brightness(1.08)}
+    .swipe-btn.like{border-color:#19d47d}
+    .swipe-btn.pass{border-color:#ff5d5d}
+    .swipe-btn.undo{border-color:rgba(255,255,255,.45)}
+    .swipe-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#e0e2ef}
+
+    /* ===== Compact Action Bar + Casualties row ===== */
+    .row-split{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:900px){ .row-split{grid-template-columns:1fr} }
+    .uxbar{display:flex;gap:8px;flex-wrap:wrap}
+    .uxbtn{border:1px solid rgba(255,255,255,.25);background:#1e2130;color:#fff;padding:8px 12px;border-radius:10px;font-weight:800}
+    .uxbtn-primary{background:#E11D2A;border-color:#E11D2A}
+    .uxmeta{margin-left:6px;font-weight:700;opacity:.9}
+    .uxtoast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#141621;border:1px solid rgba(255,255,255,.15);padding:10px 12px;border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.32);opacity:0;transition:opacity .2s ease;z-index:9999}
+    .uxtoast.show{opacity:1}
+    .casualties{background:#2b2f3b;border:1px solid rgba(255,255,255,.35);border-radius:12px;padding:10px}
+    .cas-item{font-size:13px;margin:6px 0;border-bottom:1px dashed rgba(255,255,255,.18);padding-bottom:6px}
+    .cas-item:last-child{border-bottom:none;padding-bottom:0}
+  </style>
+</head>
+<body>
+  <!-- ===== Header / Nav ===== -->
+  <header>
+    <div class="wrap bar">
+      <div class="logo">
+        <div class="mark"></div>
+        <div class="word">UNHINGED</div>
+      </div>
+      <nav>
+        <a class="btn" href="./app.html">Home</a>
+        <a class="btn" href="./chat.html">Messages</a>
+        <a class="btn" href="./profile.html">Profile</a>
+        <button id="logout" class="btn ghost" type="button">Logout</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- ===== Browse (Filters + Search) ===== -->
+    <div class="module">
+      <div class="m-head">
+        <h3 class="m-title">Browse</h3>
+        <span class="pill" id="memberTag">Member</span>
+      </div>
+      <div class="m-body">
+        <div class="filters" id="filters">
+          <button class="fbtn active" data-filter="all">All</button>
+          <button class="fbtn" data-filter="fwb">FWB</button>
+          <button class="fbtn" data-filter="friends">Friends</button>
+          <button class="fbtn" data-filter="ons">One‑Night Stand</button>
+          <button class="fbtn" data-filter="kink">Kink</button>
+        </div>
+        <div class="rowbar" style="margin-top:10px">
+          <input class="input" style="max-width:360px" id="search" type="search" placeholder="Search profiles by name...">
+          <button class="btn" id="clearSearch" type="button">Clear</button>
+          <button class="btn primary" id="openSwipe" type="button" title="Jump to Swipe Deck">Open Swipe Deck</button>
+        </div>
+        <div id="profiles" class="grid" style="margin-top:12px"></div>
+      </div>
+    </div>
+
+    <!-- ===== Swipe Deck ===== -->
+    <div class="module" id="swipeDeckModule" style="margin-top:12px">
+      <div class="m-head">
+        <h3 class="m-title">Swipe Deck</h3>
+        <span class="sw-head-hint">Drag or use Left/Right keys • uses current filter</span>
+      </div>
+      <div class="m-body">
+        <div class="swipe-stage" id="swipeStage" aria-live="polite">
+          <div class="swipe-empty" id="swipeEmpty" style="display:none">You're out of people.</div>
+        </div>
+        <div class="swipe-ctrls">
+          <button class="swipe-btn pass" id="swipePass" title="Pass (Left)">Pass</button>
+          <button class="swipe-btn undo" id="swipeUndo" title="Undo">Undo</button>
+          <button class="swipe-btn like" id="swipeLike" title="Like (Right)">Like</button>
+        </div>
+        <div class="row" style="margin-top:4px">
+          <span class="meta" id="swipeProgress">0 / 0</span>
+          <span class="meta">Built from current results</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Compact Action Row: (Views/Likes/Matches) + Casualties panel ===== -->
+    <div class="row-split" style="margin-bottom:16px">
+      <div class="module" style="margin:0">
+        <div class="m-head"><h3 class="m-title">Quick Actions</h3></div>
+        <div class="m-body">
+          <div class="uxbar">
+            <button class="uxbtn uxbtn-primary" id="uxViewedBtn">Views <span id="uxViewedCnt" class="uxmeta">0</span></button>
+            <button class="uxbtn uxbtn-primary" id="uxLikesBtn">Likes <span id="uxLikesCnt" class="uxmeta">0</span></button>
+            <button class="uxbtn uxbtn-primary" id="uxMatchesBtn">Matches <span id="uxMatchesCnt" class="uxmeta">0</span></button>
+          </div>
+        </div>
+      </div>
+      <div class="module" style="margin:0">
+        <div class="m-head"><h3 class="m-title">Casualties of Modern Dating</h3></div>
+        <div class="m-body">
+          <div class="casualties" id="casualtiesList">
+            <div class="cas-item">Ghosted after 3 months — “We’re just at different stages.”</div>
+            <div class="cas-item">Accidental situationship — “We’re not labeling it.”</div>
+            <div class="cas-item">Soft launch that never hard launched.</div>
+            <div class="cas-item">Four talking stages, zero dates.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Two-Column Area (Left/Right) ===== -->
+    <div class="appgrid">
+      <!-- Left: Chaos + Reviews -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="module">
+          <div class="m-head"><h3 class="m-title">Chaos Board</h3></div>
+          <div class="m-body">
+            <div class="grid" id="chaosGrid" style="grid-template-columns:repeat(4,1fr)">
+              <div class="note"><span class="tack"></span><div style="font-weight:900;margin-bottom:6px">“Started a fight club in college because I was bored.”</div><div class="meta">Flags: 3 | Likes: 212</div></div>
+              <div class="note"><span class="tack"></span><div style="font-weight:900;margin-bottom:6px">“Still hooks up with my ex every few months. It’s seasonal.”</div><div class="meta">Flags: 4 | Likes: 168</div></div>
+              <div class="note"><span class="tack"></span><div style="font-weight:900;margin-bottom:6px">“Cries during car washes. Won’t explain.”</div><div class="meta">Flags: 2 | Likes: 94</div></div>
+              <div class="note"><span class="tack"></span><div style="font-weight:900;margin-bottom:6px">“Texts back fast until 9pm, ghost after.”</div><div class="meta">Flags: 2 | Likes: 143</div></div>
+              <div class="note"><span class="tack"></span><div style="font-weight:900;margin-bottom:6px">“Steals fries on first dates. Every time.”</div><div class="meta">Flags: 1 | Likes: 201</div></div>
+              <div class="note"><span class="tack"></span><div style="font-weight:900;margin-bottom:6px">“Sends calendar invites for kisses.”</div><div class="meta">Flags: 3 | Likes: 77</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="module">
+          <div class="m-head"><h3 class="m-title">Wall of Shame (Reviews)</h3></div>
+          <div class="m-body">
+            <div class="grid" style="grid-template-columns:repeat(3,1fr)">
+              <div class="review">
+                <div class="rhead"><strong>@Jamie27</strong><span class="flames">3/5</span></div>
+                <p class="meta" style="margin:6px 0 0">“Fun, chaotic, disappears for weeks. 7/10 would text again.”</p>
+              </div>
+              <div class="review">
+                <div class="rhead"><strong>@Andre31</strong><span class="flames">2/5</span></div>
+                <p class="meta" style="margin:6px 0 0">“Nice but schedules dates like a crypto chart.”</p>
+              </div>
+              <div class="review">
+                <div class="rhead"><strong>@Rae25</strong><span class="flames">4/5</span></div>
+                <p class="meta" style="margin:6px 0 0">“Screenshots. For. Everything.”</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Who viewed you + Games + Assign + Chat + Live -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="module">
+          <div class="m-head"><h3 class="m-title">Who viewed you</h3></div>
+          <div class="m-body">
+            <div id="viewRail" class="rail"></div>
+          </div>
+        </div>
+
+        <div class="module">
+          <div class="m-head"><h3 class="m-title">Dating Games</h3></div>
+          <div class="m-body">
+            <div class="games">
+              <button class="gbtn" type="button">RF Bingo</button>
+              <button class="gbtn" type="button">Prompt Duels</button>
+              <button class="gbtn" type="button">Truth Tokens</button>
+              <button class="gbtn" type="button">Flag Roulette</button>
+              <button class="gbtn" type="button">Chaos Ladder</button>
+              <button class="gbtn" type="button">DM Dare</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="module">
+          <div class="m-head"><h3 class="m-title">Assign Badges & Flags</h3></div>
+          <div class="m-body">
+            <div class="rowbar">
+              <label class="meta" for="assignWho">Profile</label>
+              <select id="assignWho" class="input" style="max-width:260px"></select>
+            </div>
+            <div style="margin-top:10px">
+              <div class="meta" style="margin-bottom:6px">Badges</div>
+              <div id="badgeList"></div>
+            </div>
+            <div style="margin-top:10px">
+              <div class="meta" style="margin-bottom:6px">Red Flags</div>
+              <div id="flagList"></div>
+            </div>
+            <div class="rowbar" style="margin-top:12px">
+              <button id="assignBtn" class="btn primary" type="button">Assign</button>
+              <span id="assignMsg" class="meta"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="module">
+          <div class="m-head"><h3 class="m-title">Live Chat (preview)</h3></div>
+          <div class="m-body">
+            <div class="chat-wrap">
+              <aside class="channels" aria-label="channel list">
+                <div class="chan active"># general</div>
+                <div class="chan"># first-dates</div>
+                <div class="chan"># gym-rats</div>
+                <div class="chan"># over-30</div>
+                <div class="chan"># queer-space</div>
+              </aside>
+              <section class="chat-pane" aria-label="chat pane">
+                <div class="chat-log" id="chatLog">
+                  <div class="msg">Welcome to <strong>#general</strong>. Be cute, be honest, be kind.</div>
+                  <div class="msg me">hey fam</div>
+                </div>
+                <div class="composer">
+                  <input class="input" type="text" placeholder="Type a message..." id="chatInput">
+                  <button class="btn primary" type="button" id="sendBtn">Send</button>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <div class="module">
+          <div class="m-head"><h3 class="m-title">Live Stream</h3></div>
+          <div class="m-body">
+            <div class="live">
+              <span class="livebadge">LIVE</span>
+              <div class="static" aria-hidden="true"></div>
+            </div>
+            <p class="meta" style="margin-top:8px">Broadcast your questionable decisions in real time.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===== Footer ===== -->
+  <footer>
+    © <span id="year"></span> UNHINGED - dating for people who admit they're the problem.
+  </footer>
+
+  <!-- ===== Scripts ===== -->
+  <script type="module">
+    // Firebase auth guard + logout (kept as-is)
+    import { auth } from "./js/firebase.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const statusTag = document.getElementById('memberTag');
+    onAuthStateChanged(auth, (user) => {
+      if (!user) { location.replace("./login.html"); return; }
+      statusTag.textContent = user.displayName ? `Member: ${user.displayName}` : "Member";
+    });
+
+    document.getElementById('logout')?.addEventListener('click', async ()=>{
+      try { await signOut(auth); } catch {}
+      location.replace("./index.html");
+    });
+
+    // ---------- Profiles data ----------
+    const profiles = [
+      {name:"Jamie, 27", img:"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1400&auto=format&fit=crop", chaos:72, type:"fwb", badges:["Drama Magnet","Receipts-Only"], flags:["Steals fries","2am debates"]},
+      {name:"Andre, 31", img:"https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=1400&auto=format&fit=crop", chaos:58, type:"friends", badges:["Financial Chaos","Gym @5am"], flags:["Late...ish","Hates brunch"]},
+      {name:"Rae, 25",   img:"https://images.unsplash.com/photo-1541534401786-2077eed87a57?q=80&w=1400&auto=format&fit=crop", chaos:81, type:"kink",   badges:["Most Ghosted","Receipts-Ready"], flags:["No small talk","Sunday scaries"]},
+      {name:"Leo, 29",   img:"https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?q=80&w=1400&auto=format&fit=crop", chaos:46, type:"ons",    badges:["Commitment? eh."], flags:["Two phones","Hot takes"]},
+      {name:"Maya, 26",  img:"https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1400&auto=format&fit=crop", chaos:67, type:"friends",badges:["Drama Magnet","Most Ghosted"], flags:["Plant parent","Clout allergy"]},
+      {name:"Sam, 30",   img:"https://images.unsplash.com/photo-1544005313-94ddf0286df2c?q=80&w=1400&auto=format&fit=crop", chaos:74, type:"fwb",     badges:["Partied too hard","Second Chance Champ"], flags:["Night owl","Debates @2am"]},
+      {name:"Ivy, 28",   img:"https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=1400&auto=format&fit=crop", chaos:63, type:"ons",    badges:["Receipts-Only"], flags:["Cat person","Receipts-only DMs"]},
+      {name:"Noah, 33",  img:"https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?q=80&w=1400&auto=format&fit=crop", chaos:55, type:"kink",   badges:["Gym @5am"], flags:["Bullet journals","Ice bath"]},
+      {name:"Zoe, 24",   img:"https://images.unsplash.com/photo-1541534401786-2077eed87a57?q=80&w=1400&auto=format&fit=crop", chaos:69, type:"friends",badges:["Chaos Playlists"], flags:["Nap queen","Dogs = yes"]}
+    ];
+
+    // Helpers
+    const $ = (s, d=document)=>d.querySelector(s);
+    const $$ = (s, d=document)=>Array.from(d.querySelectorAll(s));
+    const profGrid = $("#profiles");
+    const viewRail = $("#viewRail");
+    const chaosLabel = (n)=>`${Math.round(n/10)}/10 chaos`;
+
+    function profileCard(p){
+      const b = p.badges.map(b=>`<span class="badge${/drama|ghost|chaos|party|ex|fire/i.test(b)?' red':''}">${b}</span>`).join('');
+      const f = p.flags.slice(0,2).map(x=>`<span class="badge">${x}</span>`).join('');
+      return `
+        <article class="card" data-type="${p.type}">
+          <img class="pimg" src="${p.img}" alt="">
+          <div class="card-body">
+            <div class="row">
+              <strong>${p.name}</strong>
+              <span class="meta">${chaosLabel(p.chaos)}</span>
+            </div>
+            <div style="margin-top:6px">${b}</div>
+            <div style="margin-top:6px">${f}</div>
+            <div class="row" style="margin-top:10px">
+              <button class="btn primary" type="button">Message</button>
+              <button class="btn ghost" type="button">View</button>
+            </div>
+          </div>
+        </article>`;
+    }
+
+    function miniCard(p){
+      return `
+        <article class="card">
+          <img class="pimg" style="height:150px" src="${p.img}" alt="">
+          <div class="card-body">
+            <strong style="display:block">${p.name}</strong>
+            <span class="meta">${chaosLabel(p.chaos)}</span>
+          </div>
+        </article>`;
+    }
+
+    // current list snapshot for search/filter
+    let current = [...profiles];
+
+    function render(list){
+      current = [...list];
+      profGrid.innerHTML = list.map(profileCard).join('');
+      const viewers = [...list].sort(()=>Math.random()-.5).slice(0,6);
+      viewRail.innerHTML = viewers.map(miniCard).join('');
+    }
+
+    // Initial render
+    render(profiles);
+
+    // Filters
+    $("#filters").addEventListener("click",(e)=>{
+      const btn = e.target.closest(".fbtn"); if(!btn) return;
+      $$(".fbtn").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      const f = btn.dataset.filter;
+      const base = f==='all' ? profiles : profiles.filter(p=>p.type===f);
+      const q = $("#search").value.trim().toLowerCase();
+      const out = !q ? base : base.filter(p=>p.name.toLowerCase().includes(q));
+      render(out);
+      buildSwipeDeck(current);
+    });
+
+    // Search by name
+    $("#search").addEventListener('input', (e)=>{
+      const q = e.target.value.trim().toLowerCase();
+      const base = $$(".fbtn").find(b=>b.classList.contains('active'))?.dataset.filter || 'all';
+      const pool = base==='all' ? profiles : profiles.filter(p=>p.type===base);
+      const out = !q ? pool : pool.filter(p=>p.name.toLowerCase().includes(q));
+      render(out);
+      buildSwipeDeck(current);
+    });
+    $("#clearSearch").addEventListener('click', ()=>{ $("#search").value=''; render(current); buildSwipeDeck(current); });
+
+    // Faux chat send
+    const input=$("#chatInput"), log=$("#chatLog"), send=$("#sendBtn");
+    function pushMessage(txt, me=false){
+      const div=document.createElement('div');
+      div.className= 'msg' + (me?' me':'');
+      div.textContent = txt;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    }
+    send?.addEventListener('click',()=>{
+      const t=input?.value?.trim(); if(!t) return;
+      pushMessage(t,true); input.value='';
+    });
+
+    // Assign Badges & Flags
+    const badgeCatalog = ["Verified","Chaos Coordinator","Receipts-Only DMs","Second Chance Champ","Green-ish"];
+    const flagCatalog  = ["Steals fries","2am debates","No small talk","Late...ish","Sunday scaries","Double texts"];
+    const who = document.getElementById('assignWho');
+    if (who){
+      profiles.forEach((p,i)=>{
+        const opt=document.createElement('option');
+        opt.value=String(i); opt.textContent=p.name; who.appendChild(opt);
+      });
+    }
+    function renderChips(list, mount){
+      if(!mount) return;
+      mount.innerHTML = list.map(t=>`<button type="button" class="chip" data-val="${t}">${t}</button>`).join('');
+      mount.addEventListener('click', (e)=>{
+        const c = e.target.closest('.chip'); if(!c) return; c.classList.toggle('sel');
+      });
+    }
+    renderChips(badgeCatalog, document.getElementById('badgeList'));
+    renderChips(flagCatalog,  document.getElementById('flagList'));
+    document.getElementById('assignBtn')?.addEventListener('click', ()=>{
+      const idx = Number(who.value);
+      const pick = (root)=>Array.from(root.querySelectorAll('.chip.sel')).map(x=>x.dataset.val);
+      const badges = pick(document.getElementById('badgeList'));
+      const flags  = pick(document.getElementById('flagList'));
+      const key = `assign:${profiles[idx].name}`;
+      localStorage.setItem(key, JSON.stringify({badges, flags, when:Date.now()}));
+      const msg=document.getElementById('assignMsg'); if(msg){ msg.textContent = `Saved for ${profiles[idx].name}`; setTimeout(()=>msg.textContent='', 2000); }
+    });
+
+    // Footer year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Open Swipe Deck button
+    document.getElementById('openSwipe')?.addEventListener('click', ()=>{
+      document.getElementById('swipeDeckModule')?.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+
+    // ===== Compact Swipe Deck implementation =====
+    function makeSwipeCard(p){
+      const el = document.createElement('article');
+      el.className = 'swipe-card';
+      const [nameOnly] = p.name.split(',');
+      el.innerHTML = `
+        <div class="swipe-hint like">LIKE</div>
+        <div class="swipe-hint pass">NOPE</div>
+        <img src="${p.img}" alt="${nameOnly} photo">
+        <div class="swipe-info">
+          <div class="row"><strong>${p.name}</strong><span class="meta">${chaosLabel(p.chaos)}</span></div>
+          <div class="swipe-badges">
+            ${(p.badges||[]).map(b=>`<span class="swipe-chip ${/drama|ghost|chaos|party|ex|fire/i.test(b)?'red':''}">${b}</span>`).join('')}
+          </div>
+          <div class="swipe-flags">
+            ${(p.flags||[]).map(f=>`<span class="swipe-chip">${f}</span>`).join('')}
+          </div>
+        </div>`;
+      enableDrag(el, p);
+      return el;
+    }
+
+    const stage = document.getElementById('swipeStage');
+    const likeB = document.getElementById('swipeLike');
+    const passB = document.getElementById('swipePass');
+    const undoB = document.getElementById('swipeUndo');
+    const progress = document.getElementById('swipeProgress');
+    let deck = []; let idxDeck = 0; const history=[];
+
+    function buildSwipeDeck(list){
+      deck = Array.isArray(list) ? list.slice(0, 20) : [];
+      idxDeck = 0; history.length=0;
+      stage.innerHTML = '';
+      const seed = deck.slice(0,3);
+      seed.forEach((p,i)=>{
+        const card = makeSwipeCard(p);
+        card.style.zIndex = 100+i;
+        card.style.transform = `translateY(${(2-i)*2}px)`;
+        stage.appendChild(card);
+      });
+      updateProgress();
+    }
+    function updateProgress(){ progress.textContent = `${Math.min(idxDeck, deck.length)} / ${deck.length}`; }
+
+    function act(dir){
+      const cards = stage.querySelectorAll('.swipe-card');
+      const top = cards[cards.length-1];
+      if(!top) return;
+      const p = deck[idxDeck] || {};
+      const vx = dir==='right'? 600 : -600;
+      top.style.transition = 'transform 260ms ease, opacity 220ms ease';
+      top.style.transform = `translate(${vx}px, 0px) rotate(${dir==='right'?10:-10}deg)`;
+      top.style.opacity = '0';
+      setTimeout(()=>{
+        top.remove();
+        history.push({profile:p, action: dir==='right'?'like':'pass', at: Date.now()});
+        idxDeck++;
+        const next = deck[idxDeck+2];
+        if(next){
+          const c = makeSwipeCard(next);
+          c.style.zIndex = 100;
+          stage.prepend(c);
+        }
+        stage.querySelectorAll('.swipe-card').forEach((n,i)=> n.style.zIndex = 101+i);
+        updateProgress();
+        if(idxDeck>=deck.length && !stage.querySelector('.swipe-card')){
+          stage.innerHTML = '<div class="swipe-empty">You\'re out of people.</div>';
+        }
+      }, 200);
+    }
+
+    function undo(){
+      const last = history.pop(); if(!last) return;
+      idxDeck = Math.max(0, idxDeck-1);
+      const c = makeSwipeCard(deck[idxDeck]);
+      c.style.zIndex = 105;
+      stage.appendChild(c);
+      updateProgress();
+    }
+
+    function enableDrag(card){
+      let sx=0, sy=0, dx=0, dy=0, dragging=false;
+      const likeHint = card.querySelector('.swipe-hint.like');
+      const passHint = card.querySelector('.swipe-hint.pass');
+      const start = (e)=>{ const pt=ptOf(e); dragging=true; sx=pt.x; sy=pt.y; card.setPointerCapture?.(e.pointerId||1); };
+      const move  = (e)=>{
+        if(!dragging) return;
+        const pt=ptOf(e); dx=pt.x-sx; dy=pt.y-sy;
+        const rot = dx*0.04;
+        card.style.setProperty('--tx', dx+'px');
+        card.style.setProperty('--ty', dy+'px');
+        card.style.setProperty('--rot', rot+'deg');
+        likeHint.style.opacity = Math.min(1, Math.max(0, (dx-20)/120));
+        passHint.style.opacity = Math.min(1, Math.max(0, (-dx-20)/120));
+      };
+      const end   = ()=>{
+        if(!dragging) return; dragging=false;
+        const thr = 110;
+        if(dx>thr) act('right'); else if (dx<-thr) act('left');
+        card.style.removeProperty('--tx'); card.style.removeProperty('--ty'); card.style.removeProperty('--rot');
+        likeHint.style.opacity = 0; passHint.style.opacity = 0;
+      };
+      const ptOf = (e)=> (e.touches && e.touches[0]) ? {x:e.touches[0].clientX, y:e.touches[0].clientY} : {x:e.clientX, y:e.clientY};
+      card.addEventListener('pointerdown', start);
+      card.addEventListener('pointermove',  move);
+      card.addEventListener('pointerup',    end);
+      card.addEventListener('touchstart', start, {passive:true});
+      card.addEventListener('touchmove',  move,  {passive:true});
+      card.addEventListener('touchend',   end);
+    }
+
+    likeB?.addEventListener('click', ()=>act('right'));
+    passB?.addEventListener('click', ()=>act('left'));
+    undoB?.addEventListener('click', undo);
+    window.addEventListener('keydown', (e)=>{
+      if(e.key === 'ArrowLeft')  act('left');
+      if(e.key === 'ArrowRight') act('right');
+      if(e.key === 'Backspace' || (e.ctrlKey && e.key.toLowerCase()==='z')) undo();
+    });
+
+    // ===== Action Bar counters + toasts =====
+    (function(){
+      const v=document.getElementById('uxViewedCnt'),
+            l=document.getElementById('uxLikesCnt'),
+            m=document.getElementById('uxMatchesCnt');
+      let V=0,L=0,M=0;
+      function toast(msg){
+        let t=document.querySelector('.uxtoast');
+        if(!t){ t=document.createElement('div'); t.className='uxtoast'; document.body.appendChild(t); }
+        t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600);
+      }
+      document.getElementById('uxViewedBtn')?.addEventListener('click',()=>{ V++; v.textContent=V; toast('Opened viewers'); });
+      document.getElementById('uxLikesBtn')?.addEventListener('click',()=>{ L++; l.textContent=L; toast('Sent quick likes'); });
+      document.getElementById('uxMatchesBtn')?.addEventListener('click',()=>{ M++; m.textContent=M; toast('Showing matches'); });
+    })();
+
+    // Build initial swipe deck
+    buildSwipeDeck(current);
+  </script>
 </body>
 </html>
