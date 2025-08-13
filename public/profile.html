@@ -1,99 +1,78 @@
-// /public/js/profile.js
-import { auth } from './firebase.js';
-import {
-  onAuthStateChanged,
-  signOut,
-  updateProfile,
-  deleteUser
-} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-
-const $ = (id) => document.getElementById(id);
-
-const statusEl   = $('status');
-const box        = $('profileBox');
-const emailEl    = $('email');
-const nameInput  = $('displayName');
-const saveBtn    = $('save');
-const delBtn     = $('deleteAcct');
-const logoutBtn  = $('logout');
-
-// Where to send members after they have a display name:
-const AFTER_SAVE_URL = './app.html';   // change if your member app is a different file
-
-function setStatus(msg) { if (statusEl) statusEl.textContent = msg; }
-
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    // Not signed in → back to login
-    location.replace('./login.html');
-    return;
-  }
-
-  // Signed in: show profile box and populate fields
-  if (box) box.style.display = '';
-  setStatus('');
-
-  if (emailEl)   emailEl.textContent = user.email || '—';
-  if (nameInput) nameInput.value = user.displayName || '';
-
-  // If user already has a name, you can skip this page automatically.
-  // Comment out the next 3 lines if you always want them to see Profile first.
-  if (user.displayName && user.displayName.trim().length > 0) {
-    location.replace(AFTER_SAVE_URL);
-    return;
-  }
-});
-
-// Save display name
-if (saveBtn) {
-  saveBtn.addEventListener('click', async () => {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    const newName = (nameInput?.value || '').trim();
-    if (!newName) { setStatus('Enter a display name first'); return; }
-
-    saveBtn.disabled = true;
-    setStatus('Saving…');
-    try {
-      await updateProfile(user, { displayName: newName });
-      setStatus('Saved!');
-      // Head into the app
-      location.replace(AFTER_SAVE_URL);
-    } catch (err) {
-      console.error(err);
-      setStatus(err?.message || 'Could not save');
-    } finally {
-      saveBtn.disabled = false;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Unhinged — Profile</title>
+  <meta name="theme-color" content="#E11D2A" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      background: #0e0e12;
+      color: #fff;
+      font-family: Inter, system-ui, sans-serif;
+      margin: 0;
     }
-  });
-}
-
-// Delete account
-if (delBtn) {
-  delBtn.addEventListener('click', async () => {
-    const user = auth.currentUser;
-    if (!user) return;
-    if (!confirm('Delete your account permanently?')) return;
-
-    setStatus('Deleting…');
-    try {
-      await deleteUser(user);
-      location.replace('./index.html'); // back to marketing page
-    } catch (err) {
-      console.error(err);
-      setStatus(err?.message || 'Could not delete account');
+    header {
+      padding: 16px;
+      background: #141418;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,.06);
     }
-  });
-}
-
-// Log out
-if (logoutBtn) {
-  logoutBtn.addEventListener('click', async () => {
-    try {
-      await signOut(auth);
-    } finally {
-      location.replace('./index.html'); // back to marketing page
+    .logo { font-weight: 900; letter-spacing: .03em; }
+    main { max-width: 640px; margin: 40px auto; padding: 0 16px; }
+    .card {
+      background: #161821;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.2);
     }
-  });
-}
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: #0f0f12;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .save-btn { background: #E11D2A; color: #fff; }
+    .delete-btn { background: #333; color: #fff; margin-left: 8px; }
+    .logout-btn { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.2); }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    #status { margin-top: 8px; font-size: 14px; opacity: .85; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">UNHINGED</div>
+    <div class="btn-row">
+      <button id="logout" class="logout-btn">Sign out</button>
+    </div>
+  </header>
+
+  <main>
+    <h1>Your Profile</h1>
+    <div id="profileBox" class="card" style="display:none;">
+      <div id="status">Loading…</div>
+      <input type="text" id="displayName" placeholder="Display name"/>
+      <div>Email: <span id="email">—</span></div>
+      <div class="btn-row" style="margin-top:10px;">
+        <button id="save" class="save-btn">Save</button>
+        <button id="deleteAcct" class="delete-btn">Delete account</button>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="./js/profile.js"></script>
+</body>
+</html>
