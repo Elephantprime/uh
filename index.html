@@ -1,0 +1,322 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UNHINGED — Dating as a game</title>
+<meta name="theme-color" content="#E11D2A" />
+<style>
+  :root{--red:#E11D2A;--yellow:#F6C31C;--ink:#0F0F12;--charcoal:#141418;--muted:#b8b9c6;--radius:18px;--shadow:0 14px 36px rgba(0,0,0,.28)}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:linear-gradient(180deg,#0e0e12,#141418);color:#fff;font:500 16px/1.5 Inter,system-ui,Segoe UI,Roboto,Arial}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1100px;margin:0 auto;padding:18px}
+  header{position:relative;background:linear-gradient(180deg,#0e0e12 70%,rgba(14,14,18,.6));border-bottom:1px solid rgba(255,255,255,.06)}
+  .bar{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .logo{display:flex;align-items:center;gap:12px}
+  .mark{width:28px;height:28px;background:conic-gradient(from 180deg at 50% 50%, var(--red) 0 75%, #fff 75%);border-radius:7px;position:relative;box-shadow:0 0 0 0 rgba(225,29,42,.55);animation:pulse 2.4s infinite}
+  .mark:after{content:"";position:absolute;left:7px;top:7px;width:14px;height:14px;border:2px solid #fff;border-left-color:transparent;border-bottom-color:transparent;transform:rotate(-45deg)}
+  @keyframes pulse{50%{box-shadow:0 0 0 16px rgba(225,29,42,0)}}
+  .word{position:relative;font-weight:1000;letter-spacing:.02em;font-size:30px;transform:rotate(-3.2deg);transform-origin:left bottom;margin-top:6px}
+  .word .dating{position:absolute;right:-18px;bottom:-10px;font-size:11px;letter-spacing:.16em;color:#e9e9ef;opacity:.9;transform:rotate(3deg)}
+  .topnav{background:#0f0f12;border-bottom:1px solid rgba(255,255,255,.06)}
+  .topnav .wrap{display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap;padding:10px 18px}
+  nav{display:flex;gap:10px;flex-wrap:wrap}
+  .navbtn{padding:8px 12px;border-radius:12px;background:#202028;border:1px solid rgba(255,255,255,.08);white-space:nowrap}
+  .navbtn.cta{background:var(--red);border:none}
+  .quiz-cta{display:flex;flex-direction:column;align-items:center;gap:8px;margin:12px 0 0}
+  .quiz-cta .big{padding:12px 18px;border-radius:14px;cursor:pointer;font-weight:900;background:var(--red);border:0;color:#fff;box-shadow:0 8px 24px rgba(225,29,42,.35)}
+  .quiz-cta .sub{color:#ffdbe0;font-size:14px;opacity:.95}
+  .tagline{color:#e9e9ef;opacity:.95;font-weight:700;margin:8px 0 10px;min-height:1.6em;transition:opacity .25s}
+  .fade{opacity:0}
+  .rail-wrap{border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;background:#0f0f12;box-shadow:var(--shadow)}
+  .rail{display:flex;gap:12px;padding:12px;white-space:nowrap;animation:scroll 22s linear infinite}
+  .rail:hover{animation-play-state:paused}
+  @keyframes scroll{to{transform:translateX(-50%)}}
+  .card{min-width:280px;max-width:280px;background:#16171d;border:1px solid rgba(255,255,255,.08);border-radius:14px;overflow:hidden}
+  .card img{display:block;width:100%;height:170px;object-fit:cover}
+  .body{padding:10px}
+  .top{display:flex;justify-content:space-between;align-items:center}
+  .meta{font-size:12px;color:#cfd0de}
+  .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .badge{font-size:12px;padding:4px 8px;border-radius:999px;background:#282a33;border:1px solid rgba(255,255,255,.09)}
+  .badge.red{background:#8f171e}
+  .meter{height:8px;background:#1d1f27;border-radius:999px;overflow:hidden;border:1px solid #2a2d36;margin-top:8px}
+  .fill{height:100%;background:linear-gradient(90deg,#ff6b6b,#ff2a2a)}
+  section{padding:28px 0}
+  .h2{font-size:24px;margin:0 0 10px}
+  .board{background:#111217;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+  .pins{display:grid;grid-template-columns:repeat(1,1fr);gap:12px}
+  @media (min-width:760px){ .pins{grid-template-columns:repeat(2,1fr)} }
+  @media (min-width:1020px){ .pins{grid-template-columns:repeat(3,1fr)} }
+  .note{position:relative;background:#1a1b22;border:1px dashed #2e2f3a;border-radius:12px;padding:12px 12px 14px}
+  .tack{position:absolute;top:-8px;left:12px;width:16px;height:16px;border-radius:50%;background:var(--red);box-shadow:0 3px 0 #0008}
+  .nf{font-weight:800;margin:0 0 4px}
+  .nmeta{display:flex;gap:8px;align-items:center;color:#cfd0de;font-size:13px}
+  .scale{height:8px;background:#1d1f27;border:1px solid #2a2d36;border-radius:999px;overflow:hidden;margin-top:8px}
+  .scale .fill{background:linear-gradient(90deg,#ffb54d,#ff2a2a);height:100%}
+  .livebox{position:relative;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:#18181d;border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow)}
+  .static{position:absolute;inset:0;background:repeating-linear-gradient(0deg,#2a2a2a 0 2px,#303030 2px 4px),repeating-linear-gradient(90deg,#2b2b2b 0 2px,#313131 2px 4px);opacity:.85;animation:noise .9s steps(6,end) infinite}
+  @keyframes noise{50%{filter:brightness(1.05)}}
+  .livebadge{position:absolute;top:10px;left:10px;background:var(--red);padding:6px 10px;border-radius:10px;font-weight:900;animation:blink 1.2s infinite}
+  .hud{position:absolute;right:10px;bottom:10px;background:#0008;padding:8px 12px;border-radius:999px}
+  @keyframes blink{50%{opacity:.3}}
+  .wall{display:grid;grid-template-columns:1fr;gap:12px}
+  @media (min-width:880px){ .wall{grid-template-columns:1fr 1fr} }
+  .rev{background:#15161b;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px}
+  .rhead{display:flex;justify-content:space-between;align-items:center}
+  .flames{color:#ff5b40;font-weight:900}
+  .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .tag{font-size:12px;padding:4px 8px;border-radius:999px;background:#23242e;border:1px solid rgba(255,255,255,.08)}
+  .signup{background:#0f0f12;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+  .label{display:block;margin-top:10px;margin-bottom:6px;color:#e8e8e8;font-size:14px}
+  .input{width:100%;background:#0c0c0c;border:1px solid #2a2a2a;color:#fff;padding:14px;border-radius:12px;outline:none}
+  .input:focus{border-color:var(--yellow);box-shadow:0 0 0 3px #f6c31c33}
+  .btn{appearance:none;border:0;border-radius:14px;padding:14px 16px;font-weight:800;cursor:pointer}
+  .btn.primary{background:var(--red);color:#fff;margin-top:12px;width:100%}
+  .noteText{font-size:12px;color:#bdbdcc;margin-top:8px}
+  .ok{color:#7CFF7C}.warn{color:#F6C31C}
+  .pay{display:inline-block;margin:5px 8px 0 0;padding:8px 14px;font-weight:bold;color:#fff;text-decoration:none;border-radius:8px;transition:transform .18s}
+  .pay:hover{transform:scale(1.05)}
+  .pay.venmo{background:#1D62F0}
+  .pay.cashapp{background:#00D64B;color:#071B0C}
+  footer{padding:26px 0;color:#b8b8c2;text-align:center;border-top:1px solid rgba(255,255,255,.06);margin-top:10px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="topnav">
+    <div class="wrap">
+      <nav>
+        <a href="#profiles" class="navbtn">Profiles</a>
+        <a href="chaos.html" class="navbtn">Chaos Board</a>
+        <a href="#live" class="navbtn">Live</a>
+        <a href="reviews.html" class="navbtn">Reviews</a>
+        <a href="badges.html" class="navbtn">Badges</a>
+        <a href="redflags.html" class="navbtn">Red Flags</a>
+        <a href="casualties.html" class="navbtn">Casualties</a>
+        <a href="chat.html" class="navbtn">Chat</a>
+        <a href="#friends" class="navbtn">Friends</a>
+        <a href="#fwb" class="navbtn">Friends with Benefits</a>
+        <a href="profile.html" class="navbtn">Profiles</a>
+        <a href="auth.html" class="navbtn cta">Join</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="wrap bar" style="padding-top:8px">
+    <div class="logo">
+      <div class="mark"></div>
+      <div class="word">UNHINGED <span class="dating">DATING</span></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div id="tagline" class="tagline">Admit the 🚩 first. Flirt second.</div>
+    <div class="quiz-cta">
+      <button id="openQuiz" class="big">Take the Red Flag Quiz →</button>
+      <div class="sub">How many red flags are you starting with?</div>
+      <div class="noteText" style="text-align:center;margin-top:6px">Beta only — functionality coming soon.</div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="profiles">
+    <div class="rail-wrap">
+      <div class="rail" id="rail"></div>
+    </div>
+  </section>
+
+  <section id="chaos">
+    <h2 class="h2">Chaos Board</h2>
+    <div class="board">
+      <div class="pins">
+        <div class="note"><span class="tack"></span>
+          <div class="nf">“Started a fight club in college because I was bored.”</div>
+          <div class="nmeta">🚩 <span>Red Flags: 3</span> · 👍 212</div>
+          <div class="scale"><div class="fill" style="width:78%"></div></div>
+        </div>
+        <div class="note"><span class="tack"></span>
+          <div class="nf">“Still hooks up with my ex every few months. It’s seasonal.”</div>
+          <div class="nmeta">🚩 <span>Red Flags: 4</span> · 👍 168</div>
+          <div class="scale"><div class="fill" style="width:86%"></div></div>
+        </div>
+        <div class="note"><span class="tack"></span>
+          <div class="nf">“Forgot three birthdays in a row. But I’m very fun in May.”</div>
+          <div class="nmeta">🚩 <span>Red Flags: 2</span> · 👍 94</div>
+          <div class="scale"><div class="fill" style="width:52%"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="live">
+    <h2 class="h2">Right now on Unhinged Live</h2>
+    <p class="noteText" style="color:#d7d7de">Broadcast your questionable decisions in real time.</p>
+    <div class="livebox" style="margin-top:10px">
+      <span class="livebadge">LIVE</span>
+      <div class="static" aria-hidden="true"></div>
+      <div class="hud">🔥 1,842 watching</div>
+    </div>
+  </section>
+
+  <section id="reviews">
+    <h2 class="h2">Wall of Shame — past dates say</h2>
+    <div class="wall">
+      <div class="rev">
+        <div class="rhead"><strong>@Jamie27</strong><span class="flames">🔥🔥🔥</span></div>
+        <div class="tags"><span class="tag">Ghosts for months</span><span class="tag">Drama magnet</span></div>
+        <p style="margin:8px 0 0;color:#d9d9e3">“Fun, chaotic, disappears for weeks. 7/10 would text again.”</p>
+      </div>
+      <div class="rev">
+        <div class="rhead"><strong>@Andre31</strong><span class="flames">🔥🔥</span></div>
+        <div class="tags"><span class="tag">Financial chaos</span><span class="tag">Sleeps till 2PM</span></div>
+        <p style="margin:8px 0 0;color:#d9d9e3">“Nice but schedules dates like a crypto chart.”</p>
+      </div>
+      <div class="rev">
+        <div class="rhead"><strong>@Rae25</strong><span class="flames">🔥🔥🔥🔥</span></div>
+        <div class="tags"><span class="tag">Receipts ready</span><span class="tag">Most ghosted</span></div>
+        <p style="margin:8px 0 0;color:#d9d9e3">“Screenshots. For. Everything.”</p>
+      </div>
+      <div class="rev">
+        <div class="rhead"><strong>@Leo29</strong><span class="flames">🔥🔥</span></div>
+        <div class="tags"><span class="tag">Commitment? eh.</span></div>
+        <p style="margin:8px 0 0;color:#d9d9e3">“Sincere, allergic to labels. Great playlists though.”</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="casualties" style="padding:28px 0">
+    <h2 class="h2">Casualties of Modern Dating</h2>
+    <p style="color:#cfd0de;margin-top:-6px">Short, raw stories from the front lines. Submit yours, read others.</p>
+    <div id="casGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:12px"></div>
+    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+      <a class="navbtn cta" href="casualties.html" style="background:#E11D2A;border:none">Read the Series</a>
+      <a class="navbtn" href="https://formsubmit.co/unfavorablejosh@gmail.com" target="_blank" rel="noopener">Submit a Story</a>
+    </div>
+  </section>
+
+  <section id="join">
+    <div class="signup">
+      <form id="joinForm" action="https://formsubmit.co/unfavorablejosh@gmail.com" method="POST">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_subject" value="New Unhinged Signup">
+        <label class="label">Name</label>
+        <input class="input" type="text" name="name" required placeholder="Your name">
+        <label class="label">Email</label>
+        <input class="input" type="email" name="email" required placeholder="you@email.com">
+        <button class="btn primary" type="submit">Join the chaos</button>
+        <div id="joinMsg" class="noteText">Ready.</div>
+      </form>
+      <div class="noteText" style="margin-top:14px;color:#e3e3ea">
+        Help this startup get off the ground — chip in if you’re feeling chaotic.
+        <br><strong>$150 Lifetime Membership</strong> for early supporters.
+      </div>
+      <div style="margin-top:8px">
+        <a class="pay venmo" href="https://venmo.com/Joshua-Kirkley" target="_blank" rel="noopener">Contribute via Venmo</a>
+        <a class="pay cashapp" href="https://cash.app/$Jkirk007" target="_blank" rel="noopener">Contribute via Cash App</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  © <span id="year"></span> UNHINGED — dating for people who admit they’re the problem.
+</footer>
+
+<script type="module">
+  // (Optional) Firebase import is safe to miss
+  try { await import('./js/app.firebase.js'); } catch(e) {}
+
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // quiz button placeholder (non-functional)
+  document.getElementById('openQuiz').addEventListener('click', ()=> {
+    alert('Red Flag Quiz is coming soon.');
+  });
+
+  // tagline rotator
+  const taglines = [
+    "Admit the 🚩 first. Flirt second.",
+    "Match by mayhem. Own your chaos.",
+    "If they still want you after this… game on."
+  ];
+  const tl = document.getElementById('tagline'); let ti = 0;
+  setInterval(()=>{
+    tl.classList.add('fade');
+    setTimeout(()=>{ ti=(ti+1)%taglines.length; tl.textContent=taglines[ti]; tl.classList.remove('fade'); },250);
+  },6500);
+
+  // profiles
+  const profiles = [
+    { name:'Jamie, 27', img:'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80', chaos:72, badges:['Still texts ex','Drama magnet','Ghosts sometimes'] },
+    { name:'Andre, 31', img:'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?auto=format&fit=crop&w=1200&q=80', chaos:58, badges:['Financial chaos','Sleeps till 2PM'] },
+    { name:'Rae, 25',   img:'https://images.unsplash.com/photo-1541534401786-2077eed87a57?auto=format&fit=crop&w=1200&q=80', chaos:81, badges:['Ghosts for months','Receipts ready'] },
+    { name:'Leo, 29',   img:'https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?auto=format&fit=crop&w=1200&q=80', chaos:46, badges:['Commitment? eh.'] },
+    { name:'Maya, 26',  img:'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=1200&q=80', chaos:67, badges:['Drama magnet','Most ghosted'] },
+    { name:'Sam, 30',   img:'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=1200&q=80', chaos:74, badges:['Partied too hard','Second Chance Champ'] },
+  ];
+  const rail = document.getElementById('rail');
+  function card(p){
+    const el = document.createElement('div'); el.className='card';
+    el.innerHTML = `
+      <img src="${p.img}" alt="" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80'">
+      <div class="body">
+        <div class="top"><strong>${p.name}</strong><span class="meta">${Math.round(p.chaos/10)}/10</span></div>
+        <div class="badges">
+          ${p.badges.slice(0,3).map(b=>{
+            const cls = /ghost|drama|party|ex|fire|chaos/i.test(b)?'badge red':'badge';
+            return `<span class="${cls}">${b}</span>`;
+          }).join('')}
+        </div>
+        <div class="meter"><div class="fill" style="width:${p.chaos}%"></div></div>
+      </div>`;
+    return el;
+  }
+  [...profiles,...profiles].forEach(p=> rail.appendChild(card(p)));
+
+  // casualties teaser
+  const casualties = [
+    { t:"The Soft Launch That Never Launched", tag:"ghosting", line:"Three months of hints, zero dates, one lesson."},
+    { t:"Situationship Tax", tag:"mixed signals", line:"Paid in time, attention, and gas money."},
+    { t:"Breadcrumb Diet", tag:"bread‑crumbing", line:"Tiny crumbs, never a meal."},
+    { t:"DM Olympics", tag:"overlap", line:"Competing with a whole roster you can’t see."},
+    { t:"Romance as Content", tag:"clout", line:"Was it a date… or a B‑roll opportunity?"},
+    { t:"Right Person, Wrong App", tag:"misaligned", line:"FWB button was on, hearts were not."},
+  ];
+  const casGrid = document.getElementById('casGrid');
+  if (casGrid) casGrid.innerHTML = casualties.map(c=>`
+    <div style="background:#15161b;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px">
+      <div style="font-weight:900">${c.t}</div>
+      <div style="margin:6px 0 8px;color:#d9d9e3">${c.line}</div>
+      <span style="font-size:12px;padding:4px 8px;border-radius:999px;background:#23242e;border:1px solid rgba(255,255,255,.08)">#${c.tag}</span>
+    </div>
+  `).join('');
+
+  // ——— mark member on successful signup ———
+  const form = document.getElementById('joinForm');
+  const msg  = document.getElementById('joinMsg');
+  if (form) {
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      msg.textContent='Sending…';
+      try{
+        const res = await fetch(form.action,{method:'POST',headers:{'Accept':'application/json'},body:new FormData(form)});
+        if(res.ok){
+          form.reset();
+          localStorage.setItem('uh_member','1'); // << member flag
+          msg.classList.remove('warn'); msg.classList.add('ok');
+          msg.textContent='You’re in. Check your inbox.';
+        } else {
+          msg.classList.remove('ok'); msg.classList.add('warn');
+          msg.textContent='Couldn’t send. Try again.';
+        }
+      }catch{
+        msg.classList.remove('ok'); msg.classList.add('warn');
+        msg.textContent='Network hiccup. Try again.';
+      }
+    });
+  }
+</script>
+</body></html>

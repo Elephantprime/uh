@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign up • UNHINGED</title>
+<link rel="stylesheet" href="./styles.css">
+</head><body>
+<main class="wrap" style="max-width:440px">
+  <h1>Create account</h1>
+  <form id="sForm">
+    <label>Name</label><input id="sname" required>
+    <label>Email</label><input id="semail" type="email" required>
+    <label>Password (6+)</label><input id="spass" type="password" required minlength="6">
+    <button type="submit">Join the chaos</button>
+    <p id="smsg"></p>
+  </form>
+  <p>Already have one? <a href="./login.html">Log in</a></p>
+</main>
+
+<script type="module" src="./js/firebase.js"></script>
+<script type="module">
+  import { doSignup } from "./js/auth.js";
+  const f = document.getElementById('sForm'), msg = document.getElementById('smsg');
+  f.addEventListener('submit', async (e)=>{
+    e.preventDefault(); msg.textContent='…';
+    try{ await doSignup(sname.value, semail.value, spass.value); location.href = "./profile.html"; }
+    catch(err){ msg.textContent = err.code || 'Signup failed'; }
+  });
+</script>
+<script type="module" src="./js/auth.js"></script>
+</body></html>

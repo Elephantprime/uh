@@ -1,0 +1,99 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UNHINGED — Reviews</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{--red:#E11D2A}
+  *{box-sizing:border-box} body{margin:0;background:#0f0f12;color:#fff;font:500 16px/1.5 Inter,system-ui}
+  a{color:#fff;text-decoration:none}
+  .wrap{max-width:1100px;margin:0 auto;padding:18px}
+  .top{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+  .pill{padding:8px 12px;background:#1a1b22;border:1px solid rgba(255,255,255,.08);border-radius:999px}
+  h1{margin:6px 0 2px;font-size:26px;font-weight:900}
+  .sub{color:#cfd0de}
+
+  .grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
+  @media (min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+  .rev{background:#15161b;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px}
+  .rhead{display:flex;justify-content:space-between;align-items:center}
+  .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .tag{font-size:12px;padding:4px 8px;border-radius:999px;background:#23242e;border:1px solid rgba(255,255,255,.08)}
+  .flames{color:#ff5b40;font-weight:900}
+
+  .card{background:#14161a;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px;margin-top:14px}
+  label{display:block;margin:8px 0 4px;color:#d8d8e0}
+  input,textarea,select{width:100%;background:#0c0c0c;border:1px solid #2a2a2a;color:#fff;padding:12px;border-radius:12px;outline:none}
+  textarea{min-height:100px;resize:vertical}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{appearance:none;border:0;border-radius:12px;padding:12px 16px;font-weight:800;cursor:pointer}
+  .btn.primary{background:var(--red);color:#fff}
+  .msg{font-size:13px;color:#bdbdcc;margin-top:6px}
+</style></head><body>
+<div class="wrap">
+  <div class="top">
+    <a class="pill" href="index.html">← Home</a>
+    <a class="pill" href="chaos.html">🧷 Chaos Board</a>
+    <a class="pill" href="badges.html">🏅 Badges</a>
+    <a class="pill" href="redflags.html">🚩 Red Flags</a>
+  </div>
+
+  <h1>Reviews</h1>
+  <div class="sub">Honest, helpful feedback from past dates. Keep it factual, not spiteful.</div>
+
+  <!-- sample reviews -->
+  <div id="list" class="grid"></div>
+
+  <!-- add a review (emails to you for now) -->
+  <div class="card">
+    <h3 style="margin:0 0 8px">Leave a review</h3>
+    <form id="revForm" action="https://formsubmit.co/unfavorablejosh@gmail.com" method="POST">
+      <input type="hidden" name="_subject" value="New Unhinged Review">
+      <input type="hidden" name="_captcha" value="false">
+      <div class="row">
+        <div style="flex:1 1 220px">
+          <label>Your handle</label>
+          <input name="from" required placeholder="@You">
+        </div>
+        <div style="flex:1 1 220px">
+          <label>About (their handle)</label>
+          <input name="about" required placeholder="@Them">
+        </div>
+        <div style="flex:1 1 120px">
+          <label>Heat (1–4)</label>
+          <select name="heat">
+            <option>🔥</option><option>🔥🔥</option><option selected>🔥🔥🔥</option><option>🔥🔥🔥🔥</option>
+          </select>
+        </div>
+      </div>
+      <label>Tags (comma separated)</label>
+      <input name="tags" placeholder="On time, Great planner">
+      <label>Review</label>
+      <textarea name="text" required placeholder="Be specific, be fair."></textarea>
+      <button class="btn primary" type="submit">Submit</button>
+      <div id="rmsg" class="msg">Sends to inbox for moderation. Realtime feed coming later.</div>
+    </form>
+  </div>
+</div>
+<script>
+const reviews = [
+  { who:'@Jamie27', heat:'🔥🔥🔥', tags:['Ghosts for months','Drama magnet'], text:'Fun, chaotic, disappears for weeks. 7/10 would text again.' },
+  { who:'@Andre31', heat:'🔥🔥', tags:['Financial chaos','Sleeps till 2PM'], text:'Nice but schedules dates like a crypto chart.' },
+  { who:'@Rae25', heat:'🔥🔥🔥🔥', tags:['Receipts ready','Most ghosted'], text:'Screenshots. For. Everything.' },
+  { who:'@Leo29', heat:'🔥🔥', tags:['Commitment? eh.'], text:'Sincere, allergic to labels. Great playlists though.' },
+];
+const root = document.getElementById('list');
+root.innerHTML = reviews.map(r=>`
+  <div class="rev">
+    <div class="rhead"><strong>${r.who}</strong><span class="flames">${r.heat}</span></div>
+    <div class="tags">${r.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+    <p style="margin:8px 0 0;color:#d9d9e3">${r.text}</p>
+  </div>
+`).join('');
+
+// form UX
+document.getElementById('revForm').addEventListener('submit', (e)=>{
+  const msg = document.getElementById('rmsg');
+  msg.textContent = 'Sending…';
+});
+</script>
+</body></html>
