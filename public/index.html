@@ -303,20 +303,7 @@
         const res = await fetch(form.action,{method:'POST',headers:{'Accept':'application/json'},body:new FormData(form)});  
         if(res.ok){  
           form.reset();  
-        <form id="joinForm"> ... </form>
-
-<script type="module">
-  const form = document.getElementById('joinForm');
-  const msg  = document.getElementById('joinMsg');
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    // ... your fetch/POST code ...
-    // on success:
-    localStorage.setItem('uh_member', '1'); // member flag
-    msg.textContent = "You’re in. Check your inbox.";
-  });
-</script>
+localStorage.setItem('uh_member', '1'); // member flag
           msg.classList.remove('warn'); msg.classList.add('ok');  
           msg.textContent='You’re in. Check your inbox.';  
         } else {  
