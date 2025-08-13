@@ -1,28 +1,60 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Sign up • UNHINGED</title>
-<link rel="stylesheet" href="./styles.css">
-</head><body>
-<main class="wrap" style="max-width:440px">
-  <h1>Create account</h1>
-  <form id="sForm">
-    <label>Name</label><input id="sname" required>
-    <label>Email</label><input id="semail" type="email" required>
-    <label>Password (6+)</label><input id="spass" type="password" required minlength="6">
-    <button type="submit">Join the chaos</button>
-    <p id="smsg"></p>
-  </form>
-  <p>Already have one? <a href="./login.html">Log in</a></p>
-</main>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sign up • UNHINGED</title>
+  <style>
+    :root{--ink:#0b0b0f;--card:#12131a;--ui:#0c0c0c;--muted:#b8b9c6;--border:#2a2a2a;--brand:#E11D2A}
+    *{box-sizing:border-box} html,body{margin:0}
+    body{background:var(--ink);color:#fff;font:500 16px/1.5 Inter,system-ui,Segoe UI,Roboto,Arial}
+    .wrap{max-width:480px;margin:40px auto;padding:0 16px}
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:18px;box-shadow:0 10px 28px rgba(0,0,0,.35)}
+    h1{margin:0 0 12px;font-size:24px}
+    label{display:block;margin:12px 0 6px;color:#ddd;font-size:14px}
+    input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--ui);color:#fff}
+    button{background:var(--brand);color:#fff;border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer;margin-top:12px;width:100%}
+    #smsg{min-height:20px;margin-top:10px;color:var(--muted)}
+    #smsg.ok{color:#7CFF7C} #smsg.warn{color:#F6C31C}
+    a{color:#fff;text-decoration:underline}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="card">
+      <h1>Create account</h1>
+      <form id="signupForm" novalidate>
+        <label for="semail">Email</label>
+        <input id="semail" type="email" required autocomplete="email">
+        <label for="spass">Password</label>
+        <input id="spass" type="password" required minlength="6" autocomplete="new-password">
+        <button type="submit">Create account</button>
+        <p id="smsg"></p>
+      </form>
+      <p style="margin-top:8px">Already have an account? <a href="./login.html">Log in</a></p>
+    </div>
+  </main>
 
-<script type="module" src="./js/firebase.js"></script>
-<script type="module">
-  import { doSignup } from "./js/auth.js";
-  const f = document.getElementById('sForm'), msg = document.getElementById('smsg');
-  f.addEventListener('submit', async (e)=>{
-    e.preventDefault(); msg.textContent='…';
-    try{ await doSignup(sname.value, semail.value, spass.value); location.href = "./profile.html"; }
-    catch(err){ msg.textContent = err.code || 'Signup failed'; }
-  });
-</script>
-<script type="module" src="./js/auth.js"></script>
-</body></html>
+  <script type="module">
+    import { auth } from "./js/firebase.js";
+    import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const $ = (id)=>document.getElementById(id);
+    const form = $("signupForm"), email = $("semail"), pass = $("spass"), msg = $("smsg");
+
+    function show(t, ok=false){ msg.textContent=t||""; msg.className = ok ? "ok" : "warn"; }
+
+    form.addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      show("Creating…");
+      try{
+        await createUserWithEmailAndPassword(auth, (email.value||"").trim(), pass.value||"");
+        show("Account created!", true);
+        location.replace("./profile.html");
+      }catch(err){
+        show(err?.message || "Couldn’t create account");
+      }
+    });
+  </script>
+</body>
+</html>
