@@ -6,35 +6,95 @@
   <title>Profile</title>
   <style>
     body { font-family: Arial, sans-serif; background: #0e0e12; color: white; text-align: center; padding: 40px; }
-    input { padding: 10px; border-radius: 6px; border: none; margin: 10px 0; width: 250px; }
-    button { padding: 10px 20px; background: #E11D2A; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    input, button { padding: 10px; border-radius: 6px; border: none; margin: 10px 0; }
+    input[type="text"] { width: 250px; }
+    input[type="file"] { background: #1a1a1a; color: white; }
+    button { background: #E11D2A; color: white; cursor: pointer; }
     button:hover { background: #c01021; }
+    img { margin-top: 12px; max-width: 150px; border-radius: 8px; border: 2px solid #E11D2A; }
   </style>
 </head>
 <body>
   <h1>Set Up Your Profile</h1>
+  
   <input type="text" id="username" placeholder="Enter your username"/>
+  <br/>
+  <input type="file" id="profilePic" accept="image/*"/>
+  <br/>
+  <img id="preview" style="display:none;" />
   <br/>
   <button id="saveBtn">Save</button>
   <p id="status"></p>
 
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js"></script>
+
   <script>
-    // If username already exists, skip to app
+    // === Firebase Config ===
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "unhinged-8c6da.firebaseapp.com",
+      projectId: "unhinged-8c6da",
+      storageBucket: "unhinged-8c6da.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const storage = firebase.storage();
+
+    // === Username Redirect Check ===
     const existingUser = localStorage.getItem("username");
     if (existingUser) {
-      window.location.href = "app.html"; // change if your app file has a different name
+      window.location.href = "app.html";
     }
 
-    document.getElementById("saveBtn").addEventListener("click", function() {
+    // === Image Preview ===
+    document.getElementById("profilePic").addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          document.getElementById("preview").src = ev.target.result;
+          document.getElementById("preview").style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // === Save Button Logic ===
+    document.getElementById("saveBtn").addEventListener("click", async function() {
       const username = document.getElementById("username").value.trim();
-      if (username) {
+      const file = document.getElementById("profilePic").files[0];
+      const status = document.getElementById("status");
+
+      if (!username) {
+        status.textContent = "Please enter a username.";
+        return;
+      }
+
+      if (!file) {
+        status.textContent = "Please select a profile picture.";
+        return;
+      }
+
+      try {
+        // Save username locally
         localStorage.setItem("username", username);
-        document.getElementById("status").textContent = "Saved!";
-        setTimeout(() => {
-          window.location.href = "app.html"; // change if needed
-        }, 500);
-      } else {
-        document.getElementById("status").textContent = "Please enter a username.";
+
+        // Upload file to Firebase Storage
+        const storageRef = storage.ref(`profilePictures/${username}_${file.name}`);
+        await storageRef.put(file);
+        const url = await storageRef.getDownloadURL();
+
+        // Save profile pic URL locally too
+        localStorage.setItem("profilePicURL", url);
+
+        status.textContent = "Profile saved!";
+        setTimeout(() => window.location.href = "app.html", 800);
+      } catch (err) {
+        console.error(err);
+        status.textContent = "Error saving profile. Check console.";
       }
     });
   </script>
