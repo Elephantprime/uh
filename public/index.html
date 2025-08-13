@@ -1,9 +1,9 @@
 <!DOCTYPE html><html lang="en">  
 <head>  
-<meta charset="utf-8" />  
-<meta name="viewport" content="width=device-width, initial-scale=1" />  
+<meta charset="utf-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1">  
 <title>UNHINGED — Dating as a game</title>  
-<meta name="theme-color" content="#E11D2A" />  
+<meta name="theme-color" content="#E11D2A">  
 <style>  
   :root{--red:#E11D2A;--yellow:#F6C31C;--ink:#0F0F12;--charcoal:#141418;--muted:#b8b9c6;--radius:18px;--shadow:0 14px 36px rgba(0,0,0,.28)}  
   *{box-sizing:border-box}  
@@ -303,15 +303,28 @@
         const res = await fetch(form.action,{method:'POST',headers:{'Accept':'application/json'},body:new FormData(form)});  
         if(res.ok){  
           form.reset();  
-          localStorage.setItem('uh_member','1'); // << member flag  
+        <form id="joinForm"> ... </form>
+
+<script type="module">
+  const form = document.getElementById('joinForm');
+  const msg  = document.getElementById('joinMsg');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    // ... your fetch/POST code ...
+    // on success:
+    localStorage.setItem('uh_member', '1'); // member flag
+    msg.textContent = "You’re in. Check your inbox.";
+  });
+</script>
           msg.classList.remove('warn'); msg.classList.add('ok');  
           msg.textContent='You’re in. Check your inbox.';  
         } else {  
-          msg.classList.remove('ok'); msg.classList.add('warn');  
+          msg.classList.remove(ok); msg.classList.add(warn);  
           msg.textContent='Couldn’t send. Try again.';  
         }  
       }catch{  
-        msg.classList.remove('ok'); msg.classList.add('warn');  
+        msg.classList.remove(ok); msg.classList.add(warn);  
         msg.textContent='Network hiccup. Try again.';  
       }  
     });  
