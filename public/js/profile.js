@@ -1,81 +1,99 @@
-// public/js/profile.js
-import { auth } from "./firebase.js";
+/ /public/js/profile.js
+import { auth } from './firebase.js';
 import {
   onAuthStateChanged,
-  updateProfile,
   signOut,
-  deleteUser,
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  updateProfile,
+  deleteUser
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
-// Elements (must match profile.html)
 const $ = (id) => document.getElementById(id);
-const statusEl   = $("status");
-const boxEl      = $("profileBox");
-const nameInput  = $("displayName");
-const emailOut   = $("email");
-const saveBtn    = $("save");
-const delBtn     = $("deleteAcct");
-const logoutBtn  = $("logout");
 
-// Simple status helper
-function msg(text = "", ok = false) {
-  if (!statusEl) return;
-  statusEl.textContent = text;
-  statusEl.className = ok ? "ok" : "warn";
+const statusEl   = $('status');
+const box        = $('profileBox');
+const emailEl    = $('email');
+const nameInput  = $('displayName');
+const saveBtn    = $('save');
+const delBtn     = $('deleteAcct');
+const logoutBtn  = $('logout');
+
+// Where to send members after they have a display name:
+const AFTER_SAVE_URL = './app.html';   // change if your member app is a different file
+
+function setStatus(msg) { if (statusEl) statusEl.textContent = msg; }
+
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    // Not signed in → back to login
+    location.replace('./login.html');
+    return;
+  }
+
+  // Signed in: show profile box and populate fields
+  if (box) box.style.display = '';
+  setStatus('');
+
+  if (emailEl)   emailEl.textContent = user.email || '—';
+  if (nameInput) nameInput.value = user.displayName || '';
+
+  // If user already has a name, you can skip this page automatically.
+  // Comment out the next 3 lines if you always want them to see Profile first.
+  if (user.displayName && user.displayName.trim().length > 0) {
+    location.replace(AFTER_SAVE_URL);
+    return;
+  }
+});
+
+// Save display name
+if (saveBtn) {
+  saveBtn.addEventListener('click', async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const newName = (nameInput?.value || '').trim();
+    if (!newName) { setStatus('Enter a display name first'); return; }
+
+    saveBtn.disabled = true;
+    setStatus('Saving…');
+    try {
+      await updateProfile(user, { displayName: newName });
+      setStatus('Saved!');
+      // Head into the app
+      location.replace(AFTER_SAVE_URL);
+    } catch (err) {
+      console.error(err);
+      setStatus(err?.message || 'Could not save');
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
 }
-function showBox(show) {
-  if (boxEl) boxEl.style.display = show ? "block" : "none";
+
+// Delete account
+if (delBtn) {
+  delBtn.addEventListener('click', async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+    if (!confirm('Delete your account permanently?')) return;
+
+    setStatus('Deleting…');
+    try {
+      await deleteUser(user);
+      location.replace('./index.html'); // back to marketing page
+    } catch (err) {
+      console.error(err);
+      setStatus(err?.message || 'Could not delete account');
+    }
+  });
 }
 
-// Auth state: populate fields; NO nav/button injection here
-let first = true;
-onAuthStateChanged(auth, (u) => {
-  if (u) {
-    showBox(true);
-    if (emailOut) emailOut.textContent = u.email || "—";
-    if (nameInput) nameInput.value = u.displayName || "";
-    msg("", true);
-  } else if (!first) {
-    msg("You’re signed out.", false);
-  }
-  first = false;
-});
-
-// Save display name -> go to main app
-saveBtn?.addEventListener("click", async () => {
-  const u = auth.currentUser;
-  if (!u) { msg("You’re signed out. Log in again.", false); return; }
-  const name = (nameInput?.value || "").trim();
-  if (!name) { msg("Enter a display name.", false); return; }
-  try {
-    await updateProfile(u, { displayName: name });
-    msg("Saved.", true);
-    location.replace("./index.html");
-  } catch (e) {
-    msg(e?.message || "Couldn't save.", false);
-  }
-});
-
-// Delete account -> back to login
-delBtn?.addEventListener("click", async () => {
-  const u = auth.currentUser;
-  if (!u) return;
-  if (!confirm("Delete your account? This cannot be undone.")) return;
-  try {
-    await deleteUser(u);
-    msg("Account deleted.", true);
-    location.replace("./login.html");
-  } catch (e) {
-    msg(e?.message || "Couldn't delete account.", false);
-  }
-});
-
-// Log out -> back to login
-logoutBtn?.addEventListener("click", async () => {
-  try {
-    await signOut(auth);
-    location.replace("./login.html");
-  } catch (e) {
-    msg(e?.message || "Couldn't sign out.", false);
-  }
-});
+// Log out
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      await signOut(auth);
+    } finally {
+      location.replace('./index.html'); // back to marketing page
+    }
+  });
+}
