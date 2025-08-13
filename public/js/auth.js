@@ -41,7 +41,7 @@ async function doSignIn(){
     log("signIn success:", cred?.user?.uid);
     msg("Signed in!", true);
     // go to your app’s home
-    location.replace("./home.html");
+    location.replace("./index.html");
   }catch(err){
     const m = err?.message || String(err);
     log("signIn error:", err);
@@ -60,7 +60,7 @@ async function doCreate(){
     const cred = await createUserWithEmailAndPassword(auth, em, pw);
     log("create success:", cred?.user?.uid);
     msg("Account created!", true);
-    location.replace("./home.html");
+    location.replace("./index.html");
   }catch(err){
     const m = err?.message || String(err);
     log("create error:", err);
