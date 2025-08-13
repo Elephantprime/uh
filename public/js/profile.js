@@ -7,6 +7,13 @@ import {
   deleteUser,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
 const $ = (id) => document.getElementById(id);
 const statusEl = $("status");
 const box = $("profileBox");
@@ -14,10 +21,17 @@ const nameInput = $("displayName");
 const emailEl = $("email");
 const saveBtn = $("save");
 const delBtn = $("deleteAcct");
-const logoutBtn = document.getElementById("logout") || document.getElementById("signout");
+const logoutBtn =
+  document.getElementById("logout") || document.getElementById("signout");
 
-// show error helper
-function show(msg) { statusEl.textContent = msg; }
+// NEW: File input for profile picture
+const fileInput = $("profilePic");
+const uploadBtn = $("uploadPicBtn");
+
+// show error/helper
+function show(msg) {
+  statusEl.textContent = msg;
+}
 
 // 1) Auth gate + initial fill
 onAuthStateChanged(auth, (user) => {
@@ -31,6 +45,10 @@ onAuthStateChanged(auth, (user) => {
   show("Signed in.");
   emailEl.textContent = user.email || "—";
   nameInput.value = user.displayName || "";
+  if (user.photoURL) {
+    const img = document.getElementById("profilePreview");
+    if (img) img.src = user.photoURL;
+  }
 });
 
 // 2) Save display name
@@ -52,7 +70,34 @@ saveBtn?.addEventListener("click", async () => {
   }
 });
 
-// 3) Delete account (simple, no reauth flow)
+// 3) Upload profile picture
+uploadBtn?.addEventListener("click", async () => {
+  const user = auth.currentUser;
+  if (!user) return show("Not signed in.");
+  const file = fileInput?.files?.[0];
+  if (!file) return show("Please select a file first.");
+
+  show("Uploading…");
+  try {
+    const storage = getStorage();
+    const fileRef = ref(storage, `profilePics/${user.uid}.jpg`);
+    await uploadBytes(fileRef, file);
+    const url = await getDownloadURL(fileRef);
+
+    // Save to Auth profile
+    await updateProfile(user, { photoURL: url });
+
+    // Show preview
+    const img = document.getElementById("profilePreview");
+    if (img) img.src = url;
+
+    show("Profile picture updated!");
+  } catch (err) {
+    show(err?.message || "Upload failed.");
+  }
+});
+
+// 4) Delete account
 delBtn?.addEventListener("click", async () => {
   const user = auth.currentUser;
   if (!user) return show("Not signed in.");
@@ -71,7 +116,7 @@ delBtn?.addEventListener("click", async () => {
   }
 });
 
-// 4) Sign out
+// 5) Sign out
 logoutBtn?.addEventListener("click", async () => {
   try {
     await signOut(auth);
