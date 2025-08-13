@@ -1,51 +1,99 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Unhinged — Profile</title>
-<link rel="icon" href="/favicon.ico">
-<style>
-  :root{--red:#E11D2A;--ink:#0f0f12;--char:#16171d;--muted:#cfd0de;}
-  *{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#0e0e12,#141418);color:#fff;font:500 16px/1.5 Inter,system-ui,Segoe UI,Roboto,Arial}
-  .wrap{max-width:980px;margin:0 auto;padding:20px}
-  header{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.08)}
-  .brand{font-weight:1000;letter-spacing:.02em} .brand b{color:var(--red)}
-  .card{background:#12131a;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;box-shadow:0 14px 36px rgba(0,0,0,.25);margin-top:18px}
-  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-  input{width:100%;max-width:360px;background:#0c0c0c;border:1px solid #2a2a2a;color:#fff;padding:12px;border-radius:10px}
-  button{appearance:none;border:0;border-radius:12px;padding:12px 16px;font-weight:800;cursor:pointer}
-  .primary{background:var(--red);color:#fff}
-  .ghost{background:#202028;color:#fff;border:1px solid rgba(255,255,255,.1)}
-  .muted{color:#bbb}
-  .ok{color:#7CFF7C}.warn{color:#F6C31C}
-</style>
-<script type="module" src="/public/js/profile.js"></script>
-</head>
-<body>
-  <header>
-    <div class="brand">UN<b>HINGED</b></div>
-    <nav class="row">
-      <a class="ghost" style="padding:10px 14px;text-decoration:none" href="/index.html">Home</a>
-      <button id="signOut" class="ghost">Sign out</button>
-    </nav>
-  </header>
+// /public/js/profile.js
+import { auth } from './firebase.js';
+import {
+  onAuthStateChanged,
+  signOut,
+  updateProfile,
+  deleteUser
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
-  <main class="wrap">
-    <div class="card">
-      <h2 style="margin:0 0 6px">Your Profile</h2>
-      <div id="status" class="muted">Loading…</div>
+const $ = (id) => document.getElementById(id);
 
-      <div class="row" style="margin-top:16px">
-        <input id="displayName" placeholder="Display name">
-        <button id="save" class="primary">Save</button>
-        <button id="deleteAcct" class="ghost">Delete account</button>
-      </div>
+const statusEl   = $('status');
+const box        = $('profileBox');
+const emailEl    = $('email');
+const nameInput  = $('displayName');
+const saveBtn    = $('save');
+const delBtn     = $('deleteAcct');
+const logoutBtn  = $('logout');
 
-      <div style="margin-top:16px" class="muted">
-        Email: <span id="email">—</span>
-      </div>
-    </div>
-  </main>
-</body>
-</html>
+// Where to send members after they have a display name:
+const AFTER_SAVE_URL = './app.html';   // change if your member app is a different file
+
+function setStatus(msg) { if (statusEl) statusEl.textContent = msg; }
+
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    // Not signed in → back to login
+    location.replace('./login.html');
+    return;
+  }
+
+  // Signed in: show profile box and populate fields
+  if (box) box.style.display = '';
+  setStatus('');
+
+  if (emailEl)   emailEl.textContent = user.email || '—';
+  if (nameInput) nameInput.value = user.displayName || '';
+
+  // If user already has a name, you can skip this page automatically.
+  // Comment out the next 3 lines if you always want them to see Profile first.
+  if (user.displayName && user.displayName.trim().length > 0) {
+    location.replace(AFTER_SAVE_URL);
+    return;
+  }
+});
+
+// Save display name
+if (saveBtn) {
+  saveBtn.addEventListener('click', async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const newName = (nameInput?.value || '').trim();
+    if (!newName) { setStatus('Enter a display name first'); return; }
+
+    saveBtn.disabled = true;
+    setStatus('Saving…');
+    try {
+      await updateProfile(user, { displayName: newName });
+      setStatus('Saved!');
+      // Head into the app
+      location.replace(AFTER_SAVE_URL);
+    } catch (err) {
+      console.error(err);
+      setStatus(err?.message || 'Could not save');
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+}
+
+// Delete account
+if (delBtn) {
+  delBtn.addEventListener('click', async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+    if (!confirm('Delete your account permanently?')) return;
+
+    setStatus('Deleting…');
+    try {
+      await deleteUser(user);
+      location.replace('./index.html'); // back to marketing page
+    } catch (err) {
+      console.error(err);
+      setStatus(err?.message || 'Could not delete account');
+    }
+  });
+}
+
+// Log out
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      await signOut(auth);
+    } finally {
+      location.replace('./index.html'); // back to marketing page
+    }
+  });
+}
