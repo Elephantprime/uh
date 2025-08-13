@@ -29,6 +29,7 @@
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
 
   <script>
     // === Firebase Config ===
@@ -40,8 +41,10 @@
       messagingSenderId: "YOUR_SENDER_ID",
       appId: "YOUR_APP_ID"
     };
-    firebase.initializeApp(firebaseConfig);
+
+    const app = firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
+    const db = firebase.firestore();
 
     // === Username Redirect Check ===
     const existingUser = localStorage.getItem("username");
@@ -79,6 +82,7 @@
       }
 
       try {
+        status.textContent = "Saving...";
         // Save username locally
         localStorage.setItem("username", username);
 
@@ -89,6 +93,13 @@
 
         // Save profile pic URL locally too
         localStorage.setItem("profilePicURL", url);
+
+        // Save to Firestore
+        await db.collection("users").doc(username).set({
+          username: username,
+          photoURL: url,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
 
         status.textContent = "Profile saved!";
         setTimeout(() => window.location.href = "app.html", 800);
