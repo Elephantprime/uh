@@ -1,78 +1,41 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Unhinged — Profile</title>
-  <meta name="theme-color" content="#E11D2A" />
-  <link rel="stylesheet" href="styles.css" />
-  <style>
-    body {
-      background: #0e0e12;
-      color: #fff;
-      font-family: Inter, system-ui, sans-serif;
-      margin: 0;
-    }
-    header {
-      padding: 16px;
-      background: #141418;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(255,255,255,.06);
-    }
-    .logo { font-weight: 900; letter-spacing: .03em; }
-    main { max-width: 640px; margin: 40px auto; padding: 0 16px; }
-    .card {
-      background: #161821;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 16px rgba(0,0,0,.2);
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: #0f0f12;
-      color: #fff;
-      margin-bottom: 10px;
-    }
-    button {
-      padding: 10px 14px;
-      border: none;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .save-btn { background: #E11D2A; color: #fff; }
-    .delete-btn { background: #333; color: #fff; margin-left: 8px; }
-    .logout-btn { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.2); }
-    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    #status { margin-top: 8px; font-size: 14px; opacity: .85; }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your Profile • UNHINGED</title>
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <header>
-    <div class="logo">UNHINGED</div>
-    <div class="btn-row">
-      <button id="logout" class="logout-btn">Sign out</button>
+  <header class="wrap" style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+    <strong>UNHINGED</strong>
+    <div style="display:flex;gap:8px">
+      <a class="ghost" href="./index.html" style="text-decoration:none;padding:.6rem .9rem;border-radius:10px;border:1px solid rgba(255,255,255,.12);opacity:.9">Home</a>
+      <button id="logout" class="ghost" type="button">Sign out</button>
     </div>
   </header>
 
-  <main>
+  <main class="wrap">
     <h1>Your Profile</h1>
-    <div id="profileBox" class="card" style="display:none;">
-      <div id="status">Loading…</div>
-      <input type="text" id="displayName" placeholder="Display name"/>
-      <div>Email: <span id="email">—</span></div>
-      <div class="btn-row" style="margin-top:10px;">
-        <button id="save" class="save-btn">Save</button>
-        <button id="deleteAcct" class="delete-btn">Delete account</button>
+    <p id="status" class="muted">Loading…</p>
+
+    <div id="profileBox" style="display:none">
+      <div class="card" style="padding:16px;max-width:720px">
+        <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input id="displayName" placeholder="Display name" style="flex:1;min-width:220px">
+          <button id="save" class="primary" type="button">Save</button>
+          <button id="deleteAcct" class="ghost" type="button">Delete account</button>
+        </div>
+
+        <div style="margin-top:16px;opacity:.85">
+          Email: <span id="email">—</span>
+        </div>
       </div>
     </div>
   </main>
 
+  <!-- IMPORTANT: Firebase first, then profile.js -->
+  <script type="module" src="./js/firebase.js"></script>
   <script type="module" src="./js/profile.js"></script>
 </body>
 </html>
