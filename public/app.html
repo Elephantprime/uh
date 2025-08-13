@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>UNHINGED - App (SHIP build)</title>
   <meta name="theme-color" content="#E11D2A">
+  #profiles { display: none !important; }
   <style>
     :root{
       --red:#E11D2A;--yellow:#F6C31C;--ink:#0F0F12;--charcoal:#141418;
@@ -448,7 +449,15 @@
       current = [...list];
       profGrid.innerHTML = list.map(profileCard).join('');
       const viewers = [...list].sort(()=>Math.random()-.5).slice(0,6);
-      viewRail.innerHTML = viewers.map(miniCard).join('');
+      <!-- SWAP 2: Action buttons + tray -->
+<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:10px">
+  <button class="btn primary" id="btnViews">Views <span id="cntViews" class="meta" style="margin-left:6px">0</span></button>
+  <button class="btn" id="btnLikes">Likes <span id="cntLikes" class="meta" style="margin-left:6px">0</span></button>
+  <button class="btn" id="btnMatches">Matches <span id="cntMatches" class="meta" style="margin-left:6px">0</span></button>
+</div>
+
+<!-- simple tray that reuses your mini cards -->
+<div id="tray" class="rail"></div>
     }
 
     // Initial render
@@ -464,6 +473,29 @@
       const q = $("#search").value.trim().toLowerCase();
       const out = !q ? base : base.filter(p=>p.name.toLowerCase().includes(q));
       render(out);
+      // --- SWAP 2 JS: hook up the three buttons ---
+const tray   = document.getElementById('tray');
+const cViews = document.getElementById('cntViews');
+const cLikes = document.getElementById('cntLikes');
+const cMatch = document.getElementById('cntMatches');
+
+function populateTray(kind){
+  // quick demo data built from current results
+  let list = [...current];
+  if(kind==='views')  list = list.slice(0,6);
+  if(kind==='likes')  list = list.slice(3,9);
+  if(kind==='matches')list = list.filter((_,i)=> i%2===0).slice(0,6);
+  tray.innerHTML = list.map(miniCard).join('');
+  cViews.textContent = Math.max(Number(cViews.textContent)||0, (kind==='views'?list.length:cViews.textContent));
+  cLikes.textContent = Math.max(Number(cLikes.textContent)||0, (kind==='likes'?list.length:cLikes.textContent));
+  cMatch.textContent = Math.max(Number(cMatch.textContent)||0, (kind==='matches'?list.length:cMatch.textContent));
+}
+document.getElementById('btnViews')?.addEventListener('click',   ()=>populateTray('views'));
+document.getElementById('btnLikes')?.addEventListener('click',   ()=>populateTray('likes'));
+document.getElementById('btnMatches')?.addEventListener('click', ()=>populateTray('matches'));
+
+// load something by default so it isn't empty
+populateTray('views');
       buildSwipeDeck(current);
     });
 
