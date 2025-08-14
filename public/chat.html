@@ -70,6 +70,7 @@
   const feed    = document.getElementById('feed');
   const text    = document.getElementById('text');
   const sendBtn = document.getElementById('send');
+  const logoutBtn = document.getElementById('logout');
 
   let room = roomSel.value || 'lobby';
   let displayName = 'Member';
@@ -115,6 +116,7 @@
     });
   }
 
+  // events
   sendBtn.addEventListener('click', send);
   text.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') send(); });
   roomSel.addEventListener('change', (e)=>{
@@ -122,7 +124,11 @@
     status.textContent = `Connected as ${displayName} in #${room}`;
     if (auth.currentUser) listen(room);
   });
+  logoutBtn.addEventListener('click', async ()=>{
+    try { await signOut(auth); } finally { location.replace('./login.html'); }
+  });
 
+  // auth gate
   onAuthStateChanged(auth, (user)=>{
     if (!user) { location.replace("./login.html"); return; }
     displayName = user.displayName || "Member";
