@@ -17,7 +17,7 @@
   <h1>Login</h1>
   <input id="name" autocomplete="username" placeholder="Name (username)"/>
   <input id="pass" type="password" autocomplete="current-password" placeholder="Password"/>
-  <button id="go" type="button">Enter</button>
+ <button id="go" type="button">Enter</button>
   <div id="msg" class="sub"></div>
 
   <script type="module">
@@ -53,8 +53,7 @@
       const pass = (passEl.value||"").trim();
       if (!name || !pass){ msg.textContent = "Enter name and password."; return; }
       if (pass.length < 6){ msg.textContent = "Password must be at least 6 characters."; return; }
-
-      const email = `${name.toLowerCase().replace(/\s+/g,'_')}@unhinged.app`;
+const email = `${name.normalize('NFKC').trim().replace(/\s+/g,'_').toLowerCase()}@unhinged.app`;
       uiBusy(true); msg.textContent = "Checking…";
       try {
         await signInWithEmailAndPassword(auth, email, pass);
