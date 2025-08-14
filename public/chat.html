@@ -62,7 +62,7 @@
   import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import {
     collection, addDoc, serverTimestamp,
-    query, where, orderBy, onSnapshot, limit
+    query, orderBy, onSnapshot, limit
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const roomSel = document.getElementById('room');
@@ -75,6 +75,9 @@
   let room = roomSel.value || 'lobby';
   let displayName = 'Member';
   let stopListen = null;
+
+  // helper for subcollection path
+  const roomColl = (r) => collection(db, "rooms", r, "messages");
 
   function bubble({ text, uid, displayName: dn, createdAt }) {
     const me = auth.currentUser?.uid && uid === auth.currentUser.uid;
@@ -91,8 +94,7 @@
     stopListen?.();
     feed.innerHTML = '';
     const q = query(
-      collection(db, "messages"),
-      where("channel","==", channel),
+      roomColl(channel),
       orderBy("createdAt","asc"),
       limit(200)
     );
@@ -107,9 +109,8 @@
     const v = text.value.trim();
     if (!v || !auth.currentUser) return;
     text.value = '';
-    await addDoc(collection(db, "messages"), {
+    await addDoc(roomColl(room), {
       text: v,
-      channel: room,
       uid: auth.currentUser.uid,
       displayName: displayName,
       createdAt: serverTimestamp(),
