@@ -1,58 +1,67 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0e0e12;
-      color: white;
-      text-align: center;
-      padding: 40px;
-    }
-    input {
-      padding: 10px;
-      border-radius: 6px;
-      border: none;
-      margin: 10px 0;
-      width: 250px;
-    }
-    button {
-      padding: 10px 20px;
-      background: #E11D2A;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #c01021;
-    }
+    body{font-family:Arial, sans-serif;background:#0e0e12;color:#fff;text-align:center;padding:40px}
+    input,button{padding:10px;border-radius:6px;border:none;width:260px}
+    input{background:#171821;color:#fff;margin:8px 0}
+    button{background:#E11D2A;color:#fff;cursor:pointer;margin-top:8px}
+    button:hover{background:#c01021}
+    .sub{color:#cfd0de;font-size:13px;margin-top:10px;min-height:1.2em}
   </style>
 </head>
 <body>
   <h1>Login</h1>
-  <input type="text" id="username" placeholder="Enter your username"/>
-  <br/>
-  <button id="loginBtn">Login</button>
-  <p id="status"></p>
+  <input id="name" placeholder="Name (username)"/>
+  <input id="pass" type="password" placeholder="Password"/>
+  <button id="go">Enter</button>
+  <div id="msg" class="sub"></div>
 
-  <script>
-    document.getElementById("loginBtn").addEventListener("click", function() {
-      const username = document.getElementById("username").value.trim();
-      if (username) {
-        // Only set what you want — no extra keys unless you choose
-        localStorage.setItem("username", username);
-        document.getElementById("status").textContent = "Logging in...";
-        setTimeout(() => {
-          window.location.href = "app.html";
-        }, 500);
-      } else {
-        document.getElementById("status").textContent = "Please enter your username.";
+  <script type="module">
+    import { app, auth, db } from "./js/firebase.js";
+    import {
+      onAuthStateChanged, updateProfile,
+      signInWithEmailAndPassword, createUserWithEmailAndPassword
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    onAuthStateChanged(auth, (user)=>{ if (user) location.replace("app.html"); });
+
+    async function loginOrCreate() {
+      const msg  = document.getElementById("msg");
+      const name = (document.getElementById("name").value||"").trim();
+      const pass = (document.getElementById("pass").value||"").trim();
+      if (!name || !pass) { msg.textContent = "Enter name and password."; return; }
+      msg.textContent = "Checking…";
+
+      const email = `${name.toLowerCase().replace(/\s+/g,'_')}@unhinged.app`;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+        location.replace("app.html");
+      } catch (e) {
+        if (e.code === "auth/user-not-found") {
+          const cred = await createUserWithEmailAndPassword(auth, email, pass);
+          await updateProfile(cred.user, { displayName: name });
+          await setDoc(doc(db, "profiles", cred.user.uid), {
+            uid: cred.user.uid,
+            displayName: name,
+            photoURL: cred.user.photoURL || null,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+          location.replace("app.html");
+        } else {
+          msg.textContent = e.message || "Login failed.";
+        }
       }
-    });
+    }
+
+    document.getElementById("go").addEventListener("click", loginOrCreate);
+    document.getElementById("pass").addEventListener("keydown", e=>{ if (e.key==="Enter") loginOrCreate(); });
   </script>
 </body>
 </html>
