@@ -732,6 +732,16 @@ onAuthStateChanged(auth, (user) => {
       });
     });
 
+    const roomRef = collection(db, "rooms", "general", "messages");
+    const qMsgs = query(roomRef, orderBy("createdAt","asc"));
+    onSnapshot(qMsgs, (snap)=>{
+      log.innerHTML = '';
+      snap.forEach(doc => {
+        const d = doc.data();
+        appendMsg({text:d.text, uid:d.uid, displayName:d.displayName});
+      });
+    });
+
     send?.addEventListener('click', async ()=>{
       const txt = input.value.trim();
       if(!txt || !auth.currentUser) return;
