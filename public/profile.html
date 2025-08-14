@@ -42,17 +42,17 @@
       appId: "YOUR_APP_ID"
     };
 
-    const app = firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
     const db = firebase.firestore();
 
-    // === Username Redirect Check ===
+    // Redirect if username already exists locally
     const existingUser = localStorage.getItem("username");
     if (existingUser) {
       window.location.href = "app.html";
     }
 
-    // === Image Preview ===
+    // Image preview
     document.getElementById("profilePic").addEventListener("change", e => {
       const file = e.target.files[0];
       if (file) {
@@ -65,8 +65,8 @@
       }
     });
 
-    // === Save Button Logic ===
-    document.getElementById("saveBtn").addEventListener("click", async function() {
+    // Save profile
+    document.getElementById("saveBtn").addEventListener("click", async () => {
       const username = document.getElementById("username").value.trim();
       const file = document.getElementById("profilePic").files[0];
       const status = document.getElementById("status");
@@ -83,15 +83,12 @@
 
       try {
         status.textContent = "Saving...";
-        // Save username locally
         localStorage.setItem("username", username);
 
-        // Upload file to Firebase Storage
+        // Upload to storage
         const storageRef = storage.ref(`profilePictures/${username}_${file.name}`);
         await storageRef.put(file);
         const url = await storageRef.getDownloadURL();
-
-        // Save profile pic URL locally too
         localStorage.setItem("profilePicURL", url);
 
         // Save to Firestore
