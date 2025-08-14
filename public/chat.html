@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>UNHINGED — Chat</title>
+<title>UNHINGED â€” Chat</title>
 <style>
   :root{--red:#E11D2A}
   *{box-sizing:border-box} body{margin:0;background:#0f0f12;color:#fff;font:500 16px/1.5 Inter,system-ui}
@@ -23,34 +23,23 @@
 </style>
 </head><body>
 
-<!-- Members-only gate -->
-<script>
-  if (localStorage.getItem('uh_member') !== '1') {
-    alert('Members only. Join first to access chat.');
-    location.href = 'index.html#join';
-    throw new Error('blocked');
-  }
-</script>
-
 <div class="wrap">
   <div class="top">
-    <a class="pill" href="index.html">← Home</a>
-    <a class="pill" href="badges.html">🏅 Badges</a>
-    <a class="pill" href="redflags.html">🚩 Red Flags</a>
+    <a class="pill" href="index.html">â† Home</a>
   </div>
 
   <h1>Community Chat</h1>
-  <div class="sub">Meet people, talk chaos. (Demo mode — works across tabs on this device.)</div>
+  <div class="sub">Realtime via Firestore. If youâ€™re signed in, we use your display name. Otherwise, type a handle.</div>
 
   <div class="row">
     <select id="room">
       <option value="lobby">#lobby</option>
       <option value="dating">#dating</option>
       <option value="friends">#friends</option>
-      <option value="fwb">#friends-with-benefits</option>
+      <option value="fwb">#fwb</option>
       <option value="vents">#vents</option>
     </select>
-    <input id="handle" placeholder="Your name (real names preferred)">
+    <input id="handle" placeholder="Your name (if not signed in)">
     <button id="enter" style="background:var(--red);border:0">Enter</button>
   </div>
 
@@ -58,75 +47,11 @@
     <div id="status" class="sys">Pick a room and enter.</div>
     <div id="feed" class="msgs"></div>
     <div class="inputbar">
-      <input id="text" placeholder="Type a message…" disabled>
+      <input id="text" placeholder="Type a messageâ€¦" disabled>
       <button id="send" disabled>Send</button>
     </div>
   </div>
 </div>
 
-<script>
-/* Single-file demo chat: localStorage + BroadcastChannel */
-const roomSel = document.getElementById('room');
-const handle  = document.getElementById('handle');
-const enter   = document.getElementById('enter');
-const status  = document.getElementById('status');
-const feed    = document.getElementById('feed');
-const text    = document.getElementById('text');
-const sendBtn = document.getElementById('send');
-
-let room = roomSel.value || 'lobby';
-let name = '';
-const chan = ('BroadcastChannel' in window) ? new BroadcastChannel('unhinged_chat') : null;
-
-function key(r){ return `uh_chat_${r}`; }
-function load(r){ try{return JSON.parse(localStorage.getItem(key(r))||'[]')}catch{return []} }
-function save(r,arr){ try{localStorage.setItem(key(r), JSON.stringify(arr))}catch{} }
-function timeFmt(ts){ return new Date(ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
-
-function renderRoom(r){
-  feed.innerHTML = '';
-  load(r).slice(-200).forEach(m=>{
-    const mine = m.user===name;
-    const div = document.createElement('div');
-    div.className = 'msg';
-    div.innerHTML = `
-      <div class="${mine?'me':'other'}"><strong>${m.user}</strong> — ${m.text}</div>
-      <div class="meta">${timeFmt(m.ts)}</div>
-    `;
-    feed.appendChild(div);
-  });
-  feed.scrollTop = feed.scrollHeight;
-}
-
-function postLocal(textVal){
-  const msg = { user:name, text:textVal.slice(0,500), ts:Date.now(), room };
-  const arr = load(room); arr.push(msg); save(room, arr);
-  renderRoom(room);
-  if (chan) chan.postMessage({ type:'new', room });
-}
-
-enter.addEventListener('click', ()=>{
-  name = (handle.value||'').trim();
-  if(!name){ alert('Enter your name.'); return; }
-  status.textContent = `Connected as ${name}`;
-  text.disabled = false; sendBtn.disabled = false;
-  renderRoom(roomSel.value);
-});
-
-roomSel.addEventListener('change', e=>{
-  room = e.target.value;
-  if(!name) return;
-  renderRoom(room);
-});
-
-sendBtn.addEventListener('click', ()=>{
-  const v = text.value.trim(); if(!v) return;
-  text.value = ''; postLocal(v);
-});
-text.addEventListener('keydown', e=>{ if(e.key==='Enter') sendBtn.click(); });
-
-if (chan) chan.onmessage = evt=>{
-  if (evt.data?.type==='new' && evt.data.room===room) renderRoom(room);
-};
-</script>
+<script type="module" src="./js/chat.js"></script>
 </body></html>
