@@ -26,7 +26,10 @@ let currentPhotoURL = '';
 
 onAuthStateChanged(auth, async (user)=>{
   me = user || null;
-  if (!me){ show('Please sign in first.'); return; }
+  if (!me){
+    location.href = './login.html';
+    return;
+  }
 
   // Prefill from Auth
   nameInput.value = me.displayName || '';
@@ -64,7 +67,7 @@ saveBtn?.addEventListener('click', async ()=>{
   const bio = (bioInput.value || '').trim().slice(0,400);
   const file = fileInput.files?.[0];
 
-  saveBtn.disabled = true; show('Savingâ€¦');
+  saveBtn.disabled = true; show('Saving…');
 
   try {
     let photoURL = currentPhotoURL;
