@@ -91,11 +91,18 @@
         const url = await storageRef.getDownloadURL();
         localStorage.setItem("profilePicURL", url);
 
-        // Save to Firestore
+        // Save to Firestore: profile
         await db.collection("users").doc(username).set({
           username: username,
           photoURL: url,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Save to Firestore: chatrooms (prep for chat feature)
+        await db.collection("chatrooms").doc(username).set({
+          members: [username],
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          lastMessage: null
         });
 
         status.textContent = "Profile saved!";
