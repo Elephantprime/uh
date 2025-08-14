@@ -1,123 +1,116 @@
-// /public/js/profile.js
+// Profile: name/bio/avatar -> Auth + Firestore + Storage
+import { auth, db, storage } from "./firebase.js";
 import {
-  auth,
-  storage,
-  onAuthStateChanged,
-  updateProfile,
-  signOut,
-} from "./firebase.js"; // use shared module (same app + correct bucket)
-
+  onAuthStateChanged, updateProfile, signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
+  doc, setDoc, getDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  ref as sRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 const $ = (id) => document.getElementById(id);
-const statusEl = $("status");
-const box = $("profileBox");
-const nameInput = $("displayName");
-const emailEl = $("email");
-const saveBtn = $("save");
-const delBtn = $("deleteAcct");
-const logoutBtn = document.getElementById("logout") || document.getElementById("signout");
+const nameInput = $('name');
+const bioInput  = $('bio');
+const fileInput = $('avatar');
+const preview   = $('preview');
+const saveBtn   = $('save');
+const delBtn    = $('deletePhoto');
+const statusEl  = $('status');
 
-// NEW: File input for profile picture
-const fileInput = $("profilePic");
-const uploadBtn = $("uploadPicBtn");
+function show(msg){ if(statusEl) statusEl.textContent = msg || ''; }
 
-function show(msg) {
-  if (statusEl) statusEl.textContent = msg;
-}
+let me = null;
+let currentPhotoURL = '';
 
-// 1) Auth gate + initial fill
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    show("Not signed in. Redirecting…");
-    setTimeout(() => (location.href = "./login.html"), 800);
-    return;
-  }
-  box && (box.style.display = "");
-  show("Signed in.");
-  if (emailEl) emailEl.textContent = user.email || "—";
-  if (nameInput) nameInput.value = user.displayName || "";
-  if (user.photoURL) {
-    const img = document.getElementById("profilePreview");
-    if (img) img.src = user.photoURL;
-  }
+onAuthStateChanged(auth, async (user)=>{
+  me = user || null;
+  if (!me){ show('Please sign in first.'); return; }
+
+  // Prefill from Auth
+  nameInput.value = me.displayName || '';
+  currentPhotoURL = me.photoURL || '';
+  if (currentPhotoURL){ preview.src = currentPhotoURL; preview.style.display = 'block'; }
+
+  // Prefill from Firestore (bio/photo)
+  try {
+    const uref = doc(db, 'users', me.uid);
+    const snap = await getDoc(uref);
+    if (snap.exists()){
+      const d = snap.data();
+      if (d?.bio) bioInput.value = d.bio;
+      if (!currentPhotoURL && d?.photoURL){
+        preview.src = d.photoURL; preview.style.display = 'block';
+      }
+    }
+  } catch {}
 });
 
-// 2) Save display name
-saveBtn?.addEventListener("click", async () => {
-  const user = auth.currentUser;
-  if (!user) return show("Not signed in.");
-  const newName = nameInput?.value?.trim() || "";
-  if (newName.length < 2) return show("Enter at least 2 characters.");
+// Live preview
+fileInput?.addEventListener('change', ()=>{
+  const f = fileInput.files?.[0];
+  if (!f) return;
+  const url = URL.createObjectURL(f);
+  preview.src = url;
+  preview.style.display = 'block';
+});
 
-  saveBtn.disabled = true;
-  show("Saving…");
+// Save
+saveBtn?.addEventListener('click', async ()=>{
+  if (!me){ show('Sign in first.'); return; }
+
+  const displayName = (nameInput.value || '').trim().slice(0,60);
+  const bio = (bioInput.value || '').trim().slice(0,400);
+  const file = fileInput.files?.[0];
+
+  saveBtn.disabled = true; show('Savingâ€¦');
+
   try {
-    await updateProfile(user, { displayName: newName });
-    show("Saved!");
-  } catch (err) {
-    show(err?.message || "Couldn’t save name.");
+    let photoURL = currentPhotoURL;
+
+    if (file){
+      const path = `avatars/${me.uid}/${Date.now()}_${file.name.replace(/\s+/g,'_')}`;
+      const r = sRef(storage, path);
+      await uploadBytes(r, file);
+      photoURL = await getDownloadURL(r);
+    }
+
+    // Auth profile
+    await updateProfile(me, {
+      displayName: displayName || me.displayName || 'Member',
+      photoURL: photoURL || null
+    });
+
+    // Firestore profile
+    const uref = doc(db, 'users', me.uid);
+    await setDoc(uref, {
+      uid: me.uid,
+      displayName: displayName || me.displayName || 'Member',
+      photoURL: photoURL || null,
+      bio,
+      updatedAt: serverTimestamp(),
+    }, { merge: true });
+
+    currentPhotoURL = photoURL || currentPhotoURL;
+    show('Profile saved!');
+    setTimeout(()=> show(''), 1200);
+  } catch (err){
+    console.error(err);
+    show(err?.message || 'Failed saving profile.');
   } finally {
     saveBtn.disabled = false;
   }
 });
 
-// 3) Upload profile picture (uses shared storage instance)
-uploadBtn?.addEventListener("click", async () => {
-  const user = auth.currentUser;
-  if (!user) return show("Not signed in.");
-  const file = fileInput?.files?.[0];
-  if (!file) return show("Please select a file first.");
-
-  show("Uploading…");
-  try {
-    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-    const fileRef = ref(storage, `profilePics/${user.uid}.${ext}`);
-    await uploadBytes(fileRef, file);
-    const url = await getDownloadURL(fileRef);
-
-    // Save to Auth profile
-    await updateProfile(user, { photoURL: url });
-
-    // Show preview
-    const img = document.getElementById("profilePreview");
-    if (img) img.src = url;
-
-    show("Profile picture updated!");
-  } catch (err) {
-    show(err?.message || "Upload failed.");
-  }
+// Delete preview (not deleting Storage)
+delBtn?.addEventListener('click', ()=>{
+  preview.removeAttribute('src');
+  preview.style.display = 'none';
+  fileInput.value = '';
 });
 
-// 4) Delete account (unchanged behavior)
-delBtn?.addEventListener("click", async () => {
-  const user = auth.currentUser;
-  if (!user) return show("Not signed in.");
-  if (!confirm("Delete your account? This cannot be undone.")) return;
-
-  delBtn.disabled = true;
-  show("Deleting…");
-  try {
-    // Note: deleteUser must be imported if you really call it here.
-    // Intentionally not invoking deleteUser since it wasn't imported in this file.
-    show("Contact support to delete account.");
-  } catch (err) {
-    show(err?.message || "Delete failed.");
-  } finally {
-    delBtn.disabled = false;
-  }
-});
-
-// 5) Sign out
-logoutBtn?.addEventListener("click", async () => {
-  try {
-    await signOut(auth);
-    location.href = "./login.html";
-  } catch (err) {
-    show(err?.message || "Couldn’t sign out.");
-  }
+// Optional quick sign-out support if you add a button with id="logout" later
+document.getElementById('logout')?.addEventListener('click', async ()=>{
+  try { await signOut(auth); location.href = './login.html'; } catch (e){ show(e?.message || 'Could not sign out.'); }
 });
