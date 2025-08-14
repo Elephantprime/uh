@@ -13,17 +13,11 @@
 </head>
 <body>
   <h1>Login</h1>
-  <input type="text" id="username" placeholder="Enter your username"/>
   <br/>
   <button id="loginBtn">Login</button>
   <p id="status"></p>
 
-  <script>
-    // If already logged in, skip to app
-    const existingUser = localStorage.getItem("username");
-    if (existingUser) {
-      window.location.href = "app.html"; // Change if your app file has a different name
-    }
+  
 
     document.getElementById("loginBtn").addEventListener("click", function() {
       const username = document.getElementById("username").value.trim();
