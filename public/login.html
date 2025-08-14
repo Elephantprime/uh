@@ -1,31 +1,53 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #0e0e12; color: white; text-align: center; padding: 40px; }
-    input { padding: 10px; border-radius: 6px; border: none; margin: 10px 0; width: 250px; }
-    button { padding: 10px 20px; background: #E11D2A; color: white; border: none; border-radius: 6px; cursor: pointer; }
-    button:hover { background: #c01021; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #0e0e12;
+      color: white;
+      text-align: center;
+      padding: 40px;
+    }
+    input {
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      margin: 10px 0;
+      width: 250px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #E11D2A;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #c01021;
+    }
   </style>
 </head>
 <body>
   <h1>Login</h1>
+  <input type="text" id="username" placeholder="Enter your username"/>
   <br/>
   <button id="loginBtn">Login</button>
   <p id="status"></p>
 
-  
-
+  <script>
     document.getElementById("loginBtn").addEventListener("click", function() {
       const username = document.getElementById("username").value.trim();
       if (username) {
+        // Only set what you want — no extra keys unless you choose
         localStorage.setItem("username", username);
         document.getElementById("status").textContent = "Logging in...";
         setTimeout(() => {
-          window.location.href = "app.html"; // Change if needed
+          window.location.href = "app.html";
         }, 500);
       } else {
         document.getElementById("status").textContent = "Please enter your username.";
