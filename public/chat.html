@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>UNHINGED â€” Chat</title>
+<title>UNHINGED — Chat</title>
 <style>
   :root{--red:#E11D2A}
   *{box-sizing:border-box} body{margin:0;background:#0f0f12;color:#fff;font:500 16px/1.5 Inter,system-ui}
@@ -22,15 +22,12 @@
   .inputbar input{flex:1}
 </style>
 </head><body>
-
 <div class="wrap">
   <div class="top">
-    <a class="pill" href="index.html">â† Home</a>
+    <a class="pill" href="index.html">← Home</a>
   </div>
-
   <h1>Community Chat</h1>
-  <div class="sub">Realtime via Firestore. If youâ€™re signed in, we use your display name. Otherwise, type a handle.</div>
-
+  <div class="sub">Realtime via Firestore. If you’re signed in, we use your display name. Otherwise, type a handle.</div>
   <div class="row">
     <select id="room">
       <option value="lobby">#lobby</option>
@@ -42,16 +39,14 @@
     <input id="handle" placeholder="Your name (if not signed in)">
     <button id="enter" style="background:var(--red);border:0">Enter</button>
   </div>
-
   <div class="card">
     <div id="status" class="sys">Pick a room and enter.</div>
     <div id="feed" class="msgs"></div>
     <div class="inputbar">
-      <input id="text" placeholder="Type a messageâ€¦" disabled>
+      <input id="text" placeholder="Type a message…" disabled>
       <button id="send" disabled>Send</button>
     </div>
   </div>
 </div>
-
 <script type="module" src="./js/chat.js"></script>
 </body></html>
