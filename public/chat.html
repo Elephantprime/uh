@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,8 +6,7 @@
 <title>UNHINGED — Chat</title>
 <style>
   :root{--red:#E11D2A}
-  *{box-sizing:border-box}
-  body{margin:0;background:#0f0f12;color:#fff;font:500 16px/1.5 Inter,system-ui}
+  *{box-sizing:border-box} body{margin:0;background:#0f0f12;color:#fff;font:500 16px/1.5 Inter,system-ui}
   a{color:#fff;text-decoration:none}
   .wrap{max-width:1100px;margin:0 auto;padding:18px}
   .top{display:flex;gap:10px;align-items:center;margin-bottom:12px}
@@ -20,9 +18,7 @@
   .card{background:#15161b;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px}
   .msgs{height:56vh;overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;background:#0e0f14}
   .msg{margin:8px 0}
-  .me{color:#8ff79d}
-  .other{color:#e3e3ea}
-  .sys{color:#9aa0aa;font-size:13px}
+  .me{color:#8ff79d} .other{color:#e3e3ea} .sys{color:#9aa0aa;font-size:13px}
   .meta{font-size:12px;color:#9aa0aa}
   .row{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
   .inputbar{display:flex;gap:8px;margin-top:10px}
@@ -30,21 +26,32 @@
 </style>
 </head>
 <body>
+
+<!-- Members-only gate -->
+<script>
+  if (localStorage.getItem('uh_member') !== '1') {
+    alert('Members only. Join first to access chat.');
+    location.href = 'index.html#join';
+    throw new Error('blocked');
+  }
+</script>
+
 <div class="wrap">
   <div class="top">
     <a class="pill" href="index.html">← Home</a>
+    <a class="pill" href="badges.html">🏅 Badges</a>
+    <a class="pill" href="redflags.html">🚩 Red Flags</a>
   </div>
 
   <h1>Community Chat</h1>
-  <div class="sub">Realtime via Firestore.</div>
+  <div class="sub">Meet people, talk chaos. (Demo mode — works across tabs on this device.)</div>
 
-  <!-- Room + Handle (name) -->
   <div class="row">
     <select id="room">
       <option value="lobby">#lobby</option>
       <option value="dating">#dating</option>
       <option value="friends">#friends</option>
-      <option value="fwb">#fwb</option>
+      <option value="fwb">#friends-with-benefits</option>
       <option value="vents">#vents</option>
     </select>
     <input id="handle" placeholder="Your name (real names preferred)">
@@ -52,8 +59,8 @@
   </div>
 
   <div class="card">
-    <div id="status" class="sys">Pick a room, add your name, and enter.</div>
-    <div id="feed" class="msgs" aria-live="polite"></div>
+    <div id="status" class="sys">Pick a room and enter.</div>
+    <div id="feed" class="msgs"></div>
     <div class="inputbar">
       <input id="text" placeholder="Type a message…" disabled>
       <button id="send" disabled>Send</button>
@@ -61,117 +68,84 @@
   </div>
 </div>
 
-<script type="module">
-  // ---- Firebase (expects your ./js/firebase.js to export configured app/auth/db) ----
-  import { app, auth, db } from "./js/firebase.js";
-  import { onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import {
-    collection, addDoc, setDoc, doc, serverTimestamp,
-    query, where, orderBy, onSnapshot, limit
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<script>
+const roomSel = document.getElementById('room');
+const handle  = document.getElementById('handle');
+const enter   = document.getElementById('enter');
+const status  = document.getElementById('status');
+const feed    = document.getElementById('feed');
+const text    = document.getElementById('text');
+const sendBtn = document.getElementById('send');
 
-  // ---- DOM ----
-  const roomSel = document.getElementById('room');
-  const handle  = document.getElementById('handle');
-  const enter   = document.getElementById('enter');
-  const status  = document.getElementById('status');
-  const feed    = document.getElementById('feed');
-  const text    = document.getElementById('text');
-  const sendBtn = document.getElementById('send');
+let room = roomSel.value || 'lobby';
+let name = '';
+const chan = ('BroadcastChannel' in window) ? new BroadcastChannel('unhinged_chat') : null;
 
-  // ---- State ----
-  let currentChannel = roomSel.value || 'lobby';
-  let stopListen = null;
-
-  // ---- Helpers ----
-  function msgBubble({ text, uid, displayName, ts }) {
-    const isMe = auth.currentUser?.uid && uid === auth.currentUser.uid;
-    const el = document.createElement('div');
-    el.className = 'msg';
-    el.innerHTML = `<div class="${isMe?'me':'other'}"><strong>${displayName||'Anon'}:</strong> ${text||''}</div>` +
-                   `<div class="meta">${ts ? new Date(ts.seconds*1000).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : ''}</div>`;
-    return el;
+// Prefill from profile if saved in login.html
+try {
+  const prof = JSON.parse(localStorage.getItem('uh_profile') || '{}');
+  if (prof.displayName) {
+    handle.value = prof.displayName;
+  } else if (localStorage.getItem('username')) {
+    handle.value = localStorage.getItem('username');
   }
+} catch {}
 
-  function listenToChannel(channel) {
-    stopListen?.(); // detach previous
-    feed.innerHTML = '';
-    const q = query(
-      collection(db, "messages"),
-      where("channel","==", channel),
-      orderBy("createdAt","asc"),
-      limit(200)
-    );
-    stopListen = onSnapshot(q, (snap) => {
-      feed.innerHTML = '';
-      snap.forEach(docSnap => {
-        const d = docSnap.data();
-        feed.appendChild(msgBubble(d));
-      });
-      feed.scrollTop = feed.scrollHeight;
-    });
-  }
+function key(r){ return `uh_chat_${r}`; }
+function load(r){ try{return JSON.parse(localStorage.getItem(key(r))||'[]')}catch{return []} }
+function save(r,arr){ try{localStorage.setItem(key(r), JSON.stringify(arr))}catch{} }
+function timeFmt(ts){ return new Date(ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
 
-  async function sendMessage() {
-    const v = text.value.trim();
-    if (!v || !auth.currentUser) return;
-    text.value = '';
-    await addDoc(collection(db, "messages"), {
-      text: v,
-      channel: currentChannel,
-      uid: auth.currentUser.uid,
-      displayName: auth.currentUser.displayName || "Member",
-      photoURL: auth.currentUser.photoURL || null,
-      createdAt: serverTimestamp(),
-    });
-  }
-
-  async function ensureProfileSaved(name) {
-    const user = auth.currentUser;
-    if (!user) return;
-    // If displayName is missing or different, update auth profile
-    if (!user.displayName || user.displayName !== name) {
-      await updateProfile(user, { displayName: name });
-    }
-    // Upsert profile doc
-    await setDoc(doc(db, "profiles", user.uid), {
-      uid: user.uid,
-      displayName: name,
-      photoURL: user.photoURL || null,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
-  }
-
-  // ---- UI wiring ----
-  sendBtn.addEventListener('click', sendMessage);
-  text.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
-
-  roomSel.addEventListener('change', (e) => {
-    currentChannel = e.target.value;
-    if (auth.currentUser) listenToChannel(currentChannel);
+function renderRoom(r){
+  feed.innerHTML = '';
+  load(r).slice(-200).forEach(m=>{
+    const mine = m.user===name;
+    const div = document.createElement('div');
+    div.className = 'msg';
+    div.innerHTML = `
+      <div class="${mine?'me':'other'}"><strong>${m.user}</strong> — ${m.text}</div>
+      <div class="meta">${timeFmt(m.ts)}</div>
+    `;
+    feed.appendChild(div);
   });
+  feed.scrollTop = feed.scrollHeight;
+}
 
-  enter.addEventListener('click', async () => {
-    const name = (handle.value||'').trim();
-    if (!name) { alert('Enter your name.'); return; }
-    if (!auth.currentUser) { alert('Please log in first.'); return; }
-    await ensureProfileSaved(name);
-    status.textContent = `Connected as ${name} in #${currentChannel}`;
-    text.disabled = false; sendBtn.disabled = false;
-    listenToChannel(currentChannel);
-    text.focus();
-  });
+function postLocal(textVal){
+  const msg = { user:name, text:textVal.slice(0,500), ts:Date.now(), room };
+  const arr = load(room); arr.push(msg); save(room, arr);
+  renderRoom(room);
+  if (chan) chan.postMessage({ type:'new', room });
+}
 
-  // ---- Auth gate ----
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      // redirect to your login page
-      location.replace("./login.html");
-      return;
-    }
-    // Prefill handle with existing displayName for convenience
-    if (user.displayName) handle.value = user.displayName;
-  });
+enter.addEventListener('click', ()=>{
+  name = (handle.value||'').trim();
+  if(!name){ alert('Enter your name.'); return; }
+  status.textContent = `Connected as ${name}`;
+  text.disabled = false; sendBtn.disabled = false;
+  // Save back into profile for next time
+  localStorage.setItem('uh_profile', JSON.stringify({
+    displayName: name,
+    updatedAt: Date.now()
+  }));
+  renderRoom(roomSel.value);
+});
+
+roomSel.addEventListener('change', e=>{
+  room = e.target.value;
+  if(!name) return;
+  renderRoom(room);
+});
+
+sendBtn.addEventListener('click', ()=>{
+  const v = text.value.trim(); if(!v) return;
+  text.value = ''; postLocal(v);
+});
+text.addEventListener('keydown', e=>{ if(e.key==='Enter') sendBtn.click(); });
+
+if (chan) chan.onmessage = evt=>{
+  if (evt.data?.type==='new' && evt.data.room===room) renderRoom(room);
+};
 </script>
 </body>
 </html>
