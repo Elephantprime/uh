@@ -1,102 +1,116 @@
-// Firestore chat (single source of truth). No main app changes.
-import { auth, db } from "./firebase.js";
+// Profile: name/bio/avatar -> Auth + Firestore + Storage
+import { auth, db, storage } from "./firebase.js";
 import {
-  collection, addDoc, serverTimestamp,
-  query, orderBy, onSnapshot
+  onAuthStateChanged, updateProfile, signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  doc, setDoc, getDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  ref as sRef, uploadBytes, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-// DOM
-const roomSel = document.getElementById('room');
-const handle  = document.getElementById('handle');
-const enter   = document.getElementById('enter');
-const status  = document.getElementById('status');
-const feed    = document.getElementById('feed');
-const text    = document.getElementById('text');
-const sendBtn = document.getElementById('send');
+const $ = (id) => document.getElementById(id);
+const nameInput = $('name');
+const bioInput  = $('bio');
+const fileInput = $('avatar');
+const preview   = $('preview');
+const saveBtn   = $('save');
+const delBtn    = $('deletePhoto');
+const statusEl  = $('status');
 
-let room = roomSel?.value || 'lobby';
-let displayName = '';
-let unsub = null;
+function show(msg){ if(statusEl) statusEl.textContent = msg || ''; }
 
-const fmt = (ts) => {
-  const d = ts?.toDate ? ts.toDate() : (ts ? new Date(ts) : new Date());
-  return d.toLocaleString();
-};
+let me = null;
+let currentPhotoURL = '';
 
-function setStatus(msg){ if(status) status.textContent = msg; }
+onAuthStateChanged(auth, async (user)=>{
+  me = user || null;
+  if (!me){ show('Please sign in first.'); return; }
 
-function clearFeed(){ if(feed) feed.innerHTML = ''; }
+  // Prefill from Auth
+  nameInput.value = me.displayName || '';
+  currentPhotoURL = me.photoURL || '';
+  if (currentPhotoURL){ preview.src = currentPhotoURL; preview.style.display = 'block'; }
 
-function appendMsg({ name, body, ts, mine }){
-  const div = document.createElement('div');
-  div.className = 'msg';
-  div.innerHTML = `
-    <div class="${mine?'me':'other'}"><strong>${name}</strong> â€” ${body}</div>
-    <div class="meta">${fmt(ts)}</div>
-  `;
-  feed.appendChild(div);
-  feed.scrollTop = feed.scrollHeight;
-}
-
-function listenRoom(r){
-  if (unsub) { try { unsub(); } catch{}; unsub = null; }
-  clearFeed();
-  const qref = query(collection(db, 'rooms', r, 'messages'), orderBy('createdAt', 'asc'));
-  unsub = onSnapshot(qref, (snap)=>{
-    clearFeed();
-    snap.forEach(doc=>{
-      const d = doc.data();
-      const mine = (auth.currentUser?.uid && d.uid === auth.currentUser.uid) ||
-                   (displayName && d.displayName === displayName);
-      appendMsg({ name: d.displayName || 'Member', body: d.text, ts: d.createdAt, mine });
-    });
-  });
-}
-
-async function send(){
-  const v = text.value.trim();
-  if (!v) return;
-  text.value = '';
-  const u = auth.currentUser;
-  const name = u?.displayName || displayName || 'Member';
-  try{
-    await addDoc(collection(db, 'rooms', room, 'messages'), {
-      text: v.slice(0,500),
-      uid: u?.uid || null,
-      displayName: name,
-      createdAt: serverTimestamp(),
-    });
-  } catch (e){
-    // If rules block unauthenticated writes
-    setStatus(e?.message || 'Could not send. Sign in required.');
-  }
-}
-
-enter?.addEventListener('click', ()=>{
-  displayName = (handle?.value || '').trim();
-  const signed = !!auth.currentUser;
-  if (!signed && !displayName){ alert('Enter a name or sign in.'); return; }
-  text.disabled = false;
-  sendBtn.disabled = false;
-  setStatus(`Connected as ${auth.currentUser?.displayName || displayName}`);
-  listenRoom(roomSel?.value || 'lobby');
+  // Prefill from Firestore (bio/photo)
+  try {
+    const uref = doc(db, 'users', me.uid);
+    const snap = await getDoc(uref);
+    if (snap.exists()){
+      const d = snap.data();
+      if (d?.bio) bioInput.value = d.bio;
+      if (!currentPhotoURL && d?.photoURL){
+        preview.src = d.photoURL; preview.style.display = 'block';
+      }
+    }
+  } catch {}
 });
 
-roomSel?.addEventListener('change', (e)=>{
-  room = e?.target?.value || 'lobby';
-  if (!text.disabled) listenRoom(room);
+// Live preview
+fileInput?.addEventListener('change', ()=>{
+  const f = fileInput.files?.[0];
+  if (!f) return;
+  const url = URL.createObjectURL(f);
+  preview.src = url;
+  preview.style.display = 'block';
 });
 
-sendBtn?.addEventListener('click', send);
-text?.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') send(); });
+// Save
+saveBtn?.addEventListener('click', async ()=>{
+  if (!me){ show('Sign in first.'); return; }
 
-onAuthStateChanged(auth, (u)=>{
-  // If user signs in elsewhere, prefer their displayName
-  if (u && !displayName && u.displayName){
-    displayName = u.displayName;
-    if (!text.disabled) setStatus(`Connected as ${displayName}`);
+  const displayName = (nameInput.value || '').trim().slice(0,60);
+  const bio = (bioInput.value || '').trim().slice(0,400);
+  const file = fileInput.files?.[0];
+
+  saveBtn.disabled = true; show('Savingâ€¦');
+
+  try {
+    let photoURL = currentPhotoURL;
+
+    if (file){
+      const path = `avatars/${me.uid}/${Date.now()}_${file.name.replace(/\s+/g,'_')}`;
+      const r = sRef(storage, path);
+      await uploadBytes(r, file);
+      photoURL = await getDownloadURL(r);
+    }
+
+    // Auth profile
+    await updateProfile(me, {
+      displayName: displayName || me.displayName || 'Member',
+      photoURL: photoURL || null
+    });
+
+    // Firestore profile
+    const uref = doc(db, 'users', me.uid);
+    await setDoc(uref, {
+      uid: me.uid,
+      displayName: displayName || me.displayName || 'Member',
+      photoURL: photoURL || null,
+      bio,
+      updatedAt: serverTimestamp(),
+    }, { merge: true });
+
+    currentPhotoURL = photoURL || currentPhotoURL;
+    show('Profile saved!');
+    setTimeout(()=> show(''), 1200);
+  } catch (err){
+    console.error(err);
+    show(err?.message || 'Failed saving profile.');
+  } finally {
+    saveBtn.disabled = false;
   }
+});
+
+// Delete preview (not deleting Storage)
+delBtn?.addEventListener('click', ()=>{
+  preview.removeAttribute('src');
+  preview.style.display = 'none';
+  fileInput.value = '';
+});
+
+// Optional quick sign-out support if you add a button with id="logout" later
+document.getElementById('logout')?.addEventListener('click', async ()=>{
+  try { await signOut(auth); location.href = './login.html'; } catch (e){ show(e?.message || 'Could not sign out.'); }
 });
