@@ -10,58 +10,78 @@
     input{background:#171821;color:#fff;margin:8px 0}
     button{background:#E11D2A;color:#fff;cursor:pointer;margin-top:8px}
     button:hover{background:#c01021}
-    .sub{color:#cfd0de;font-size:13px;margin-top:10px;min-height:1.2em}
+    .sub{color:#cfd0de;font-size:13px;margin-top:10px;min-height:1.3em}
   </style>
 </head>
 <body>
   <h1>Login</h1>
-  <input id="name" placeholder="Name (username)"/>
-  <input id="pass" type="password" placeholder="Password"/>
-<button id="go" type="button">Enter</button>
+  <input id="name" autocomplete="username" placeholder="Name (username)"/>
+  <input id="pass" type="password" autocomplete="current-password" placeholder="Password"/>
+  <button id="go" type="button">Enter</button>
   <div id="msg" class="sub"></div>
 
   <script type="module">
-    import { app, auth, db } from "./js/firebase.js";
+    import { auth, db } from "./js/firebase.js";
     import {
       onAuthStateChanged, updateProfile,
       signInWithEmailAndPassword, createUserWithEmailAndPassword
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+    // If already logged in, go to app
     onAuthStateChanged(auth, (user)=>{ if (user) location.replace("app.html"); });
 
-    async function loginOrCreate() {
-      const msg  = document.getElementById("msg");
-      const name = (document.getElementById("name").value||"").trim();
-      const pass = (document.getElementById("pass").value||"").trim();
-      if (!name || !pass) { msg.textContent = "Enter name and password."; return; }
-      msg.textContent = "Checking…";
+    const $ = id => document.getElementById(id);
+    const msg = $("msg"), nameEl = $("name"), passEl = $("pass"), goBtn = $("go");
+
+    function uiBusy(b){ goBtn.disabled = b; goBtn.textContent = b ? "Working..." : "Enter"; }
+
+    function mapErr(code, fallback="Login failed."){
+      const m = {
+        "auth/invalid-credential":"Wrong username or password.",
+        "auth/invalid-email":"Bad username format.",
+        "auth/user-disabled":"Account disabled.",
+        "auth/user-not-found":"Account not found.",
+        "auth/wrong-password":"Wrong password.",
+        "auth/too-many-requests":"Too many tries. Try again later."
+      };
+      return m[code] || fallback;
+    }
+
+    async function loginOrCreate(){
+      const name = (nameEl.value||"").trim();
+      const pass = (passEl.value||"").trim();
+      if (!name || !pass){ msg.textContent = "Enter name and password."; return; }
+      if (pass.length < 6){ msg.textContent = "Password must be at least 6 characters."; return; }
 
       const email = `${name.toLowerCase().replace(/\s+/g,'_')}@unhinged.app`;
-
+      uiBusy(true); msg.textContent = "Checking…";
       try {
         await signInWithEmailAndPassword(auth, email, pass);
         location.replace("app.html");
       } catch (e) {
         if (e.code === "auth/user-not-found") {
-          const cred = await createUserWithEmailAndPassword(auth, email, pass);
-          await updateProfile(cred.user, { displayName: name });
-          await setDoc(doc(db, "profiles", cred.user.uid), {
-            uid: cred.user.uid,
-            displayName: name,
-            photoURL: cred.user.photoURL || null,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-          }, { merge: true });
-          location.replace("app.html");
+          try {
+            const cred = await createUserWithEmailAndPassword(auth, email, pass);
+            await updateProfile(cred.user, { displayName: name });
+            await setDoc(doc(db, "profiles", cred.user.uid), {
+              uid: cred.user.uid, displayName: name, photoURL: cred.user.photoURL || null,
+              createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+            }, { merge: true });
+            location.replace("app.html");
+          } catch (e2) {
+            msg.textContent = mapErr(e2.code, e2.message);
+            uiBusy(false);
+          }
         } else {
-          msg.textContent = e.message || "Login failed.";
+          msg.textContent = mapErr(e.code, e.message);
+          uiBusy(false);
         }
       }
     }
 
-    document.getElementById("go").addEventListener("click", loginOrCreate);
-    document.getElementById("pass").addEventListener("keydown", e=>{ if (e.key==="Enter") loginOrCreate(); });
+    goBtn.addEventListener("click", loginOrCreate);
+    passEl.addEventListener("keydown", e=>{ if (e.key==="Enter") loginOrCreate(); });
   </script>
 </body>
 </html>
