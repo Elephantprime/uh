@@ -24,6 +24,7 @@ function show(msg){ if(statusEl) statusEl.textContent = msg || ''; }
 let me = null;
 let currentPhotoURL = '';
 
+// --- Auth state & prefill ---
 onAuthStateChanged(auth, async (user)=>{
   me = user || null;
   if (!me){
@@ -31,12 +32,15 @@ onAuthStateChanged(auth, async (user)=>{
     return;
   }
 
-  // Prefill from Auth
+  // Load instantly from Auth (cached)
   nameInput.value = me.displayName || '';
   currentPhotoURL = me.photoURL || '';
-  if (currentPhotoURL){ preview.src = currentPhotoURL; preview.style.display = 'block'; }
+  if (currentPhotoURL){
+    preview.src = currentPhotoURL;
+    preview.style.display = 'block';
+  }
 
-  // Prefill from Firestore (bio/photo)
+  // Then load from Firestore for any missing data
   try {
     const uref = doc(db, 'users', me.uid);
     const snap = await getDoc(uref);
@@ -44,13 +48,17 @@ onAuthStateChanged(auth, async (user)=>{
       const d = snap.data();
       if (d?.bio) bioInput.value = d.bio;
       if (!currentPhotoURL && d?.photoURL){
-        preview.src = d.photoURL; preview.style.display = 'block';
+        preview.src = d.photoURL;
+        preview.style.display = 'block';
+        currentPhotoURL = d.photoURL;
       }
     }
-  } catch {}
+  } catch (e) {
+    console.error("Profile load error:", e);
+  }
 });
 
-// Live preview
+// --- Live preview on file select ---
 fileInput?.addEventListener('change', ()=>{
   const f = fileInput.files?.[0];
   if (!f) return;
@@ -59,7 +67,7 @@ fileInput?.addEventListener('change', ()=>{
   preview.style.display = 'block';
 });
 
-// Save
+// --- Save profile ---
 saveBtn?.addEventListener('click', async ()=>{
   if (!me){ show('Sign in first.'); return; }
 
@@ -67,7 +75,8 @@ saveBtn?.addEventListener('click', async ()=>{
   const bio = (bioInput.value || '').trim().slice(0,400);
   const file = fileInput.files?.[0];
 
-  saveBtn.disabled = true; show('Saving…');
+  saveBtn.disabled = true;
+  show('Saving…');
 
   try {
     let photoURL = currentPhotoURL;
@@ -77,15 +86,19 @@ saveBtn?.addEventListener('click', async ()=>{
       const r = sRef(storage, path);
       await uploadBytes(r, file);
       photoURL = await getDownloadURL(r);
+
+      // Update preview instantly with new URL
+      preview.src = photoURL;
+      preview.style.display = 'block';
     }
 
-    // Auth profile
+    // Update Auth profile (cached)
     await updateProfile(me, {
       displayName: displayName || me.displayName || 'Member',
       photoURL: photoURL || null
     });
 
-    // Firestore profile
+    // Save to Firestore
     const uref = doc(db, 'users', me.uid);
     await setDoc(uref, {
       uid: me.uid,
@@ -97,7 +110,8 @@ saveBtn?.addEventListener('click', async ()=>{
 
     currentPhotoURL = photoURL || currentPhotoURL;
     show('Profile saved!');
-    setTimeout(()=> show(''), 1200);
+    setTimeout(()=> show(''), 1500);
+
   } catch (err){
     console.error(err);
     show(err?.message || 'Failed saving profile.');
@@ -106,14 +120,19 @@ saveBtn?.addEventListener('click', async ()=>{
   }
 });
 
-// Delete preview (not deleting Storage)
+// --- Delete preview (not deleting from Storage) ---
 delBtn?.addEventListener('click', ()=>{
   preview.removeAttribute('src');
   preview.style.display = 'none';
   fileInput.value = '';
 });
 
-// Optional quick sign-out support if you add a button with id="logout" later
+// --- Optional logout ---
 document.getElementById('logout')?.addEventListener('click', async ()=>{
-  try { await signOut(auth); location.href = './login.html'; } catch (e){ show(e?.message || 'Could not sign out.'); }
+  try { 
+    await signOut(auth); 
+    location.href = './login.html'; 
+  } catch (e){ 
+    show(e?.message || 'Could not sign out.'); 
+  }
 });
