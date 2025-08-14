@@ -32,10 +32,11 @@
     <a class="pill" href="index.html">← Home</a>
     <a class="pill" href="badges.html">🏅 Badges</a>
     <a class="pill" href="redflags.html">🚩 Red Flags</a>
+    <button id="logout" class="pill" style="border-color:#E11D2A">Logout</button>
   </div>
 
   <h1>Community Chat</h1>
-  <div class="sub">Firestore realtime. No name box — uses your account name.</div>
+  <div id="status" class="sub">Connecting…</div>
 
   <div class="row">
     <select id="room">
@@ -45,12 +46,10 @@
       <option value="fwb">#fwb</option>
       <option value="vents">#vents</option>
     </select>
-    <button id="logout">Logout</button>
   </div>
 
   <div class="card">
-    <div id="status" class="sub">Connecting…</div>
-    <div id="feed" class="msgs"></div>
+    <div id="feed" class="msgs" aria-live="polite"></div>
     <div class="inputbar">
       <input id="text" placeholder="Type a message…">
       <button id="send">Send</button>
@@ -66,11 +65,11 @@
     query, where, orderBy, onSnapshot, limit
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  const roomSel = document.getElementById('room');
-  const status  = document.getElementById('status');
-  const feed    = document.getElementById('feed');
-  const text    = document.getElementById('text');
-  const sendBtn = document.getElementById('send');
+  const roomSel   = document.getElementById('room');
+  const statusEl  = document.getElementById('status');
+  const feed      = document.getElementById('feed');
+  const input     = document.getElementById('text');
+  const sendBtn   = document.getElementById('send');
   const logoutBtn = document.getElementById('logout');
 
   let room = roomSel.value || 'lobby';
@@ -81,7 +80,9 @@
     const me = auth.currentUser?.uid && uid === auth.currentUser.uid;
     const el = document.createElement('div');
     el.className = 'msg';
-    const when = createdAt?.seconds ? new Date(createdAt.seconds*1000).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
+    const when = createdAt?.seconds
+      ? new Date(createdAt.seconds*1000).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})
+      : '';
     el.innerHTML = `
       <div class="${me?'me':'other'}"><strong>${dn || 'Member'}:</strong> ${text || ''}</div>
       <div class="meta">${when}</div>
@@ -100,17 +101,17 @@
     );
     stopListen = onSnapshot(q, (snap) => {
       feed.innerHTML = '';
-      snap.forEach(docSnap => feed.appendChild(bubble(docSnap.data())));
+      snap.forEach(doc => feed.appendChild(bubble(doc.data())));
       feed.scrollTop = feed.scrollHeight;
     });
   }
 
   async function send() {
-    const v = text.value.trim();
-    if (!v || !auth.currentUser) return;
-    text.value = '';
+    const text = input.value.trim();
+    if (!text || !auth.currentUser) return;
+    input.value = '';
     await addDoc(collection(db, "messages"), {
-      text: v,
+      text,
       channel: room,
       uid: auth.currentUser.uid,
       displayName: displayName,
@@ -119,24 +120,21 @@
     });
   }
 
-  // UI events
   sendBtn.addEventListener('click', send);
-  text.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') send(); });
+  input.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') send(); });
   roomSel.addEventListener('change', (e)=>{
     room = e.target.value;
-    status.textContent = `Connected as ${displayName} in #${room}`;
+    statusEl.textContent = `Connected as ${displayName} in #${room}`;
     if (auth.currentUser) listen(room);
   });
   logoutBtn.addEventListener('click', async ()=>{
-    await signOut(auth);
-    location.replace('./login.html');
+    try { await signOut(auth); } finally { location.replace('./login.html'); }
   });
 
-  // Auth gate
   onAuthStateChanged(auth, (user)=>{
     if (!user) { location.replace("./login.html"); return; }
     displayName = user.displayName || "Member";
-    status.textContent = `Connected as ${displayName} in #${room}`;
+    statusEl.textContent = `Connected as ${displayName} in #${room}`;
     listen(room);
   });
 </script>
