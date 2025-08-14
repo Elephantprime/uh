@@ -383,7 +383,86 @@
     import { onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+// === LIVE CHAT (Firestore) — add right under your current imports ===
+import { db } from "./js/firebase.js";
+import {
+  collection, addDoc, serverTimestamp,
+  query, where, orderBy, onSnapshot, limit
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// DOM hooks (matches your HTML)
+const chatLog   = document.getElementById("chatLog");
+const chatInput = document.getElementById("chatInput");
+const sendBtn   = document.getElementById("sendBtn");
+const channelEls = document.querySelectorAll(".channels .chan");
+
+// Channel state
+let currentChannel = "general";
+let stopListen = null;
+
+// Render one message
+function renderMsg(data) {
+  const div = document.createElement("div");
+  const mine = (data.uid && data.uid === (auth.currentUser?.uid || ""));
+  div.className = "msg" + (mine ? " me" : "");
+  div.textContent = data.text || "";
+  chatLog.appendChild(div);
+}
+
+// Start listening to a channel
+function listen(channel) {
+  stopListen?.();
+  chatLog.innerHTML = "";
+  const q = query(
+    collection(db, "messages"),
+    where("channel", "==", channel),
+    orderBy("createdAt", "asc"),
+    limit(200)
+  );
+  stopListen = onSnapshot(q, (snap) => {
+    chatLog.innerHTML = "";
+    snap.forEach((doc) => renderMsg(doc.data()));
+    chatLog.scrollTop = chatLog.scrollHeight;
+  });
+}
+
+// Send a message
+async function send() {
+  const text = chatInput.value.trim();
+  if (!text || !auth.currentUser) return;
+  chatInput.value = "";
+  try {
+    await addDoc(collection(db, "messages"), {
+      text,
+      channel: currentChannel,
+      uid: auth.currentUser.uid,
+      displayName: auth.currentUser.displayName || "Anon",
+      photoURL: auth.currentUser.photoURL || null,
+      createdAt: serverTimestamp(),
+    });
+  } catch (e) {
+    console.error("send failed", e);
+  }
+}
+
+// Wire up UI
+sendBtn?.addEventListener("click", send);
+chatInput?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") send();
+});
+channelEls.forEach((el) => {
+  el.addEventListener("click", () => {
+    channelEls.forEach((x) => x.classList.remove("active"));
+    el.classList.add("active");
+    currentChannel = el.textContent.replace("#","").trim().replace(/\s+/g,"-");
+    listen(currentChannel);
+  });
+});
+
+// Begin after auth is ready (reuses your onAuthStateChanged in this file)
+onAuthStateChanged(auth, (user) => {
+  if (user) listen(currentChannel);
+});
     const app = getApp();
     const db = getFirestore(app);
     const storage = getStorage(app);
