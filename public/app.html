@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>UNHINGED - App (SHIP build)</title>
   <meta name="theme-color" content="#E11D2A">
-  #profiles { display: none !important; }
   <style>
     :root{
       --red:#E11D2A;--yellow:#F6C31C;--ink:#0F0F12;--charcoal:#141418;
@@ -17,6 +16,9 @@
     img{max-width:100%;display:block}
     .wrap{max-width:1160px;margin:0 auto;padding:18px}
 
+    /* Hide grid: swipe-only */
+    #profiles{display:none !important;}
+
     /* Header */
     header{border-bottom:1px solid rgba(255,255,255,.08);background:#0f0f12;position:sticky;top:0;z-index:10}
     .bar{display:flex;justify-content:space-between;align-items:center;gap:12px}
@@ -25,9 +27,9 @@
     .word{font-weight:1000;letter-spacing:.02em}
     nav{display:flex;gap:8px;flex-wrap:wrap}
 
-    /* Buttons (brighter + readable) */
-    .btn{display:inline-flex;gap:8px;align-items:center;border:1px solid rgba(255,255,255,.35);padding:10px 14px;border-radius:12px;font-weight:800;background:#2f3344;cursor:pointer;color:#fff}
-    .btn:hover{filter:brightness(1.06)}
+    /* Buttons (brighter + readable, compact) */
+    .btn{display:inline-flex;gap:8px;align-items:center;border:1px solid rgba(255,255,255,.35);padding:10px 14px;border-radius:12px;font-weight:800;background:#3a3f54;cursor:pointer;color:#fff}
+    .btn:hover{filter:brightness(1.09)}
     .btn:focus{outline:2px solid rgba(255,255,255,.6);outline-offset:2px}
     .btn.ghost{background:#1b1e28;border-color:rgba(255,255,255,.35);color:#e9ebf6}
     .btn.primary{background:var(--red);border-color:var(--red);color:#fff}
@@ -49,7 +51,7 @@
     .fbtn:hover{filter:brightness(1.08)}
     .fbtn.active{background:#9a1b23;border-color:#9a1b23}
 
-    /* Cards & grids */
+    /* Cards & grids (still used by viewers rail etc) */
     .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
     @media (max-width:980px){ .grid{grid-template-columns:1fr 1fr} }
     @media (max-width:620px){ .grid{grid-template-columns:1fr} }
@@ -143,11 +145,12 @@
     .swipe-btn.undo{border-color:rgba(255,255,255,.45)}
     .swipe-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#e0e2ef}
 
-    /* ===== Compact Action Bar + Casualties row ===== */
+    /* ===== Compact Action Bar + Casualties row (your two-box layout) ===== */
     .row-split{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     @media (max-width:900px){ .row-split{grid-template-columns:1fr} }
     .uxbar{display:flex;gap:8px;flex-wrap:wrap}
-    .uxbtn{border:1px solid rgba(255,255,255,.25);background:#1e2130;color:#fff;padding:8px 12px;border-radius:10px;font-weight:800}
+    .uxbtn{border:1px solid rgba(255,255,255,.28);background:#31364b;color:#fff;padding:8px 12px;border-radius:10px;font-weight:800}
+    .uxbtn:hover{filter:brightness(1.1)}
     .uxbtn-primary{background:#E11D2A;border-color:#E11D2A}
     .uxmeta{margin-left:6px;font-weight:700;opacity:.9}
     .uxtoast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#141621;border:1px solid rgba(255,255,255,.15);padding:10px 12px;border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.32);opacity:0;transition:opacity .2s ease;z-index:9999}
@@ -343,7 +346,6 @@
               <section class="chat-pane" aria-label="chat pane">
                 <div class="chat-log" id="chatLog">
                   <div class="msg">Welcome to <strong>#general</strong>. Be cute, be honest, be kind.</div>
-                  <div class="msg me">hey fam</div>
                 </div>
                 <div class="composer">
                   <input class="input" type="text" placeholder="Type a message..." id="chatInput">
@@ -375,14 +377,23 @@
 
   <!-- ===== Scripts ===== -->
   <script type="module">
-    // Firebase auth guard + logout (kept as-is)
+    // Use existing Firebase init
     import { auth } from "./js/firebase.js";
-    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+    const app = getApp();
+    const db = getFirestore(app);
+    const storage = getStorage(app);
 
     const statusTag = document.getElementById('memberTag');
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       if (!user) { location.replace("./login.html"); return; }
       statusTag.textContent = user.displayName ? `Member: ${user.displayName}` : "Member";
+      // optional: if photo set, you could show it somewhere (kept minimal here)
+      document.body.dataset.uid = user.uid;
     });
 
     document.getElementById('logout')?.addEventListener('click', async ()=>{
@@ -390,7 +401,7 @@
       location.replace("./index.html");
     });
 
-    // ---------- Profiles data ----------
+    // ---------- Profiles data (seed for swipe + rails) ----------
     const profiles = [
       {name:"Jamie, 27", img:"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1400&auto=format&fit=crop", chaos:72, type:"fwb", badges:["Drama Magnet","Receipts-Only"], flags:["Steals fries","2am debates"]},
       {name:"Andre, 31", img:"https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=1400&auto=format&fit=crop", chaos:58, type:"friends", badges:["Financial Chaos","Gym @5am"], flags:["Late...ish","Hates brunch"]},
@@ -404,7 +415,7 @@
     ];
 
     // Helpers
-    const $ = (s, d=document)=>d.querySelector(s);
+    const $  = (s, d=document)=>d.querySelector(s);
     const $$ = (s, d=document)=>Array.from(d.querySelectorAll(s));
     const profGrid = $("#profiles");
     const viewRail = $("#viewRail");
@@ -442,115 +453,223 @@
         </article>`;
     }
 
-    // current list snapshot for search/filter
+    // Snapshot for rail seed & swipe
     let current = [...profiles];
 
     function render(list){
       current = [...list];
       profGrid.innerHTML = list.map(profileCard).join('');
       const viewers = [...list].sort(()=>Math.random()-.5).slice(0,6);
-      <!-- SWAP 2: Action buttons + tray -->
-<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:10px">
-<!-- ===== Scripts ===== -->
-<script type="module">
-  // Firebase auth guard + logout
-  import { auth, storage } from "./js/firebase.js";
-  import { onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-
-  const statusTag = document.getElementById('memberTag');
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) { location.replace("./login.html"); return; }
-    statusTag.textContent = user.displayName ? `Member: ${user.displayName}` : "Member";
-
-    // Load profile picture if available
-    if (user.photoURL) {
-      const imgEl = document.getElementById("profilePicDisplay");
-      if (imgEl) imgEl.src = user.photoURL;
+      if (viewRail) viewRail.innerHTML = viewers.map(miniCard).join('');
     }
-  });
 
-  document.getElementById('logout')?.addEventListener('click', async ()=>{
-    try { await signOut(auth); } catch {}
-    location.replace("./index.html");
-  });
+    // Initial render + seed
+    render(profiles);
 
-  // ---------- Profiles data ----------
-  const profiles = [
-    {name:"Jamie, 27", img:"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1400&auto=format&fit=crop", chaos:72, type:"fwb", badges:["Drama Magnet","Receipts-Only"], flags:["Steals fries","2am debates"]},
-    {name:"Andre, 31", img:"https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=1400&auto=format&fit=crop", chaos:58, type:"friends", badges:["Financial Chaos","Gym @5am"], flags:["Late...ish","Hates brunch"]},
-    {name:"Rae, 25", img:"https://images.unsplash.com/photo-1541534401786-2077eed87a57?q=80&w=1400&auto=format&fit=crop", chaos:81, type:"kink", badges:["Most Ghosted","Receipts-Ready"], flags:["No small talk","Sunday scaries"]},
-    {name:"Leo, 29", img:"https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?q=80&w=1400&auto=format&fit=crop", chaos:46, type:"ons", badges:["Commitment? eh."], flags:["Two phones","Hot takes"]},
-    {name:"Maya, 26", img:"https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1400&auto=format&fit=crop", chaos:67, type:"friends",badges:["Drama Magnet","Most Ghosted"], flags:["Plant parent","Clout allergy"]},
-    {name:"Sam, 30", img:"https://images.unsplash.com/photo-1544005313-94ddf0286df2c?q=80&w=1400&auto=format&fit=crop", chaos:74, type:"fwb", badges:["Partied too hard","Second Chance Champ"], flags:["Night owl","Debates @2am"]},
-    {name:"Ivy, 28", img:"https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=1400&auto=format&fit=crop", chaos:63, type:"ons", badges:["Receipts-Only"], flags:["Cat person","Receipts-only DMs"]},
-    {name:"Noah, 33", img:"https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?q=80&w=1400&auto=format&fit=crop", chaos:55, type:"kink", badges:["Gym @5am"], flags:["Bullet journals","Ice bath"]},
-    {name:"Zoe, 24", img:"https://images.unsplash.com/photo-1541534401786-2077eed87a57?q=80&w=1400&auto=format&fit=crop", chaos:69, type:"friends",badges:["Chaos Playlists"], flags:["Nap queen","Dogs = yes"]}
-  ];
+    // Filters + search still control swipe deck seed
+    $("#filters").addEventListener("click",(e)=>{
+      const btn = e.target.closest(".fbtn"); if(!btn) return;
+      $$(".fbtn").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      const f = btn.dataset.filter;
+      const base = f==='all' ? profiles : profiles.filter(p=>p.type===f);
+      const q = $("#search").value.trim().toLowerCase();
+      const out = !q ? base : base.filter(p=>p.name.toLowerCase().includes(q));
+      render(out);
+      buildSwipeDeck(current);
+    });
 
-  const $ = (s, d=document)=>d.querySelector(s);
-  const $$ = (s, d=document)=>Array.from(d.querySelectorAll(s));
-  const profGrid = $("#profiles");
-  const chaosLabel = (n)=>`${Math.round(n/10)}/10 chaos`;
+    $("#search").addEventListener('input', (e)=>{
+      const q = e.target.value.trim().toLowerCase();
+      const base = $$(".fbtn").find(b=>b.classList.contains('active'))?.dataset.filter || 'all';
+      const pool = base==='all' ? profiles : profiles.filter(p=>p.type===base);
+      const out = !q ? pool : pool.filter(p=>p.name.toLowerCase().includes(q));
+      render(out);
+      buildSwipeDeck(current);
+    });
+    $("#clearSearch").addEventListener('click', ()=>{ $("#search").value=''; render(current); buildSwipeDeck(current); });
 
-  function profileCard(p){
-    const b = p.badges.map(b=>`<span class="badge${/drama|ghost|chaos|party|ex|fire/i.test(b)?' red':''}">${b}</span>`).join('');
-    const f = p.flags.slice(0,2).map(x=>`<span class="badge">${x}</span>`).join('');
-    return `
-      <article class="card" data-type="${p.type}">
-        <img class="pimg" src="${p.img}" alt="">
-        <div class="card-body">
-          <div class="row">
-            <strong>${p.name}</strong>
-            <span class="meta">${chaosLabel(p.chaos)}</span>
+    document.getElementById('openSwipe')?.addEventListener('click', ()=>{
+      document.getElementById('swipeDeckModule')?.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+
+    // ===== Swipe Deck implementation =====
+    function makeSwipeCard(p){
+      const el = document.createElement('article');
+      el.className = 'swipe-card';
+      const [nameOnly] = p.name.split(',');
+      el.innerHTML = `
+        <div class="swipe-hint like">LIKE</div>
+        <div class="swipe-hint pass">NOPE</div>
+        <img src="${p.img}" alt="${nameOnly} photo">
+        <div class="swipe-info">
+          <div class="row"><strong>${p.name}</strong><span class="meta">${chaosLabel(p.chaos)}</span></div>
+          <div class="swipe-badges">
+            ${(p.badges||[]).map(b=>`<span class="swipe-chip ${/drama|ghost|chaos|party|ex|fire/i.test(b)?'red':''}">${b}</span>`).join('')}
           </div>
-          <div style="margin-top:6px">${b}</div>
-          <div style="margin-top:6px">${f}</div>
-          <div class="row" style="margin-top:10px">
-            <button class="btn primary" type="button">Message</button>
-            <button class="btn ghost" type="button">View</button>
+          <div class="swipe-flags">
+            ${(p.flags||[]).map(f=>`<span class="swipe-chip">${f}</span>`).join('')}
           </div>
-        </div>
-      </article>`;
-  }
-
-  function miniCard(p){
-    return `
-      <article class="card">
-        <img class="pimg" style="height:150px" src="${p.img}" alt="">
-        <div class="card-body">
-          <strong style="display:block">${p.name}</strong>
-          <span class="meta">${chaosLabel(p.chaos)}</span>
-        </div>
-      </article>`;
-  }
-
-  let current = [...profiles];
-
-  function render(list){
-    current = [...list];
-    profGrid.innerHTML = list.map(profileCard).join('');
-  }
-
-  // Upload new profile picture
-  async function uploadProfilePic(file) {
-    if (!auth.currentUser) return;
-    const fileRef = ref(storage, `profilePictures/${auth.currentUser.uid}_${file.name}`);
-    await uploadBytes(fileRef, file);
-    const url = await getDownloadURL(fileRef);
-    await updateProfile(auth.currentUser, { photoURL: url });
-    localStorage.setItem("profilePicURL", url);
-  }
-
-  // Example listener if you have an <input type="file" id="newProfilePic">
-  document.getElementById("newProfilePic")?.addEventListener("change", async e => {
-    const file = e.target.files[0];
-    if (file) {
-      await uploadProfilePic(file);
-      alert("Profile picture updated!");
+        </div>`;
+      enableDrag(el);
+      return el;
     }
-  });
 
-  // Build initial swipe deck
-  render(profiles);
-</script>
+    const stage = document.getElementById('swipeStage');
+    const likeB = document.getElementById('swipeLike');
+    const passB = document.getElementById('swipePass');
+    const undoB = document.getElementById('swipeUndo');
+    const progress = document.getElementById('swipeProgress');
+    let deck = []; let idxDeck = 0; const history=[];
+
+    function buildSwipeDeck(list){
+      deck = Array.isArray(list) ? list.slice(0, 20) : [];
+      idxDeck = 0; history.length=0;
+      stage.innerHTML = '';
+      const seed = deck.slice(0,3);
+      seed.forEach((p,i)=>{
+        const card = makeSwipeCard(p);
+        card.style.zIndex = 100+i;
+        card.style.transform = `translateY(${(2-i)*2}px)`;
+        stage.appendChild(card);
+      });
+      updateProgress();
+    }
+    function updateProgress(){ progress.textContent = `${Math.min(idxDeck, deck.length)} / ${deck.length}`; }
+
+    function act(dir){
+      const cards = stage.querySelectorAll('.swipe-card');
+      const top = cards[cards.length-1];
+      if(!top) return;
+      const p = deck[idxDeck] || {};
+      const vx = dir==='right'? 600 : -600;
+      top.style.transition = 'transform 260ms ease, opacity 220ms ease';
+      top.style.transform = `translate(${vx}px, 0px) rotate(${dir==='right'?10:-10}deg)`;
+      top.style.opacity = '0';
+      setTimeout(()=>{
+        top.remove();
+        history.push({profile:p, action: dir==='right'?'like':'pass', at: Date.now()});
+        idxDeck++;
+        const next = deck[idxDeck+2];
+        if(next){
+          const c = makeSwipeCard(next);
+          c.style.zIndex = 100;
+          stage.prepend(c);
+        }
+        stage.querySelectorAll('.swipe-card').forEach((n,i)=> n.style.zIndex = 101+i);
+        updateProgress();
+        if(idxDeck>=deck.length && !stage.querySelector('.swipe-card')){
+          stage.innerHTML = '<div class="swipe-empty">You\'re out of people.</div>';
+        }
+      }, 200);
+    }
+
+    function undo(){
+      const last = history.pop(); if(!last) return;
+      idxDeck = Math.max(0, idxDeck-1);
+      const c = makeSwipeCard(deck[idxDeck]);
+      c.style.zIndex = 105;
+      stage.appendChild(c);
+      updateProgress();
+    }
+
+    function enableDrag(card){
+      let sx=0, sy=0, dx=0, dy=0, dragging=false;
+      const likeHint = card.querySelector('.swipe-hint.like');
+      const passHint = card.querySelector('.swipe-hint.pass');
+      const start = (e)=>{ const pt=ptOf(e); dragging=true; sx=pt.x; sy=pt.y; card.setPointerCapture?.(e.pointerId||1); };
+      const move  = (e)=>{
+        if(!dragging) return;
+        const pt=ptOf(e); dx=pt.x-sx; dy=pt.y-sy;
+        const rot = dx*0.04;
+        card.style.setProperty('--tx', dx+'px');
+        card.style.setProperty('--ty', dy+'px');
+        card.style.setProperty('--rot', rot+'deg');
+        likeHint.style.opacity = Math.min(1, Math.max(0, (dx-20)/120));
+        passHint.style.opacity = Math.min(1, Math.max(0, (-dx-20)/120));
+      };
+      const end   = ()=>{
+        if(!dragging) return; dragging=false;
+        const thr = 110;
+        if(dx>thr) act('right'); else if (dx<-thr) act('left');
+        card.style.removeProperty('--tx'); card.style.removeProperty('--ty'); card.style.removeProperty('--rot');
+        likeHint.style.opacity = 0; passHint.style.opacity = 0;
+      };
+      const ptOf = (e)=> (e.touches && e.touches[0]) ? {x:e.touches[0].clientX, y:e.touches[0].clientY} : {x:e.clientX, y:e.clientY};
+      card.addEventListener('pointerdown', start);
+      card.addEventListener('pointermove',  move);
+      card.addEventListener('pointerup',    end);
+      card.addEventListener('touchstart', start, {passive:true});
+      card.addEventListener('touchmove',  move,  {passive:true});
+      card.addEventListener('touchend',   end);
+    }
+
+    likeB?.addEventListener('click', ()=>act('right'));
+    passB?.addEventListener('click', ()=>act('left'));
+    undoB?.addEventListener('click', undo);
+    window.addEventListener('keydown', (e)=>{
+      if(e.key === 'ArrowLeft')  act('left');
+      if(e.key === 'ArrowRight') act('right');
+      if(e.key === 'Backspace' || (e.ctrlKey && e.key.toLowerCase()==='z')) undo();
+    });
+
+    // ===== Quick Actions counters + toasts (unchanged behavior) =====
+    (function(){
+      const v=document.getElementById('uxViewedCnt'),
+            l=document.getElementById('uxLikesCnt'),
+            m=document.getElementById('uxMatchesCnt');
+      let V=0,L=0,M=0;
+      function toast(msg){
+        let t=document.querySelector('.uxtoast');
+        if(!t){ t=document.createElement('div'); t.className='uxtoast'; document.body.appendChild(t); }
+        t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600);
+      }
+      document.getElementById('uxViewedBtn')?.addEventListener('click',()=>{ V++; v.textContent=V; toast('Opened viewers'); });
+      document.getElementById('uxLikesBtn')?.addEventListener('click',()=>{ L++; l.textContent=L; toast('Sent quick likes'); });
+      document.getElementById('uxMatchesBtn')?.addEventListener('click',()=>{ M++; m.textContent=M; toast('Showing matches'); });
+    })();
+
+    // ===== Live Chat (Firestore) =====
+    const log = document.getElementById('chatLog');
+    const input = document.getElementById('chatInput');
+    const send  = document.getElementById('sendBtn');
+
+    function appendMsg({text, uid, displayName}){
+      const div = document.createElement('div');
+      const me = auth.currentUser?.uid && uid === auth.currentUser.uid;
+      div.className = 'msg' + (me ? ' me' : '');
+      div.innerHTML = displayName ? `<strong>${displayName}:</strong> ${text}` : text;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    const roomRef = collection(db, "rooms", "general", "messages");
+    const qMsgs = query(roomRef, orderBy("createdAt","asc"));
+    onSnapshot(qMsgs, (snap)=>{
+      log.innerHTML = '';
+      snap.forEach(doc => {
+        const d = doc.data();
+        appendMsg({text:d.text, uid:d.uid, displayName:d.displayName});
+      });
+    });
+
+    send?.addEventListener('click', async ()=>{
+      const txt = input.value.trim();
+      if(!txt || !auth.currentUser) return;
+      input.value = '';
+      await addDoc(roomRef, {
+        text: txt,
+        uid: auth.currentUser.uid,
+        displayName: auth.currentUser.displayName || "Member",
+        createdAt: serverTimestamp()
+      });
+    });
+
+    // Footer year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Build initial swipe deck
+    buildSwipeDeck(current);
+  </script>
+</body>
+</html>
