@@ -10,150 +10,112 @@
     input[type="text"] { width: 250px; }
     input[type="file"] { background: #1a1a1a; color: white; }
     button { background: #E11D2A; color: white; cursor: pointer; }
+    button[disabled]{ opacity:.6; cursor:not-allowed; }
     button:hover { background: #c01021; }
     img { margin-top: 12px; max-width: 150px; border-radius: 8px; border: 2px solid #E11D2A; }
-    #profileBox { display: none; }
-    .meta { color:#cfd2e6; font-size: 13px; }
+    #status { min-height: 22px; }
   </style>
 </head>
 <body>
   <h1>Set Up Your Profile</h1>
 
-  <div id="profileBox">
-    <div class="meta" id="email">—</div>
-    <br/>
+  <input type="text" id="username" placeholder="Enter your username"/>
+  <br/>
+  <input type="file" id="profilePic" accept="image/*"/>
+  <br/>
+  <img id="preview" style="display:none;" alt="Profile preview"/>
+  <br/>
+  <button id="saveBtn">Save</button>
+  <p id="status"></p>
 
-    <input type="text" id="username" placeholder="Enter your display name"/>
-    <br/>
-
-    <input type="file" id="profilePic" accept="image/*"/>
-    <br/>
-
-    <img id="preview" style="display:none;" />
-    <br/>
-
-    <button id="saveBtn">Save</button>
-    <p id="status"></p>
-  </div>
-
-  <!-- Firebase SDKs (compat for this standalone page) -->
+  <!-- Firebase SDKs (compat style to match this page) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
 
   <script>
-    // === Firebase Config (real project values) ===
+    // === Firebase Config (REAL VALUES) ===
     const firebaseConfig = {
       apiKey: "AIzaSyC4K7iCqvxTo6Gj5oIPsErF_vMDlhi0znE",
       authDomain: "unhinged-8c6da.firebaseapp.com",
       projectId: "unhinged-8c6da",
       storageBucket: "unhinged-8c6da.appspot.com",
       messagingSenderId: "248472796860",
-      appId: "1:248472796860:web:1d7488b03935ae64f5dab9",
-      measurementId: "G-QEEY24M17T"
+      appId: "1:248472796860:web:1d7488b03935ae64f5dab9"
     };
 
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const storage = firebase.storage();
     const db = firebase.firestore();
 
-    const statusEl = document.getElementById("status");
-    const box = document.getElementById("profileBox");
-    const nameInput = document.getElementById("username");
-    const emailEl = document.getElementById("email");
-    const fileInput = document.getElementById("profilePic");
-    const previewImg = document.getElementById("preview");
-
-    function show(msg){ statusEl.textContent = msg; }
-
-    // Auth gate + initial fill
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        show("Not signed in. Redirecting…");
-        setTimeout(()=>location.href="./login.html", 700);
-        return;
-      }
-      box.style.display = "";
-      emailEl.textContent = user.email || "—";
-      nameInput.value = user.displayName || "";
-
-      // try to load current photo
-      if (user.photoURL) {
-        previewImg.src = user.photoURL;
-        previewImg.style.display = "block";
-      } else {
-        // check Firestore for stored photoURL
-        try {
-          const snap = await db.collection("users").doc(user.uid).get();
-          const d = snap.data();
-          if (d?.photoURL) {
-            previewImg.src = d.photoURL;
-            previewImg.style.display = "block";
-          }
-        } catch {}
-      }
-    });
+    // Redirect if username already exists locally
+    const existingUser = localStorage.getItem("username");
+    if (existingUser) {
+      window.location.href = "app.html";
+    }
 
     // Image preview
-    fileInput.addEventListener("change", e => {
+    document.getElementById("profilePic").addEventListener("change", e => {
       const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        previewImg.src = ev.target.result;
-        previewImg.style.display = "block";
-      };
-      reader.readAsDataURL(file);
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const img = document.getElementById("preview");
+          img.src = ev.target.result;
+          img.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      }
     });
 
-    // Save profile (displayName + photo upload + Firestore user doc)
+    // Save profile
+    const saveBtn = document.getElementById("saveBtn");
+    const status = document.getElementById("status");
+
     document.getElementById("saveBtn").addEventListener("click", async () => {
-      const user = auth.currentUser;
-      if (!user) return show("Not signed in.");
+      const username = document.getElementById("username").value.trim();
+      const file = document.getElementById("profilePic").files[0];
 
-      const displayName = nameInput.value.trim();
-      const file = fileInput.files[0];
+      if (!username) { status.textContent = "Please enter a username."; return; }
+      if (!file) { status.textContent = "Please select a profile picture."; return; }
 
-      if (!displayName) {
-        show("Please enter a display name.");
-        return;
-      }
-
-      // If your Storage/Firestore rules require auth (they do), user must be logged in to proceed
-      show("Saving…");
       try {
-        let photoURL = user.photoURL || null;
+        status.textContent = "Saving...";
+        saveBtn.disabled = true;
 
-        if (file) {
-          const fileRef = storage.ref(`profilePictures/${user.uid}.jpg`);
-          await fileRef.put(file);
-          photoURL = await fileRef.getDownloadURL();
+        // Save username locally
+        localStorage.setItem("username", username);
+
+        // Upload to Storage
+        const storageRef = storage.ref(`profilePictures/${username}_${Date.now()}_${file.name}`);
+        await storageRef.put(file);
+        const url = await storageRef.getDownloadURL();
+        localStorage.setItem("profilePicURL", url);
+
+        // Save to Firestore: profile doc
+        await db.collection("users").doc(username).set({
+          username,
+          photoURL: url,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Prep chat: ensure a default room doc exists (id: "general")
+        const generalRoomRef = db.collection("rooms").doc("general");
+        const generalSnap = await generalRoomRef.get();
+        if (!generalSnap.exists) {
+          await generalRoomRef.set({
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            name: "general",
+            lastMessageAt: null
+          });
         }
 
-        // Update Auth profile
-        await user.updateProfile({ displayName, photoURL });
-
-        // Write/merge Firestore user doc
-        await db.collection("users").doc(user.uid).set({
-          uid: user.uid,
-          email: user.email || null,
-          displayName,
-          photoURL: photoURL || null,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-
-        // Local convenience for app shell
-        localStorage.setItem("username", displayName);
-        if (photoURL) localStorage.setItem("profilePicURL", photoURL);
-
-        show("Profile saved!");
-        setTimeout(()=>location.href="app.html", 700);
+        status.textContent = "Profile saved!";
+        setTimeout(() => window.location.href = "app.html", 700);
       } catch (err) {
         console.error(err);
-        show(err?.message || "Error saving profile.");
+        status.textContent = err?.message || "Error saving profile.";
+        saveBtn.disabled = false;
       }
     });
   </script>
