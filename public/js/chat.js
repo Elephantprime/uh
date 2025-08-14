@@ -6,7 +6,7 @@ import {
 } from "./firebase.js";
 
 const roomSel = document.getElementById('room');
-const handle  = document.getElementById('handle');
+;
 const enter   = document.getElementById('enter');
 const status  = document.getElementById('status');
 const feed    = document.getElementById('feed');
