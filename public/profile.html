@@ -1,123 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Profile</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #0e0e12; color: white; text-align: center; padding: 40px; }
-    input, button { padding: 10px; border-radius: 6px; border: none; margin: 10px 0; }
-    input[type="text"] { width: 250px; }
-    input[type="file"] { background: #1a1a1a; color: white; }
-    button { background: #E11D2A; color: white; cursor: pointer; }
-    button[disabled]{ opacity:.6; cursor:not-allowed; }
-    button:hover { background: #c01021; }
-    img { margin-top: 12px; max-width: 150px; border-radius: 8px; border: 2px solid #E11D2A; }
-    #status { min-height: 22px; }
-  </style>
-</head>
-<body>
-  <h1>Set Up Your Profile</h1>
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UNHINGED â€” Profile</title>
+<style>
+  body { font-family: Inter, system-ui, Arial; background: #0e0e12; color: #fff; margin:0; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 24px; }
+  h1 { margin: 6px 0 14px; font-size: 26px; font-weight: 900; }
+  .card { background:#15161b; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:16px; }
+  label { display:block; margin:10px 0 6px; color:#cfd0de; font-size:14px; }
+  input[type="text"], textarea, input[type="file"] { width:100%; background:#12131a; color:#fff; border:1px solid #2a2a2a; border-radius:10px; padding:10px; }
+  textarea { min-height: 110px; resize: vertical; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
+  button { padding:10px 14px; border-radius:10px; border:0; font-weight:800; cursor:pointer; }
+  .primary { background:#E11D2A; color:#fff; }
+  .ghost { background:#23242e; color:#fff; border:1px solid rgba(255,255,255,.12); }
+  #status { min-height: 20px; color:#cfd0de; margin-top: 10px; }
+  #preview { display:none; width:140px; height:140px; object-fit:cover; border-radius:12px; border:2px solid #E11D2A; margin-top:10px; }
+</style>
+</head><body>
+  <div class="wrap">
+    <h1>Edit Profile</h1>
+    <div class="card">
+      <label for="name">Display name</label>
+      <input id="name" type="text" placeholder="Your name">
 
-  <input type="text" id="username" placeholder="Enter your username"/>
-  <br/>
-  <input type="file" id="profilePic" accept="image/*"/>
-  <br/>
-  <img id="preview" style="display:none;" alt="Profile preview"/>
-  <br/>
-  <button id="saveBtn">Save</button>
-  <p id="status"></p>
+      <label for="bio">Bio</label>
+      <textarea id="bio" placeholder="Tell people the truth (or close to it)â€¦"></textarea>
 
-  <!-- Firebase SDKs (compat style to match this page) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+      <label for="avatar">Avatar</label>
+      <input id="avatar" type="file" accept="image/*">
+      <img id="preview" alt="Avatar preview"/>
 
-  <script>
-    // === Firebase Config (REAL VALUES) ===
-    const firebaseConfig = {
-      apiKey: "AIzaSyC4K7iCqvxTo6Gj5oIPsErF_vMDlhi0znE",
-      authDomain: "unhinged-8c6da.firebaseapp.com",
-      projectId: "unhinged-8c6da",
-      storageBucket: "unhinged-8c6da.appspot.com",
-      messagingSenderId: "248472796860",
-      appId: "1:248472796860:web:1d7488b03935ae64f5dab9"
-    };
+      <div class="row">
+        <button id="save" class="primary" type="button">Save Profile</button>
+        <button id="deletePhoto" class="ghost" type="button">Remove Preview</button>
+        <span id="status"></span>
+        <span style="flex:1"></span>
+        <a class="ghost" href="index.html" style="text-decoration:none;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.12)">Home</a>
+      </div>
+    </div>
+  </div>
 
-    firebase.initializeApp(firebaseConfig);
-    const storage = firebase.storage();
-    const db = firebase.firestore();
-
-    // Redirect if username already exists locally
-    const existingUser = localStorage.getItem("username");
-    if (existingUser) {
-      window.location.href = "app.html";
-    }
-
-    // Image preview
-    document.getElementById("profilePic").addEventListener("change", e => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = ev => {
-          const img = document.getElementById("preview");
-          img.src = ev.target.result;
-          img.style.display = "block";
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-
-    // Save profile
-    const saveBtn = document.getElementById("saveBtn");
-    const status = document.getElementById("status");
-
-    document.getElementById("saveBtn").addEventListener("click", async () => {
-      const username = document.getElementById("username").value.trim();
-      const file = document.getElementById("profilePic").files[0];
-
-      if (!username) { status.textContent = "Please enter a username."; return; }
-      if (!file) { status.textContent = "Please select a profile picture."; return; }
-
-      try {
-        status.textContent = "Saving...";
-        saveBtn.disabled = true;
-
-        // Save username locally
-        localStorage.setItem("username", username);
-
-        // Upload to Storage
-        const storageRef = storage.ref(`profilePictures/${username}_${Date.now()}_${file.name}`);
-        await storageRef.put(file);
-        const url = await storageRef.getDownloadURL();
-        localStorage.setItem("profilePicURL", url);
-
-        // Save to Firestore: profile doc
-        await db.collection("users").doc(username).set({
-          username,
-          photoURL: url,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        // Prep chat: ensure a default room doc exists (id: "general")
-        const generalRoomRef = db.collection("rooms").doc("general");
-        const generalSnap = await generalRoomRef.get();
-        if (!generalSnap.exists) {
-          await generalRoomRef.set({
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            name: "general",
-            lastMessageAt: null
-          });
-        }
-
-        status.textContent = "Profile saved!";
-        setTimeout(() => window.location.href = "app.html", 700);
-      } catch (err) {
-        console.error(err);
-        status.textContent = err?.message || "Error saving profile.";
-        saveBtn.disabled = false;
-      }
-    });
-  </script>
-</body>
-</html>
+  <script type="module" src="./js/profile.js"></script>
+</body></html>
