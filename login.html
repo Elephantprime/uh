@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Unhinged – Sign Up / Login</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      h1 {
+        margin-top: 0;
+      }
+      form {
+        margin-bottom: 2rem;
+        padding: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      label {
+        display: block;
+        margin-bottom: 0.25rem;
+      }
+      input[type="email"],
+      input[type="password"],
+      input[type="file"] {
+        width: 100%;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+        box-sizing: border-box;
+      }
+      button {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: #007bff;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Sign Up</h1>
+    <!-- Sign‑up form collects the user’s email, password and profile picture.  -->
+    <form id="signup-form">
+      <label for="signup-email">Email</label>
+      <input id="signup-email" type="email" required />
+      <label for="signup-password">Password</label>
+      <input id="signup-password" type="password" required />
+      <label for="profile-picture">Profile picture</label>
+      <input id="profile-picture" type="file" accept="image/*" required />
+      <button type="submit">Create account</button>
+    </form>
+
+    <h1>Login</h1>
+    <!-- Login form collects the user’s email and password and redirects to chat on success. -->
+    <form id="login-form">
+      <label for="login-email">Email</label>
+      <input id="login-email" type="email" required />
+      <label for="login-password">Password</label>
+      <input id="login-password" type="password" required />
+      <button type="submit">Login</button>
+    </form>
+
+    <!-- Load Firebase client SDKs.  These are loaded via JS modules to support modern browsers. -->
+    <script type="module" src="./login.js"></script>
+  </body>
+</html>
