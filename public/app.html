@@ -414,7 +414,12 @@
       try { await signOut(auth); } catch {}
       location.replace("./index.html");
     });
-
+    
+<div id="chat-messages"></div>
+<input id="chat-input" placeholder="Type a message…">
+<button id="chat-send">Send</button>
+<button id="logout" class="pill" style="border-color:#E11D2A">Logout</button>
+<div id="status"></div> <!-- optional -->
     // ----- Live Chat (rooms/{channel}/messages) -----
     const chatLog     = document.getElementById("chatLog");
     const chatInput   = document.getElementById("chatInput");
