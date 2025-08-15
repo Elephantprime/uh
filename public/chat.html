@@ -1,14 +1,89 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>UNHINGED — Chat</title>
-<style>
-  :root{--red:#E11D2A}
-  *{box-sizing:border-box}
-  body{margin:0;background:#0f0f12;color:#fff;font:500 16px/1.5 Inter,system-ui}
-  a{color:#fff;text-decoration:none}
-  .wrap{max-width:1100px;margin:0 auto;padding:18px}
-  .top{display:flex;gap:10px;align-items:center;margin-bottom:12px}
-  .pill{padding:8px 12px;background:#1a1b22;border:1px solid rgba(255,
+<!-- Add this button inside the <div class="top"> header -->
+<button id="logout" class="pill" style="border-color:#E11D2A">Logout</button>
+
+<!-- Replace the existing <script type="module">…</script> block with this -->
+<script type="module">
+  import { auth, db } from "./js/firebase.js";
+  import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const roomSel   = document.getElementById('room');
+  const status    = document.getElementById('status');
+  const feed      = document.getElementById('feed');
+  const text      = document.getElementById('text');
+  const sendBtn   = document.getElementById('send');
+  const logoutBtn = document.getElementById('logout');
+
+  // current room and displayName
+  let room = roomSel?.value || 'lobby';
+  let displayName = 'Member';
+  let stopListen = null;
+
+  // helper for Firestore subcollection
+  const roomColl = (r) => collection(db, 'rooms', r, 'messages');
+
+  // build a chat bubble
+  function bubble({ text, uid, displayName: dn, createdAt }) {
+    const me  = auth.currentUser?.uid && uid === auth.currentUser.uid;
+    const el  = document.createElement('div');
+    const when = createdAt?.seconds
+      ? new Date(createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : '';
+    el.className = 'msg';
+    el.innerHTML = `<div class="${me ? 'me' : 'other'}"><strong>${dn || 'Member'}:</strong> ${text || ''}</div><div class="meta">${when}</div>`;
+    return el;
+  }
+
+  // listen to a room
+  function listen(channel) {
+    stopListen?.(); // ensure single listener
+    feed.innerHTML = '';
+    const q = query(roomColl(channel), orderBy('createdAt', 'asc'));
+    stopListen = onSnapshot(q, (snap) => {
+      feed.innerHTML = '';
+      snap.forEach((d) => feed.appendChild(bubble(d.data())));
+      feed.scrollTop = feed.scrollHeight;
+    });
+  }
+
+  // send message
+  async function send() {
+    const v = text.value.trim();
+    if (!v || !auth.currentUser) return;
+    text.value = '';
+    await addDoc(roomColl(room), {
+      text: v,
+      uid: auth.currentUser.uid,
+      displayName,
+      createdAt: serverTimestamp(),
+    });
+  }
+
+  sendBtn?.addEventListener('click', send);
+  text?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') send();
+  });
+  roomSel?.addEventListener('change', (e) => {
+    room = e.target.value;
+    status.textContent = `Connected as ${displayName} in #${room}`;
+    if (auth.currentUser) listen(room);
+  });
+  logoutBtn?.addEventListener('click', async () => {
+    try {
+      await signOut(auth);
+    } finally {
+      location.replace('./login.html');
+    }
+  });
+
+  // auth gate
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      location.replace('./login.html');
+      return;
+    }
+    displayName = user.displayName || 'Member';
+    status.textContent = `Connected as ${displayName} in #${room}`;
+    listen(room);
+  });
+</script>
