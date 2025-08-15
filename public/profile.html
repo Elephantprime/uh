@@ -1,44 +1,183 @@
-<!DOCTYPE html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>UNHINGED â€” Profile</title>
-<style>
-  body { font-family: Inter, system-ui, Arial; background: #0e0e12; color: #fff; margin:0; }
-  .wrap { max-width: 720px; margin: 0 auto; padding: 24px; }
-  h1 { margin: 6px 0 14px; font-size: 26px; font-weight: 900; }
-  .card { background:#15161b; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:16px; }
-  label { display:block; margin:10px 0 6px; color:#cfd0de; font-size:14px; }
-  input[type="text"], textarea, input[type="file"] { width:100%; background:#12131a; color:#fff; border:1px solid #2a2a2a; border-radius:10px; padding:10px; }
-  textarea { min-height: 110px; resize: vertical; }
-  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
-  button { padding:10px 14px; border-radius:10px; border:0; font-weight:800; cursor:pointer; }
-  .primary { background:#E11D2A; color:#fff; }
-  .ghost { background:#23242e; color:#fff; border:1px solid rgba(255,255,255,.12); }
-  #status { min-height: 20px; color:#cfd0de; margin-top: 10px; }
-  #preview { display:none; width:140px; height:140px; object-fit:cover; border-radius:12px; border:2px solid #E11D2A; margin-top:10px; }
-</style>
-</head><body>
-  <div class="wrap">
-    <h1>Edit Profile</h1>
-    <div class="card">
-      <label for="name">Display name</label>
-      <input id="name" type="text" placeholder="Your name">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Your Profile – Unhinged</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f0f12;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: #1a1b22;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    header button {
+      background: transparent;
+      border: 1px solid #E11D2A;
+      color: #E11D2A;
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    main {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    .section {
+      margin-bottom: 2rem;
+      padding: 1rem;
+      background: #15161b;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    h2 {
+      margin-top: 0;
+    }
+    .profile-info img {
+      max-width: 150px;
+      border-radius: 8px;
+      display: block;
+      margin-bottom: 1rem;
+    }
+    .list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .list div {
+      background: #1e1f26;
+      padding: 0.5rem 0.8rem;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
 
-      <label for="bio">Bio</label>
-      <textarea id="bio" placeholder="Tell people the truth (or close to it)â€¦"></textarea>
+  <header>
+    <h1>Your Profile</h1>
+    <button id="logout">Logout</button>
+  </header>
 
-      <label for="avatar">Avatar</label>
-      <input id="avatar" type="file" accept="image/*">
-      <img id="preview" alt="Avatar preview"/>
+  <main>
+    <!-- Profile Info -->
+    <section class="section profile-info">
+      <h2>Welcome, <span id="displayName">Loading...</span></h2>
+      <img id="profilePhoto" src="" alt="Profile Photo" />
+      <p>Email: <span id="email">Loading...</span></p>
+    </section>
 
-      <div class="row">
-        <button id="save" class="primary" type="button">Save Profile</button>
-        <button id="deletePhoto" class="ghost" type="button">Remove Preview</button>
-        <span id="status"></span>
-        <span style="flex:1"></span>
-        <a class="ghost" href="index.html" style="text-decoration:none;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.12)">Home</a>
-      </div>
-    </div>
-  </div>
+    <!-- Matches -->
+    <section class="section">
+      <h2>Your Matches</h2>
+      <div class="list" id="matchesList"></div>
+    </section>
 
-  <script type="module" src="./js/profile.js"></script>
-</body></html>
+    <!-- Likes -->
+    <section class="section">
+      <h2>People Who Liked You</h2>
+      <div class="list" id="likesList"></div>
+    </section>
+
+    <!-- Views -->
+    <section class="section">
+      <h2>Profile Views</h2>
+      <div class="list" id="viewsList"></div>
+    </section>
+
+    <!-- Messages -->
+    <section class="section">
+      <h2>Messages</h2>
+      <div id="messagesList"></div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { auth, db } from './js/firebase.js';
+    import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { doc, getDoc, collection, getDocs, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    const logoutBtn = document.getElementById('logout');
+    const displayNameEl = document.getElementById('displayName');
+    const emailEl = document.getElementById('email');
+    const profilePhotoEl = document.getElementById('profilePhoto');
+    const matchesList = document.getElementById('matchesList');
+    const likesList = document.getElementById('likesList');
+    const viewsList = document.getElementById('viewsList');
+    const messagesList = document.getElementById('messagesList');
+
+    logoutBtn.addEventListener('click', async () => {
+      await signOut(auth);
+      location.replace('./login.html');
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        location.replace('./login.html');
+        return;
+      }
+
+      // Display basic info
+      displayNameEl.textContent = user.displayName || 'Member';
+      emailEl.textContent = user.email || '';
+      profilePhotoEl.src = user.photoURL || './images/default-avatar.png';
+
+      // Load profile-specific data
+      await loadUserProfile(user.uid);
+    });
+
+    async function loadUserProfile(uid) {
+      try {
+        // Get matches
+        const matchesSnap = await getDocs(collection(db, 'users', uid, 'matches'));
+        matchesSnap.forEach(doc => {
+          const div = document.createElement('div');
+          div.textContent = doc.data().name || 'Unknown';
+          matchesList.appendChild(div);
+        });
+
+        // Get likes
+        const likesSnap = await getDocs(collection(db, 'users', uid, 'likes'));
+        likesSnap.forEach(doc => {
+          const div = document.createElement('div');
+          div.textContent = doc.data().name || 'Unknown';
+          likesList.appendChild(div);
+        });
+
+        // Get views
+        const viewsSnap = await getDocs(collection(db, 'users', uid, 'views'));
+        viewsSnap.forEach(doc => {
+          const div = document.createElement('div');
+          div.textContent = doc.data().name || 'Unknown';
+          viewsList.appendChild(div);
+        });
+
+        // Get messages (latest first)
+        const msgsQuery = query(collection(db, 'users', uid, 'messages'), orderBy('createdAt', 'desc'));
+        const msgsSnap = await getDocs(msgsQuery);
+        msgsSnap.forEach(doc => {
+          const p = document.createElement('p');
+          p.textContent = `${doc.data().from || 'Unknown'}: ${doc.data().text || ''}`;
+          messagesList.appendChild(p);
+        });
+      } catch (err) {
+        console.error('Error loading profile data:', err);
+      }
+    }
+  </script>
+
+</body>
+</html>
