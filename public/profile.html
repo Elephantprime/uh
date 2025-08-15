@@ -12,12 +12,14 @@
     label{display:block;margin:.5rem 0 .25rem}
     input,textarea{width:100%;padding:.6rem;border:1px solid #2a2a2a;border-radius:6px;background:#12131a;color:#fff}
     .muted{color:#cfd0de}
+    img#preview{display:none;width:120px;height:120px;border-radius:12px;object-fit:cover;margin-top:.5rem;border:1px solid #2a2a2a}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   </style>
 </head>
 <body>
   <header>
     <h1>Your Profile</h1>
-    <div>
+    <div class="row">
       <button id="logout">Sign out</button>
     </div>
   </header>
@@ -25,9 +27,13 @@
   <div id="status" class="muted"></div>
 
   <section class="card">
-    <h2 id="name">Loading…</h2>
-    <p id="bio" class="muted"></p>
-    <p class="muted" id="uidline"></p>
+    <div class="row">
+      <img id="preview" alt="Avatar preview">
+      <div>
+        <h2 id="displayNameView">Loading…</h2>
+        <p class="muted" id="uidline"></p>
+      </div>
+    </div>
   </section>
 
   <section class="card">
@@ -37,101 +43,159 @@
       <input id="displayName" type="text" />
       <label for="bioInput">Bio</label>
       <textarea id="bioInput" rows="4"></textarea>
-      <button type="submit">Save</button>
-      <span id="save-status" class="muted" style="margin-left:.6rem"></span>
+      <label for="avatar">Avatar (optional)</label>
+      <input id="avatar" type="file" accept="image/*" />
+      <div class="row" style="margin-top:.6rem">
+        <button type="submit" id="save">Save</button>
+        <button type="button" id="clearPhoto" class="ghost" style="background:#2a2a2a">Clear photo</button>
+        <span id="save-status" class="muted"></span>
+      </div>
     </form>
   </section>
 
   <script type="module">
-    import { auth } from "./js/firebase.js";
-    import {
-      onAuthStateChanged,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import {
-      getFirestore, doc, getDoc, setDoc, updateDoc
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { auth, db, storage } from "./js/firebase.js";
+    import { onAuthStateChanged, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
     const $ = id => document.getElementById(id);
     const statusEl = $("status");
-    const nameEl = $("name");
-    const bioEl = $("bio");
-    const uidLine = $("uidline");
-    const form = $("edit-form");
-    const disp = $("displayName");
+    const uidLine  = $("uidline");
+    const dispView = $("displayNameView");
+    const dispEdit = $("displayName");
     const bioInput = $("bioInput");
-    const logoutBtn = $("logout");
+    const avatar   = $("avatar");
+    const preview  = $("preview");
+    const saveBtn  = $("save");
+    const clearBtn = $("clearPhoto");
 
     const params = new URLSearchParams(location.search);
-    const urlUid = params.get("uid")?.trim() || "";
+    const urlUid = (params.get("uid") || "").trim();
 
-    const db = getFirestore();
+    const goLogin = () => location.replace("./login.html");
+    const goOwn   = uid => location.replace(`./profile.html?uid=${encodeURIComponent(uid)}`);
 
-    function toLogin(){ location.replace("./login.html"); }
-    function toOwnProfile(uid){
-      const here = new URL(location.href);
-      if (here.searchParams.get("uid") !== uid) {
-        location.replace(`./profile.html?uid=${encodeURIComponent(uid)}`);
-      }
-    }
+    let me = null;
+    let currentPhotoURL = "";
 
-    // Load & enforce ownership
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) { toLogin(); return; }
+    onAuthStateChanged(auth, async (user)=>{
+      if (!user) return goLogin();
+      me = user;
 
-      // If no uid in URL, normalize to the signed-in user’s page
-      if (!urlUid) { toOwnProfile(user.uid); return; }
+      // Ensure we’re on our own profile page
+      if (!urlUid || urlUid !== me.uid) return goOwn(me.uid);
 
-      // Optionally enforce: only let users view their own profile page
-      if (user.uid !== urlUid) {
-        // If you want public profiles later, remove this guard.
-        toOwnProfile(user.uid);
-        return;
+      uidLine.textContent = `UID: ${me.uid}`;
+      dispView.textContent = me.displayName || "Member";
+      currentPhotoURL = me.photoURL || "";
+
+      if (currentPhotoURL){
+        preview.src = currentPhotoURL;
+        preview.style.display = "block";
       }
 
-      uidLine.textContent = `UID: ${user.uid}`;
-      await loadOrCreateProfile(user.uid);
+      // Load Firestore profile (create minimal if missing)
+      await loadOrCreate(me.uid);
     });
 
-    async function loadOrCreateProfile(uid){
+    async function loadOrCreate(uid){
       statusEl.textContent = "Loading profile…";
-      const ref = doc(db, "users", uid);
-      const snap = await getDoc(ref);
+      const uref = doc(db, "users", uid);
+      const snap = await getDoc(uref);
 
-      if (!snap.exists()) {
-        // Create a minimal profile on first visit
-        await setDoc(ref, {
-          displayName: (auth.currentUser.displayName || "").trim() || "New User",
-          bio: ""
-        });
+      if (!snap.exists()){
+        await setDoc(uref, {
+          uid,
+          displayName: me.displayName || "Member",
+          photoURL: me.photoURL || null,
+          bio: "",
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        }, { merge:true });
       }
 
-      const data = (await getDoc(ref)).data();
-      nameEl.textContent = data.displayName || "No name yet";
-      bioEl.textContent = data.bio || "No bio yet.";
-      disp.value = data.displayName || "";
+      const data = (await getDoc(uref)).data() || {};
+      dispEdit.value = data.displayName || me.displayName || "Member";
       bioInput.value = data.bio || "";
+      if (!currentPhotoURL && data.photoURL){
+        currentPhotoURL = data.photoURL;
+        preview.src = currentPhotoURL;
+        preview.style.display = "block";
+      }
+      dispView.textContent = dispEdit.value || "Member";
       statusEl.textContent = "";
     }
 
-    form.addEventListener("submit", async (e)=>{
-      e.preventDefault();
-      $("save-status").textContent = "Saving…";
-      const uid = new URLSearchParams(location.search).get("uid");
-      const ref = doc(db, "users", uid);
-      await updateDoc(ref, {
-        displayName: disp.value.trim(),
-        bio: bioInput.value.trim()
-      });
-      nameEl.textContent = disp.value.trim() || "No name yet";
-      bioEl.textContent = bioInput.value.trim() || "No bio yet.";
-      $("save-status").textContent = "Saved";
-      setTimeout(()=> $("save-status").textContent = "", 1200);
+    avatar?.addEventListener("change", ()=>{
+      const f = avatar.files?.[0];
+      if (!f) return;
+      const url = URL.createObjectURL(f);
+      preview.src = url;
+      preview.style.display = "block";
     });
 
-    logoutBtn.addEventListener("click", async ()=>{
-      await signOut(auth);
-      toLogin();
+    clearBtn?.addEventListener("click", ()=>{
+      avatar.value = "";
+      preview.removeAttribute("src");
+      preview.style.display = "none";
+    });
+
+    $("edit-form")?.addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      if (!me) return;
+
+      const name = (dispEdit.value || "").trim().slice(0, 60);
+      const bio  = (bioInput.value || "").trim().slice(0, 400);
+      const f    = avatar.files?.[0];
+
+      saveBtn.disabled = true;
+      $("save-status").textContent = "Saving…";
+
+      try {
+        let photoURL = currentPhotoURL;
+
+        if (f){
+          const path = `avatars/${me.uid}/${Date.now()}_${f.name.replace(/\s+/g,'_')}`;
+          const r = sRef(storage, path);
+          await uploadBytes(r, f);
+          photoURL = await getDownloadURL(r);
+          preview.src = photoURL;
+          preview.style.display = "block";
+        }
+
+        // Update Auth cache
+        await updateProfile(me, {
+          displayName: name || me.displayName || "Member",
+          photoURL: photoURL || null
+        });
+
+        // Save Firestore doc
+        const uref = doc(db, "users", me.uid);
+        await setDoc(uref, {
+          uid: me.uid,
+          displayName: name || "Member",
+          photoURL: photoURL || null,
+          bio,
+          updatedAt: serverTimestamp(),
+        }, { merge:true });
+
+        currentPhotoURL = photoURL || currentPhotoURL;
+        dispView.textContent = name || "Member";
+        $("save-status").textContent = "Saved";
+        setTimeout(()=> $("save-status").textContent = "", 1200);
+      } catch (err){
+        console.error(err);
+        $("save-status").textContent = err?.message || "Failed saving profile.";
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+
+    $("logout")?.addEventListener("click", async ()=>{
+      try { await signOut(auth); goLogin(); } catch (e) {
+        statusEl.textContent = e?.message || "Could not sign out.";
+      }
     });
   </script>
 </body>
