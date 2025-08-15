@@ -1,79 +1,66 @@
-<!-- /public/js/login.js -->
-<script type="module">
-  import { auth, db, storage } from "./js/firebase.js";
-  import {
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    updateProfile,
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import {
-    doc, setDoc, serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-  import {
-    ref as storageRef, uploadBytes, getDownloadURL
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+// ./js/login.js
+import { auth, db } from "./firebase.js";
+import {
+  signInWithEmailAndPassword,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  doc, setDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  const $ = (id) => document.getElementById(id);
+// optional: small helper for UI
+const $ = (id) => document.getElementById(id);
+const statusEl = $("login-status"); // <div id="login-status"></div> (optional)
 
-  // --- SIGN UP ---
-  const signupForm = $("signup-form");
-  signupForm?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = $("signup-email").value.trim();
-    const pass  = $("signup-password").value;
-    const file  = $("profile-picture").files?.[0] || null;
+function setStatus(msg) { if (statusEl) statusEl.textContent = msg; }
 
-    try {
-      const cred = await createUserWithEmailAndPassword(auth, email, pass);
-      let photoURL = null;
+async function saveProfile(user) {
+  // keep a minimal profile doc up to date
+  try {
+    await setDoc(doc(db, "profiles", user.uid), {
+      uid: user.uid,
+      displayName: user.displayName || "Member",
+      photoURL: user.photoURL || null,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch (e) {
+    // non-fatal for login
+    console.warn("saveProfile failed:", e);
+  }
+}
 
-      if (file) {
-        const path = `profilePictures/${cred.user.uid}/${file.name}`;
-        const ref  = storageRef(storage, path);
-        await uploadBytes(ref, file);
-        photoURL = await getDownloadURL(ref);
-        await updateProfile(cred.user, { photoURL });
-      }
+async function handleLogin(e) {
+  e.preventDefault();
+  const email = ($("login-email")?.value || "").trim();
+  const pass  = ($("login-password")?.value || "").trim();
+  if (!email || !pass) { setStatus("Enter email and password."); return; }
 
-      await setDoc(doc(db, "profiles", cred.user.uid), {
-        uid: cred.user.uid,
-        email,
-        displayName: cred.user.displayName || "Member",
-        photoURL,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+  const btn = e.submitter || $("login-submit");
+  if (btn) { btn.disabled = true; btn.textContent = "Signing in…"; }
+  setStatus("Signing in…");
 
-      // Go to the app after successful signup
-      location.replace("./app.html");
-    } catch (err) {
-      alert(err?.message || "Sign up failed.");
-    }
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, pass);
+    const user = cred.user;
+    await saveProfile(user);
+    // go to the signed-in user's profile page
+    location.replace("./profile.html");
+  } catch (err) {
+    console.error(err);
+    setStatus(err?.message || "Login failed.");
+    if (!statusEl) alert(err?.message || "Login failed.");
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "Login"; }
+  }
+}
+
+// attach once DOM is ready
+document.addEventListener("DOMContentLoaded", () => {
+  const form = $("login-form");
+  if (form) form.addEventListener("submit", handleLogin);
+
+  // If already signed in, bounce to profile immediately
+  onAuthStateChanged(auth, (user) => {
+    if (user) location.replace("./profile.html");
   });
-
-  // --- LOGIN ---
-  const loginForm = $("login-form");
-  loginForm?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = $("login-email").value.trim();
-    const pass  = $("login-password").value;
-
-    try {
-      const cred = await signInWithEmailAndPassword(auth, email, pass);
-
-      // Touch profile on login
-      await setDoc(doc(db, "profiles", cred.user.uid), {
-        uid: cred.user.uid,
-        email,
-        displayName: cred.user.displayName || "Member",
-        photoURL: cred.user.photoURL || null,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-
-      // Go to the app
-      location.replace("./app.html");
-    } catch (err) {
-      alert(err?.message || "Login failed.");
-    }
-  });
-</script>
+});
