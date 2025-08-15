@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Unhinged – Sign Up / Login</title>
+    <title>Unhinged – Sign In</title>
     <style>
       body {
         font-family: sans-serif;
@@ -25,8 +25,7 @@
         margin-bottom: 0.25rem;
       }
       input[type="email"],
-      input[type="password"],
-      input[type="file"] {
+      input[type="password"] {
         width: 100%;
         padding: 0.5rem;
         margin-bottom: 1rem;
@@ -43,20 +42,8 @@
     </style>
   </head>
   <body>
-    <h1>Sign Up</h1>
-    <!-- Sign‑up form collects the user’s email, password and profile picture.  -->
-    <form id="signup-form">
-      <label for="signup-email">Email</label>
-      <input id="signup-email" type="email" required />
-      <label for="signup-password">Password</label>
-      <input id="signup-password" type="password" required />
-      <label for="profile-picture">Profile picture</label>
-      <input id="profile-picture" type="file" accept="image/*" required />
-      <button type="submit">Create account</button>
-    </form>
-
-    <h1>Login</h1>
-    <!-- Login form collects the user’s email and password and redirects to chat on success. -->
+    <h1>Sign In</h1>
+    <!-- Login form collects the user’s email and password and redirects to app.html on success -->
     <form id="login-form">
       <label for="login-email">Email</label>
       <input id="login-email" type="email" required />
@@ -65,7 +52,24 @@
       <button type="submit">Login</button>
     </form>
 
-    <!-- Load Firebase client SDKs.  These are loaded via JS modules to support modern browsers. -->
-<script type="module" src="./js/login.js"></script>
+    <!-- Load Firebase sign-in script -->
+    <script type="module">
+      import { auth } from "./js/firebase.js";
+      import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+      const form = document.getElementById("login-form");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("login-email").value.trim();
+        const password = document.getElementById("login-password").value.trim();
+
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+          location.replace("./app.html"); // redirect after sign-in
+        } catch (err) {
+          alert(err.message || "Failed to sign in");
+        }
+      });
+    </script>
   </body>
 </html>
