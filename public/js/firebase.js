@@ -1,4 +1,4 @@
-// /public/js/firebase.js  (ES module)
+// /public/js/firebase.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth }        from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore }   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -11,7 +11,7 @@ const firebaseConfig = {
   storageBucket: "unhinged-8c6da.appspot.com",
   messagingSenderId: "248472796860",
   appId: "1:248472796860:web:1d7488b03935ae645dab9",
-  measurementId: "G-QEEY24M17T",
+  measurementId: "G-QEEY24M17T"
 };
 
 const app     = initializeApp(firebaseConfig);
