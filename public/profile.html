@@ -5,82 +5,133 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Unhinged — Profile</title>
   <style>
-    body{font-family:Arial, sans-serif;max-width:900px;margin:0 auto;padding:2rem;background:#0e0e12;color:#fff}
-    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
-    .pill{padding:.5rem .9rem;background:#1a1b22;border:1px solid rgba(255,255,255,.12);border-radius:999px;color:#fff;cursor:pointer}
-    .card{background:#15161b;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:1rem;margin-top:1rem}
-    .sub{color:#cfd0de}
-    img.avatar{width:88px;height:88px;border-radius:50%;object-fit:cover;border:2px solid #2a2a2a}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:12px}
+    body{font-family:Arial, sans-serif;max-width:700px;margin:0 auto;padding:2rem;background:#0e0e12;color:#fff}
+    header{display:flex;justify-content:space-between;align-items:center}
+    button{padding:.55rem .9rem;border:none;background:#E11D2A;color:#fff;border-radius:6px;cursor:pointer}
+    .card{margin-top:1rem;padding:1rem;border:1px solid #2a2a2a;border-radius:8px;background:#15161b}
+    label{display:block;margin:.5rem 0 .25rem}
+    input,textarea{width:100%;padding:.6rem;border:1px solid #2a2a2a;border-radius:6px;background:#12131a;color:#fff}
+    .muted{color:#cfd0de}
   </style>
 </head>
 <body>
   <header>
-    <h1>My Profile</h1>
-    <button id="logout" class="pill">Logout</button>
+    <h1>Your Profile</h1>
+    <div>
+      <button id="logout">Sign out</button>
+    </div>
   </header>
 
-  <div id="who" class="card">
-    <div style="display:flex;gap:14px;align-items:center">
-      <img id="avatar" class="avatar" alt="avatar" src="" />
-      <div>
-        <div id="displayName" style="font-weight:800;font-size:1.2rem">Member</div>
-        <div id="email" class="sub"></div>
-        <div id="uid" class="sub"></div>
-      </div>
-    </div>
-  </div>
+  <div id="status" class="muted"></div>
 
-  <div class="grid">
-    <div class="card"><h3>Matches</h3><div class="sub">Coming soon</div></div>
-    <div class="card"><h3>Likes</h3><div class="sub">Coming soon</div></div>
-    <div class="card"><h3>Views</h3><div class="sub">Coming soon</div></div>
-    <div class="card"><h3>Messages</h3><div class="sub">Use the chat page</div></div>
-  </div>
+  <section class="card">
+    <h2 id="name">Loading…</h2>
+    <p id="bio" class="muted"></p>
+    <p class="muted" id="uidline"></p>
+  </section>
+
+  <section class="card">
+    <h3>Edit</h3>
+    <form id="edit-form">
+      <label for="displayName">Display name</label>
+      <input id="displayName" type="text" />
+      <label for="bioInput">Bio</label>
+      <textarea id="bioInput" rows="4"></textarea>
+      <button type="submit">Save</button>
+      <span id="save-status" class="muted" style="margin-left:.6rem"></span>
+    </form>
+  </section>
 
   <script type="module">
-    import { auth, db } from "./js/firebase.js";
-    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { auth } from "./js/firebase.js";
+    import {
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, setDoc, updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const qs = new URLSearchParams(location.search);
-    const paramUid = qs.get("uid") || null;
+    const $ = id => document.getElementById(id);
+    const statusEl = $("status");
+    const nameEl = $("name");
+    const bioEl = $("bio");
+    const uidLine = $("uidline");
+    const form = $("edit-form");
+    const disp = $("displayName");
+    const bioInput = $("bioInput");
+    const logoutBtn = $("logout");
 
-    const el = id => document.getElementById(id);
-    const $name = el("displayName");
-    const $uid  = el("uid");
-    const $mail = el("email");
-    const $ava  = el("avatar");
-    const $logout = el("logout");
+    const params = new URLSearchParams(location.search);
+    const urlUid = params.get("uid")?.trim() || "";
 
-    $logout.addEventListener("click", async ()=>{
-      await signOut(auth);
-      location.replace("./login.html");
-    });
+    const db = getFirestore();
 
-    async function loadProfile(forUid){
-      try {
-        const snap = await getDoc(doc(db, "profiles", forUid));
-        if (snap.exists()){
-          const p = snap.data();
-          $name.textContent = p.displayName || "Member";
-          $ava.src = p.photoURL || "https://via.placeholder.com/88x88.png?text=👤";
-        } else {
-          // fallback to auth info if no profile doc yet
-          $name.textContent = auth.currentUser?.displayName || "Member";
-          $ava.src = auth.currentUser?.photoURL || "https://via.placeholder.com/88x88.png?text=👤";
-        }
-      } catch (e) {
-        console.error(e);
+    function toLogin(){ location.replace("./login.html"); }
+    function toOwnProfile(uid){
+      const here = new URL(location.href);
+      if (here.searchParams.get("uid") !== uid) {
+        location.replace(`./profile.html?uid=${encodeURIComponent(uid)}`);
       }
     }
 
-    onAuthStateChanged(auth, async (user)=>{
-      if (!user) { location.replace("./login.html"); return; }
-      const targetUid = paramUid || user.uid;    // show UID in URL, else your own
-      $uid.textContent = `UID: ${targetUid}`;
-      $mail.textContent = user.email || "";
-      await loadProfile(targetUid);
+    // Load & enforce ownership
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { toLogin(); return; }
+
+      // If no uid in URL, normalize to the signed-in user’s page
+      if (!urlUid) { toOwnProfile(user.uid); return; }
+
+      // Optionally enforce: only let users view their own profile page
+      if (user.uid !== urlUid) {
+        // If you want public profiles later, remove this guard.
+        toOwnProfile(user.uid);
+        return;
+      }
+
+      uidLine.textContent = `UID: ${user.uid}`;
+      await loadOrCreateProfile(user.uid);
+    });
+
+    async function loadOrCreateProfile(uid){
+      statusEl.textContent = "Loading profile…";
+      const ref = doc(db, "users", uid);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        // Create a minimal profile on first visit
+        await setDoc(ref, {
+          displayName: (auth.currentUser.displayName || "").trim() || "New User",
+          bio: ""
+        });
+      }
+
+      const data = (await getDoc(ref)).data();
+      nameEl.textContent = data.displayName || "No name yet";
+      bioEl.textContent = data.bio || "No bio yet.";
+      disp.value = data.displayName || "";
+      bioInput.value = data.bio || "";
+      statusEl.textContent = "";
+    }
+
+    form.addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      $("save-status").textContent = "Saving…";
+      const uid = new URLSearchParams(location.search).get("uid");
+      const ref = doc(db, "users", uid);
+      await updateDoc(ref, {
+        displayName: disp.value.trim(),
+        bio: bioInput.value.trim()
+      });
+      nameEl.textContent = disp.value.trim() || "No name yet";
+      bioEl.textContent = bioInput.value.trim() || "No bio yet.";
+      $("save-status").textContent = "Saved";
+      setTimeout(()=> $("save-status").textContent = "", 1200);
+    });
+
+    logoutBtn.addEventListener("click", async ()=>{
+      await signOut(auth);
+      toLogin();
     });
   </script>
 </body>
