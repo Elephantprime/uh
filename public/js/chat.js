@@ -1,87 +1,80 @@
-// /public/js/chat.js — Firebase v10 compatible (imports only from ./firebase.js)
-import {
-  auth, db,
-  collection, addDoc, serverTimestamp,
-  query, orderBy, onSnapshot
-} from "./firebase.js";
+<!-- Main Page Chat (Single Room: general) -->
+<script type="module">
+  import { auth, db } from "./js/firebase.js";
+  import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const roomSel = document.getElementById('room');
-;
-const enter   = document.getElementById('enter');
-const status  = document.getElementById('status');
-const feed    = document.getElementById('feed');
-const text    = document.getElementById('text');
-const sendBtn = document.getElementById('send');
+  const feed      = document.getElementById('chat-messages');   // container for messages
+  const text      = document.getElementById('chat-input');      // message input
+  const sendBtn   = document.getElementById('chat-send');       // send button
+  const logoutBtn = document.getElementById('logout');          // logout button
+  const status    = document.getElementById('status');          // optional status display
 
-let room = roomSel?.value || 'lobby';
-let displayName = '';
-let unsub = null;
+  let displayName = 'Member';
+  let stopListen = null;
 
-const fmt = (ts) => {
-  const d = ts?.toDate ? ts.toDate() : (ts ? new Date(ts) : new Date());
-  return d.toLocaleString();
-};
+  // Firestore subcollection path
+  const roomColl = () => collection(db, "rooms", "general", "messages");
 
-const setStatus = (m)=>{ if (status) status.textContent = m; };
-const clearFeed = ()=>{ if (feed) feed.innerHTML = ''; };
-const appendMsg = ({ name, body, ts, mine })=>{
-  const div = document.createElement('div');
-  div.className = 'msg';
-  div.innerHTML = `
-    <div class="${mine?'me':'other'}"><strong>${name}</strong> — ${body}</div>
-    <div class="meta">${fmt(ts)}</div>
-  `;
-  feed.appendChild(div);
-  feed.scrollTop = feed.scrollHeight;
-};
+  // Render a single message
+  function bubble({ text, uid, displayName: dn, createdAt }) {
+    const me  = auth.currentUser?.uid && uid === auth.currentUser.uid;
+    const el  = document.createElement('div');
+    const when = createdAt?.seconds
+      ? new Date(createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : '';
+    el.className = 'msg';
+    el.innerHTML = `<div class="${me ? 'me' : 'other'}"><strong>${dn || 'Member'}:</strong> ${text || ''}</div><div class="meta">${when}</div>`;
+    return el;
+  }
 
-function listenRoom(r){
-  if (unsub) { try { unsub(); } catch{}; unsub = null; }
-  clearFeed();
-  const qref = query(collection(db, 'rooms', r, 'messages'), orderBy('createdAt','asc'));
-  unsub = onSnapshot(qref, (snap)=>{
-    clearFeed();
-    snap.forEach(doc=>{
-      const d = doc.data();
-      const mine = (auth.currentUser?.uid && d.uid === auth.currentUser.uid) ||
-                   (displayName && d.displayName === displayName);
-      appendMsg({ name: d.displayName || 'Member', body: d.text, ts: d.createdAt, mine });
+  // Listen for messages in "general" room
+  function listen() {
+    stopListen?.();
+    feed.innerHTML = '';
+    const q = query(roomColl(), orderBy("createdAt", "asc"));
+    stopListen = onSnapshot(q, (snap) => {
+      feed.innerHTML = '';
+      snap.forEach((d) => feed.appendChild(bubble(d.data())));
+      feed.scrollTop = feed.scrollHeight;
     });
-  }, (err)=> setStatus(err?.message || 'Listen error'));
-}
+  }
 
-async function send(){
-  const v = text.value.trim();
-  if (!v) return;
-  text.value = '';
-  const u = auth.currentUser;
-  const name = u?.displayName || displayName || 'Member';
-  try{
-    await addDoc(collection(db, 'rooms', room, 'messages'), {
-      text: v.slice(0,500),
-      uid: u?.uid || null,
-      displayName: name,
+  // Send a message
+  async function send() {
+    const v = text.value.trim();
+    if (!v || !auth.currentUser) return;
+    text.value = '';
+    await addDoc(roomColl(), {
+      text: v,
+      uid: auth.currentUser.uid,
+      displayName,
       createdAt: serverTimestamp(),
     });
-  } catch (e){
-    setStatus(e?.message || 'Send failed (auth/rules).');
   }
-}
 
-enter?.addEventListener('click', ()=>{
-  displayName = (handle?.value || '').trim();
-  const signed = !!auth.currentUser;
-  if (!signed && !displayName){ alert('Enter a name or sign in.'); return; }
-  text.disabled = false;
-  sendBtn.disabled = false;
-  setStatus(`Connected as ${auth.currentUser?.displayName || displayName}`);
-  listenRoom(roomSel?.value || 'lobby');
-});
+  // Events
+  sendBtn?.addEventListener('click', send);
+  text?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') send();
+  });
 
-roomSel?.addEventListener('change', (e)=>{
-  room = e?.target?.value || 'lobby';
-  if (!text.disabled) listenRoom(room);
-});
+  logoutBtn?.addEventListener('click', async () => {
+    try {
+      await signOut(auth);
+    } finally {
+      location.replace('./login.html');
+    }
+  });
 
-sendBtn?.addEventListener('click', send);
-text?.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') send(); });
+  // Auth check
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      location.replace('./login.html');
+      return;
+    }
+    displayName = user.displayName || 'Member';
+    if (status) status.textContent = `Connected as ${displayName} in #general`;
+    listen();
+  });
+</script>
