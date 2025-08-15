@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Unhinged – Sign In</title>
+    <title>Unhinged – Login</title>
     <style>
       body {
         font-family: sans-serif;
@@ -42,8 +42,8 @@
     </style>
   </head>
   <body>
-    <h1>Sign In</h1>
-    <!-- Login form collects the user’s email and password and redirects to app.html on success -->
+    <h1>Login</h1>
+    <!-- Login form collects the user’s email and password -->
     <form id="login-form">
       <label for="login-email">Email</label>
       <input id="login-email" type="email" required />
@@ -52,22 +52,28 @@
       <button type="submit">Login</button>
     </form>
 
-    <!-- Load Firebase sign-in script -->
+    <!-- Firebase login script -->
     <script type="module">
-      import { auth } from "./js/firebase.js";
-      import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+      import { auth } from './js/firebase.js';
+      import { signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
-      const form = document.getElementById("login-form");
-      form.addEventListener("submit", async (e) => {
+      const loginForm = document.getElementById('login-form');
+      const emailInput = document.getElementById('login-email');
+      const passInput = document.getElementById('login-password');
+
+      loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = document.getElementById("login-email").value.trim();
-        const password = document.getElementById("login-password").value.trim();
+        const email = emailInput.value.trim();
+        const password = passInput.value;
 
         try {
-          await signInWithEmailAndPassword(auth, email, password);
-          location.replace("./app.html"); // redirect after sign-in
+          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
+          // redirect to that user's profile page (pass UID in query string)
+          window.location.href = `profile.html?uid=${encodeURIComponent(user.uid)}`;
         } catch (err) {
-          alert(err.message || "Failed to sign in");
+          console.error(err);
+          alert(`Login failed: ${err.message}`);
         }
       });
     </script>
