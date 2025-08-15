@@ -1,202 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Unhinged — Profile</title>
-  <style>
-    body{font-family:Arial, sans-serif;max-width:700px;margin:0 auto;padding:2rem;background:#0e0e12;color:#fff}
-    header{display:flex;justify-content:space-between;align-items:center}
-    button{padding:.55rem .9rem;border:none;background:#E11D2A;color:#fff;border-radius:6px;cursor:pointer}
-    .card{margin-top:1rem;padding:1rem;border:1px solid #2a2a2a;border-radius:8px;background:#15161b}
-    label{display:block;margin:.5rem 0 .25rem}
-    input,textarea{width:100%;padding:.6rem;border:1px solid #2a2a2a;border-radius:6px;background:#12131a;color:#fff}
-    .muted{color:#cfd0de}
-    img#preview{display:none;width:120px;height:120px;border-radius:12px;object-fit:cover;margin-top:.5rem;border:1px solid #2a2a2a}
-    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Unhinged — Profile</title>
+<style>
+  body {font-family: Arial, sans-serif; background:#0e0e12; color:#fff; margin:0; padding:0;}
+  header {display:flex; justify-content:space-between; align-items:center; padding:1rem; background:#15161b;}
+  button, .chaos-btn {padding:.5rem 1rem; border:none; border-radius:6px; background:#E11D2A; color:#fff; cursor:pointer; text-decoration:none; display:inline-block;}
+  .muted {color:#cfd0de;}
+  .container {max-width:1000px; margin:auto; padding:1rem;}
+  .card {background:#15161b; border:1px solid #2a2a2a; border-radius:8px; padding:1rem; margin-bottom:1rem;}
+  label {display:block; margin:.5rem 0 .25rem;}
+  input, textarea, select {width:100%; padding:.6rem; border:1px solid #2a2a2a; border-radius:6px; background:#12131a; color:#fff;}
+  #preview {display:none; width:120px; height:120px; border-radius:12px; object-fit:cover; margin-top:.5rem;}
+  .filter-bar {margin:1rem 0; background:#15161b; border:1px solid #2a2a2a; border-radius:8px; padding:1rem;}
+  .filters {display:none; margin-top:1rem;}
+  .profile-grid {display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:1rem;}
+  .profile-card {background:#1b1c22; border-radius:8px; padding:1rem; text-align:center;}
+  .profile-card img {width:100%; height:180px; object-fit:cover; border-radius:8px;}
+  .profile-card h3 {margin:.5rem 0;}
+</style>
 </head>
 <body>
-  <header>
-    <h1>Your Profile</h1>
-    <div class="row">
-      <button id="logout">Sign out</button>
-    </div>
-  </header>
 
-  <div id="status" class="muted"></div>
+<header>
+  <h1>Your Profile</h1>
+  <button id="logout">Sign out</button>
+</header>
 
+<div class="container">
+
+  <!-- Profile Editor -->
   <section class="card">
-    <div class="row">
-      <img id="preview" alt="Avatar preview">
-      <div>
-        <h2 id="displayNameView">Loading…</h2>
-        <p class="muted" id="uidline"></p>
-      </div>
-    </div>
-  </section>
-
-  <section class="card">
-    <h3>Edit</h3>
+    <h2>Profile Info</h2>
+    <div id="status" class="muted"></div>
+    <img id="preview" alt="Avatar preview">
+    <p id="uidline"></p>
     <form id="edit-form">
       <label for="displayName">Display name</label>
       <input id="displayName" type="text" />
       <label for="bioInput">Bio</label>
-      <textarea id="bioInput" rows="4"></textarea>
-      <label for="avatar">Avatar (optional)</label>
+      <textarea id="bioInput" rows="3"></textarea>
+      <label for="avatar">Avatar</label>
       <input id="avatar" type="file" accept="image/*" />
-      <div class="row" style="margin-top:.6rem">
-        <button type="submit" id="save">Save</button>
-        <button type="button" id="clearPhoto" class="ghost" style="background:#2a2a2a">Clear photo</button>
-        <span id="save-status" class="muted"></span>
-      </div>
+      <button type="submit" id="save">Save</button>
+      <span id="save-status" class="muted"></span>
     </form>
   </section>
 
-  <script type="module">
-    import { auth, db, storage } from "./js/firebase.js";
-    import { onAuthStateChanged, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+  <!-- Filter Bar -->
+  <section class="filter-bar">
+    <button id="toggle-filters">Filters</button>
+    <div class="filters" id="filters">
+      <label for="filter-location">Location</label>
+      <input id="filter-location" type="text" placeholder="Enter city or region" />
+      <label for="filter-age">Age Range</label>
+      <select id="filter-age">
+        <option value="">Any</option>
+        <option value="18-25">18–25</option>
+        <option value="26-35">26–35</option>
+        <option value="36-50">36–50</option>
+        <option value="50+">50+</option>
+      </select>
+      <label for="filter-gender">Gender</label>
+      <select id="filter-gender">
+        <option value="">Any</option>
+        <option value="female">Female</option>
+        <option value="male">Male</option>
+        <option value="nonbinary">Non-binary</option>
+      </select>
+      <button id="apply-filters">Apply Filters</button>
+    </div>
+  </section>
 
-    const $ = id => document.getElementById(id);
-    const statusEl = $("status");
-    const uidLine  = $("uidline");
-    const dispView = $("displayNameView");
-    const dispEdit = $("displayName");
-    const bioInput = $("bioInput");
-    const avatar   = $("avatar");
-    const preview  = $("preview");
-    const saveBtn  = $("save");
-    const clearBtn = $("clearPhoto");
+  <!-- Matches Feed -->
+  <section>
+    <h2>Your Matches</h2>
+    <div class="profile-grid" id="matches"></div>
+  </section>
 
-    const params = new URLSearchParams(location.search);
-    const urlUid = (params.get("uid") || "").trim();
+</div>
 
-    const goLogin = () => location.replace("./login.html");
-    const goOwn   = uid => location.replace(`./profile.html?uid=${encodeURIComponent(uid)}`);
+<script type="module">
+  import { auth, db, storage } from "./js/firebase.js";
+  import { onAuthStateChanged, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { doc, getDoc, setDoc, getDocs, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-    let me = null;
-    let currentPhotoURL = "";
+  const $ = id => document.getElementById(id);
+  const statusEl = $("status");
+  const uidLine  = $("uidline");
+  const dispEdit = $("displayName");
+  const bioInput = $("bioInput");
+  const avatar   = $("avatar");
+  const preview  = $("preview");
+  const saveBtn  = $("save");
 
-    onAuthStateChanged(auth, async (user)=>{
-      if (!user) return goLogin();
-      me = user;
+  let me = null;
+  let currentPhotoURL = "";
 
-      // Ensure we’re on our own profile page
-      if (!urlUid || urlUid !== me.uid) return goOwn(me.uid);
+  // Toggle filters
+  $("toggle-filters").addEventListener("click", () => {
+    const f = $("filters");
+    f.style.display = f.style.display === "block" ? "none" : "block";
+  });
 
-      uidLine.textContent = `UID: ${me.uid}`;
-      dispView.textContent = me.displayName || "Member";
-      currentPhotoURL = me.photoURL || "";
-
-      if (currentPhotoURL){
-        preview.src = currentPhotoURL;
-        preview.style.display = "block";
-      }
-
-      // Load Firestore profile (create minimal if missing)
-      await loadOrCreate(me.uid);
+  // Load matches from Firestore
+  async function loadMatches(filters = {}) {
+    const matchesEl = $("matches");
+    matchesEl.innerHTML = "Loading...";
+    const snap = await getDocs(collection(db, "users"));
+    let profiles = [];
+    snap.forEach(docu => {
+      if (!me || docu.id === me.uid) return; // skip current user
+      const data = docu.data();
+      profiles.push(data);
     });
 
-    async function loadOrCreate(uid){
-      statusEl.textContent = "Loading profile…";
-      const uref = doc(db, "users", uid);
-      const snap = await getDoc(uref);
-
-      if (!snap.exists()){
-        await setDoc(uref, {
-          uid,
-          displayName: me.displayName || "Member",
-          photoURL: me.photoURL || null,
-          bio: "",
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        }, { merge:true });
-      }
-
-      const data = (await getDoc(uref)).data() || {};
-      dispEdit.value = data.displayName || me.displayName || "Member";
-      bioInput.value = data.bio || "";
-      if (!currentPhotoURL && data.photoURL){
-        currentPhotoURL = data.photoURL;
-        preview.src = currentPhotoURL;
-        preview.style.display = "block";
-      }
-      dispView.textContent = dispEdit.value || "Member";
-      statusEl.textContent = "";
+    // Simple filter logic (client-side)
+    if (filters.gender) {
+      profiles = profiles.filter(p => (p.gender || "").toLowerCase() === filters.gender.toLowerCase());
+    }
+    if (filters.ageRange) {
+      // Assume we have 'age' in profile
+      const [min, max] = filters.ageRange.split("-");
+      profiles = profiles.filter(p => {
+        if (!p.age) return false;
+        if (max) return p.age >= parseInt(min) && p.age <= parseInt(max);
+        return p.age >= parseInt(min);
+      });
+    }
+    if (filters.location) {
+      profiles = profiles.filter(p => (p.location || "").toLowerCase().includes(filters.location.toLowerCase()));
     }
 
-    avatar?.addEventListener("change", ()=>{
-      const f = avatar.files?.[0];
-      if (!f) return;
-      const url = URL.createObjectURL(f);
-      preview.src = url;
+    // Render
+    matchesEl.innerHTML = "";
+    profiles.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "profile-card";
+      card.innerHTML = `
+        <img src="${p.photoURL || 'https://via.placeholder.com/300x180'}" alt="">
+        <h3>${p.displayName || "Member"}</h3>
+        <p>${p.bio || ""}</p>
+        <a href="./app.html" class="chaos-btn">Community Chaos</a>
+      `;
+      matchesEl.appendChild(card);
+    });
+  }
+
+  $("apply-filters").addEventListener("click", () => {
+    loadMatches({
+      location: $("filter-location").value.trim(),
+      ageRange: $("filter-age").value,
+      gender: $("filter-gender").value
+    });
+  });
+
+  // Load current user
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) return location.replace("./login.html");
+    me = user;
+    uidLine.textContent = `UID: ${me.uid}`;
+    currentPhotoURL = me.photoURL || "";
+    if (currentPhotoURL) {
+      preview.src = currentPhotoURL;
       preview.style.display = "block";
-    });
+    }
 
-    clearBtn?.addEventListener("click", ()=>{
-      avatar.value = "";
-      preview.removeAttribute("src");
-      preview.style.display = "none";
-    });
+    // Load or create profile doc
+    const uref = doc(db, "users", me.uid);
+    const snap = await getDoc(uref);
+    if (!snap.exists()) {
+      await setDoc(uref, {
+        uid: me.uid,
+        displayName: me.displayName || "Member",
+        bio: "",
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+    }
+    const data = (await getDoc(uref)).data();
+    dispEdit.value = data.displayName || "";
+    bioInput.value = data.bio || "";
 
-    $("edit-form")?.addEventListener("submit", async (e)=>{
-      e.preventDefault();
-      if (!me) return;
+    loadMatches();
+  });
 
-      const name = (dispEdit.value || "").trim().slice(0, 60);
-      const bio  = (bioInput.value || "").trim().slice(0, 400);
-      const f    = avatar.files?.[0];
-
-      saveBtn.disabled = true;
-      $("save-status").textContent = "Saving…";
-
-      try {
-        let photoURL = currentPhotoURL;
-
-        if (f){
-          const path = `avatars/${me.uid}/${Date.now()}_${f.name.replace(/\s+/g,'_')}`;
-          const r = sRef(storage, path);
-          await uploadBytes(r, f);
-          photoURL = await getDownloadURL(r);
-          preview.src = photoURL;
-          preview.style.display = "block";
-        }
-
-        // Update Auth cache
-        await updateProfile(me, {
-          displayName: name || me.displayName || "Member",
-          photoURL: photoURL || null
-        });
-
-        // Save Firestore doc
-        const uref = doc(db, "users", me.uid);
-        await setDoc(uref, {
-          uid: me.uid,
-          displayName: name || "Member",
-          photoURL: photoURL || null,
-          bio,
-          updatedAt: serverTimestamp(),
-        }, { merge:true });
-
-        currentPhotoURL = photoURL || currentPhotoURL;
-        dispView.textContent = name || "Member";
-        $("save-status").textContent = "Saved";
-        setTimeout(()=> $("save-status").textContent = "", 1200);
-      } catch (err){
-        console.error(err);
-        $("save-status").textContent = err?.message || "Failed saving profile.";
-      } finally {
-        saveBtn.disabled = false;
+  $("edit-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!me) return;
+    saveBtn.disabled = true;
+    $("save-status").textContent = "Saving...";
+    try {
+      let photoURL = currentPhotoURL;
+      const f = avatar.files?.[0];
+      if (f) {
+        const path = `avatars/${me.uid}/${Date.now()}_${f.name}`;
+        const r = sRef(storage, path);
+        await uploadBytes(r, f);
+        photoURL = await getDownloadURL(r);
+        preview.src = photoURL;
+        preview.style.display = "block";
       }
-    });
+      await updateProfile(me, { displayName: dispEdit.value.trim(), photoURL });
+      await setDoc(doc(db, "users", me.uid), {
+        displayName: dispEdit.value.trim(),
+        bio: bioInput.value.trim(),
+        photoURL,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      currentPhotoURL = photoURL;
+      $("save-status").textContent = "Saved";
+    } catch (err) {
+      console.error(err);
+      $("save-status").textContent = "Error saving profile.";
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
 
-    $("logout")?.addEventListener("click", async ()=>{
-      try { await signOut(auth); goLogin(); } catch (e) {
-        statusEl.textContent = e?.message || "Could not sign out.";
-      }
-    });
-  </script>
+  $("logout").addEventListener("click", async () => {
+    await signOut(auth);
+    location.replace("./login.html");
+  });
+</script>
+
 </body>
 </html>
