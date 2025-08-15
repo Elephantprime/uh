@@ -1,86 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login</title>
-  <style>
-    body{font-family:Arial, sans-serif;background:#0e0e12;color:#fff;text-align:center;padding:40px}
-    input,button{padding:10px;border-radius:6px;border:none;width:260px}
-    input{background:#171821;color:#fff;margin:8px 0}
-    button{background:#E11D2A;color:#fff;cursor:pointer;margin-top:8px}
-    button:hover{background:#c01021}
-    .sub{color:#cfd0de;font-size:13px;margin-top:10px;min-height:1.3em}
-  </style>
-</head>
-<body>
-  <h1>Login</h1>
-  <input id="name" autocomplete="username" placeholder="Name (username)"/>
-  <input id="pass" type="password" autocomplete="current-password" placeholder="Password"/>
- <button id="go" type="button">Enter</button>
-  <div id="msg" class="sub"></div>
-
-  <script type="module">
-    import { auth, db } from "./js/firebase.js";
-    import {
-      onAuthStateChanged, updateProfile,
-      signInWithEmailAndPassword, createUserWithEmailAndPassword
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-    // If already logged in, go to app
-    onAuthStateChanged(auth, (user)=>{ if (user) location.replace("app.html"); });
-
-    const $ = id => document.getElementById(id);
-    const msg = $("msg"), nameEl = $("name"), passEl = $("pass"), goBtn = $("go");
-
-    function uiBusy(b){ goBtn.disabled = b; goBtn.textContent = b ? "Working..." : "Enter"; }
-
-    function mapErr(code, fallback="Login failed."){
-      const m = {
-        "auth/invalid-credential":"Wrong username or password.",
-        "auth/invalid-email":"Bad username format.",
-        "auth/user-disabled":"Account disabled.",
-        "auth/user-not-found":"Account not found.",
-        "auth/wrong-password":"Wrong password.",
-        "auth/too-many-requests":"Too many tries. Try again later."
-      };
-      return m[code] || fallback;
-    }
-
-    async function loginOrCreate(){
-      const name = (nameEl.value||"").trim();
-      const pass = (passEl.value||"").trim();
-      if (!name || !pass){ msg.textContent = "Enter name and password."; return; }
-      if (pass.length < 6){ msg.textContent = "Password must be at least 6 characters."; return; }
-const email = `${name.normalize('NFKC').trim().replace(/\s+/g,'_').toLowerCase()}@unhinged.app`;
-      uiBusy(true); msg.textContent = "Checking…";
-      try {
-        await signInWithEmailAndPassword(auth, email, pass);
-        location.replace("app.html");
-      } catch (e) {
-        if (e.code === "auth/user-not-found") {
-          try {
-            const cred = await createUserWithEmailAndPassword(auth, email, pass);
-            await updateProfile(cred.user, { displayName: name });
-            await setDoc(doc(db, "profiles", cred.user.uid), {
-              uid: cred.user.uid, displayName: name, photoURL: cred.user.photoURL || null,
-              createdAt: serverTimestamp(), updatedAt: serverTimestamp()
-            }, { merge: true });
-            location.replace("app.html");
-          } catch (e2) {
-            msg.textContent = mapErr(e2.code, e2.message);
-            uiBusy(false);
-          }
-        } else {
-          msg.textContent = mapErr(e.code, e.message);
-          uiBusy(false);
-        }
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Unhinged – Sign Up / Login</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 2rem;
       }
-    }
+      h1 {
+        margin-top: 0;
+      }
+      form {
+        margin-bottom: 2rem;
+        padding: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      label {
+        display: block;
+        margin-bottom: 0.25rem;
+      }
+      input[type="email"],
+      input[type="password"],
+      input[type="file"] {
+        width: 100%;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+        box-sizing: border-box;
+      }
+      button {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: #007bff;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Sign Up</h1>
+    <!-- Sign‑up form collects the user’s email, password and profile picture.  -->
+    <form id="signup-form">
+      <label for="signup-email">Email</label>
+      <input id="signup-email" type="email" required />
+      <label for="signup-password">Password</label>
+      <input id="signup-password" type="password" required />
+      <label for="profile-picture">Profile picture</label>
+      <input id="profile-picture" type="file" accept="image/*" required />
+      <button type="submit">Create account</button>
+    </form>
 
-    goBtn.addEventListener("click", loginOrCreate);
-    passEl.addEventListener("keydown", e=>{ if (e.key==="Enter") loginOrCreate(); });
-  </script>
-</body>
+    <h1>Login</h1>
+    <!-- Login form collects the user’s email and password and redirects to chat on success. -->
+    <form id="login-form">
+      <label for="login-email">Email</label>
+      <input id="login-email" type="email" required />
+      <label for="login-password">Password</label>
+      <input id="login-password" type="password" required />
+      <button type="submit">Login</button>
+    </form>
+
+    <!-- Load Firebase client SDKs.  These are loaded via JS modules to support modern browsers. -->
+    <script type="module" src="./login.js"></script>
+  </body>
 </html>
