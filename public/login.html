@@ -2,117 +2,68 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Unhinged — Sign In</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Unhinged — Login</title>
   <style>
-    :root{--bg:#0e0e12;--card:#16171d;--border:#2a2a2a;--fg:#fff;--muted:#cfd0de;--accent:#E11D2A}
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--fg);font:500 16px/1.5 Inter,system-ui}
-    .wrap{max-width:420px;margin:0 auto;padding:28px}
-    h1{margin:12px 0 18px;font-size:26px;font-weight:900;text-align:center}
-    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:18px}
-    label{display:block;margin:10px 0 6px;color:var(--muted);font-size:13px}
-    input,button{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:#12131a;color:#fff}
-    button{background:var(--accent);border:none;font-weight:800;cursor:pointer;margin-top:10px}
-    button:disabled{opacity:.6;cursor:not-allowed}
-    .row{display:flex;gap:10px;margin-top:10px}
-    .muted{color:var(--muted);font-size:13px;text-align:center;margin-top:10px;min-height:1.3em}
-    a{color:#fff;text-decoration:none}
+    body{font-family:Arial, sans-serif;max-width:600px;margin:0 auto;padding:2rem;background:#0e0e12;color:#fff}
+    h1{margin-top:0}
+    form{margin-top:1rem;padding:1rem;border:1px solid #2a2a2a;border-radius:8px;background:#15161b}
+    label{display:block;margin-bottom:.25rem}
+    input{width:100%;padding:.6rem;margin-bottom:1rem;border:1px solid #2a2a2a;border-radius:6px;background:#12131a;color:#fff}
+    button{padding:.6rem 1rem;border:none;background:#E11D2A;color:#fff;border-radius:6px;cursor:pointer}
+    .sub{color:#cfd0de;min-height:1.2em;margin-top:.5rem}
+    a{color:#9ecbff}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>Sign In</h1>
-    <div class="card">
-      <label for="email">Email</label>
-      <input id="email" type="email" autocomplete="username" placeholder="you@example.com" />
-
-      <label for="password">Password</label>
-      <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" />
-
-      <button id="signin">Sign In</button>
-      <div class="row">
-        <button id="forgot" type="button" style="background:#1f2028;border:1px solid var(--border);font-weight:600">Forgot Password</button>
-        <a href="signup.html" style="display:inline-block;flex:1;text-align:center;padding:12px;border:1px solid var(--border);border-radius:10px;background:#1f2028;font-weight:600">Create Account</a>
-      </div>
-
-      <div id="status" class="muted"></div>
-    </div>
-  </div>
+  <h1>Sign In</h1>
+  <form id="login-form">
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="username" required />
+    <label for="password">Password</label>
+    <input id="password" type="password" autocomplete="current-password" required />
+    <button type="submit" id="signin">Login</button>
+    <div class="sub" id="status"></div>
+  </form>
 
   <script type="module">
-    // Uses your shared Firebase bootstrap (must export { app, auth, db })
-    import { auth, db } from "./js/firebase.js";
-    import {
-      onAuthStateChanged,
-      signInWithEmailAndPassword,
-      sendPasswordResetEmail
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import {
-      doc, setDoc, serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { auth } from "./js/firebase.js";
+    import { onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    // ---------- helpers ----------
-    const $ = (id)=>document.getElementById(id);
-    const email   = $("email");
-    const pass    = $("password");
-    const signin  = $("signin");
-    const forgot  = $("forgot");
-    const status  = $("status");
+    const $ = id => document.getElementById(id);
+    const form = $("login-form");
+    const email = $("email");
+    const pass  = $("password");
+    const status = $("status");
 
-    const busy = (b)=>{
-      signin.disabled = b;
-      signin.textContent = b ? "Signing in…" : "Sign In";
-    };
+    function goProfile(uid){ location.replace(`./profile.html?uid=${encodeURIComponent(uid)}`); }
 
-    const saveProfile = async (user)=>{
-      // create/update the user's profile doc on every successful login
-      await setDoc(doc(db, "profiles", user.uid), {
-        uid: user.uid,
-        email: user.email || null,
-        displayName: user.displayName || "Member",
-        photoURL: user.photoURL || null,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-    };
+    function mapErr(code, fallback="Login failed"){
+      const m = {
+        "auth/invalid-credential":"Wrong email or password.",
+        "auth/invalid-email":"Invalid email address.",
+        "auth/user-disabled":"Account disabled.",
+        "auth/user-not-found":"No account with that email.",
+        "auth/wrong-password":"Wrong password.",
+        "auth/too-many-requests":"Too many attempts. Try again later."
+      };
+      return m[code] || fallback;
+    }
 
-    // ---------- actions ----------
-    signin.addEventListener("click", async ()=>{
-      const em = (email.value || "").trim();
-      const pw = pass.value || "";
-      if (!em || !pw) { status.textContent = "Enter email and password."; return; }
-
-      try {
-        busy(true); status.textContent = "";
-        const cred = await signInWithEmailAndPassword(auth, em, pw);
-        await saveProfile(cred.user);
-        // send to *their* profile page (uid in query)
-        location.replace(`profile.html?uid=${encodeURIComponent(cred.user.uid)}`);
-      } catch (err) {
-        console.error(err);
-        status.textContent = err?.message || "Could not sign in.";
-      } finally {
-        busy(false);
-      }
-    });
-
-    forgot.addEventListener("click", async ()=>{
-      const em = (email.value || "").trim();
-      if (!em) { status.textContent = "Enter your email first."; return; }
-      try {
-        status.textContent = "Sending reset email…";
-        await sendPasswordResetEmail(auth, em);
-        status.textContent = "Password reset sent. Check your inbox.";
-      } catch (err) {
-        console.error(err);
-        status.textContent = err?.message || "Could not send reset email.";
-      }
-    });
-
-    // If already signed in, skip this page
+    // If already signed in, go straight to your own profile
     onAuthStateChanged(auth, (user)=>{
-      if (user) {
-        location.replace(`profile.html?uid=${encodeURIComponent(user.uid)}`);
+      if (user) goProfile(user.uid);
+    });
+
+    form.addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      status.textContent = "Signing in…";
+      try {
+        const cred = await signInWithEmailAndPassword(auth, (email.value||"").trim(), pass.value);
+        goProfile(cred.user.uid);
+      } catch (err) {
+        console.error(err);
+        status.textContent = mapErr(err.code, err.message);
       }
     });
   </script>
