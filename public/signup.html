@@ -36,8 +36,9 @@
   </main>
 
   <script type="module">
-    import { auth } from "./js/firebase.js";
+    import { auth, db } from "./js/firebase.js";
     import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const $ = (id)=>document.getElementById(id);
     const form = $("signupForm"), email = $("semail"), pass = $("spass"), msg = $("smsg");
@@ -48,10 +49,26 @@
       e.preventDefault();
       show("Creating…");
       try{
-        await createUserWithEmailAndPassword(auth, (email.value||"").trim(), pass.value||"");
+        const em = (email.value||"").trim();
+        const pw = pass.value || "";
+        if(!em || !pw){ show("Enter email and password"); return; }
+
+        const cred = await createUserWithEmailAndPassword(auth, em, pw);
+        const user = cred.user;
+
+        // Minimal profile doc (users/{uid})
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          email: user.email || em,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        }, { merge:true });
+
         show("Account created!", true);
-        location.replace("./profile.html");
+        // Redirect straight to this user's profile page
+        location.replace(`./profile.html?uid=${encodeURIComponent(user.uid)}`);
       }catch(err){
+        console.error(err);
         show(err?.message || "Couldn’t create account");
       }
     });
