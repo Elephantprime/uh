@@ -3,181 +3,85 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Your Profile – Unhinged</title>
+  <title>Unhinged — Profile</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0f0f12;
-      color: #fff;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem;
-      background: #1a1b22;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    header h1 {
-      margin: 0;
-      font-size: 1.5rem;
-    }
-    header button {
-      background: transparent;
-      border: 1px solid #E11D2A;
-      color: #E11D2A;
-      padding: 0.4rem 0.8rem;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    main {
-      max-width: 900px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-    }
-    .section {
-      margin-bottom: 2rem;
-      padding: 1rem;
-      background: #15161b;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-    h2 {
-      margin-top: 0;
-    }
-    .profile-info img {
-      max-width: 150px;
-      border-radius: 8px;
-      display: block;
-      margin-bottom: 1rem;
-    }
-    .list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-    .list div {
-      background: #1e1f26;
-      padding: 0.5rem 0.8rem;
-      border-radius: 6px;
-    }
+    body{font-family:Arial, sans-serif;max-width:900px;margin:0 auto;padding:2rem;background:#0e0e12;color:#fff}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+    .pill{padding:.5rem .9rem;background:#1a1b22;border:1px solid rgba(255,255,255,.12);border-radius:999px;color:#fff;cursor:pointer}
+    .card{background:#15161b;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:1rem;margin-top:1rem}
+    .sub{color:#cfd0de}
+    img.avatar{width:88px;height:88px;border-radius:50%;object-fit:cover;border:2px solid #2a2a2a}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:12px}
   </style>
 </head>
 <body>
-
   <header>
-    <h1>Your Profile</h1>
-    <button id="logout">Logout</button>
+    <h1>My Profile</h1>
+    <button id="logout" class="pill">Logout</button>
   </header>
 
-  <main>
-    <!-- Profile Info -->
-    <section class="section profile-info">
-      <h2>Welcome, <span id="displayName">Loading...</span></h2>
-      <img id="profilePhoto" src="" alt="Profile Photo" />
-      <p>Email: <span id="email">Loading...</span></p>
-    </section>
+  <div id="who" class="card">
+    <div style="display:flex;gap:14px;align-items:center">
+      <img id="avatar" class="avatar" alt="avatar" src="" />
+      <div>
+        <div id="displayName" style="font-weight:800;font-size:1.2rem">Member</div>
+        <div id="email" class="sub"></div>
+        <div id="uid" class="sub"></div>
+      </div>
+    </div>
+  </div>
 
-    <!-- Matches -->
-    <section class="section">
-      <h2>Your Matches</h2>
-      <div class="list" id="matchesList"></div>
-    </section>
-
-    <!-- Likes -->
-    <section class="section">
-      <h2>People Who Liked You</h2>
-      <div class="list" id="likesList"></div>
-    </section>
-
-    <!-- Views -->
-    <section class="section">
-      <h2>Profile Views</h2>
-      <div class="list" id="viewsList"></div>
-    </section>
-
-    <!-- Messages -->
-    <section class="section">
-      <h2>Messages</h2>
-      <div id="messagesList"></div>
-    </section>
-  </main>
+  <div class="grid">
+    <div class="card"><h3>Matches</h3><div class="sub">Coming soon</div></div>
+    <div class="card"><h3>Likes</h3><div class="sub">Coming soon</div></div>
+    <div class="card"><h3>Views</h3><div class="sub">Coming soon</div></div>
+    <div class="card"><h3>Messages</h3><div class="sub">Use the chat page</div></div>
+  </div>
 
   <script type="module">
-    import { auth, db } from './js/firebase.js';
-    import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import { doc, getDoc, collection, getDocs, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { auth, db } from "./js/firebase.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const logoutBtn = document.getElementById('logout');
-    const displayNameEl = document.getElementById('displayName');
-    const emailEl = document.getElementById('email');
-    const profilePhotoEl = document.getElementById('profilePhoto');
-    const matchesList = document.getElementById('matchesList');
-    const likesList = document.getElementById('likesList');
-    const viewsList = document.getElementById('viewsList');
-    const messagesList = document.getElementById('messagesList');
+    const qs = new URLSearchParams(location.search);
+    const paramUid = qs.get("uid") || null;
 
-    logoutBtn.addEventListener('click', async () => {
+    const el = id => document.getElementById(id);
+    const $name = el("displayName");
+    const $uid  = el("uid");
+    const $mail = el("email");
+    const $ava  = el("avatar");
+    const $logout = el("logout");
+
+    $logout.addEventListener("click", async ()=>{
       await signOut(auth);
-      location.replace('./login.html');
+      location.replace("./login.html");
     });
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        location.replace('./login.html');
-        return;
-      }
-
-      // Display basic info
-      displayNameEl.textContent = user.displayName || 'Member';
-      emailEl.textContent = user.email || '';
-      profilePhotoEl.src = user.photoURL || './images/default-avatar.png';
-
-      // Load profile-specific data
-      await loadUserProfile(user.uid);
-    });
-
-    async function loadUserProfile(uid) {
+    async function loadProfile(forUid){
       try {
-        // Get matches
-        const matchesSnap = await getDocs(collection(db, 'users', uid, 'matches'));
-        matchesSnap.forEach(doc => {
-          const div = document.createElement('div');
-          div.textContent = doc.data().name || 'Unknown';
-          matchesList.appendChild(div);
-        });
-
-        // Get likes
-        const likesSnap = await getDocs(collection(db, 'users', uid, 'likes'));
-        likesSnap.forEach(doc => {
-          const div = document.createElement('div');
-          div.textContent = doc.data().name || 'Unknown';
-          likesList.appendChild(div);
-        });
-
-        // Get views
-        const viewsSnap = await getDocs(collection(db, 'users', uid, 'views'));
-        viewsSnap.forEach(doc => {
-          const div = document.createElement('div');
-          div.textContent = doc.data().name || 'Unknown';
-          viewsList.appendChild(div);
-        });
-
-        // Get messages (latest first)
-        const msgsQuery = query(collection(db, 'users', uid, 'messages'), orderBy('createdAt', 'desc'));
-        const msgsSnap = await getDocs(msgsQuery);
-        msgsSnap.forEach(doc => {
-          const p = document.createElement('p');
-          p.textContent = `${doc.data().from || 'Unknown'}: ${doc.data().text || ''}`;
-          messagesList.appendChild(p);
-        });
-      } catch (err) {
-        console.error('Error loading profile data:', err);
+        const snap = await getDoc(doc(db, "profiles", forUid));
+        if (snap.exists()){
+          const p = snap.data();
+          $name.textContent = p.displayName || "Member";
+          $ava.src = p.photoURL || "https://via.placeholder.com/88x88.png?text=👤";
+        } else {
+          // fallback to auth info if no profile doc yet
+          $name.textContent = auth.currentUser?.displayName || "Member";
+          $ava.src = auth.currentUser?.photoURL || "https://via.placeholder.com/88x88.png?text=👤";
+        }
+      } catch (e) {
+        console.error(e);
       }
     }
-  </script>
 
+    onAuthStateChanged(auth, async (user)=>{
+      if (!user) { location.replace("./login.html"); return; }
+      const targetUid = paramUid || user.uid;    // show UID in URL, else your own
+      $uid.textContent = `UID: ${targetUid}`;
+      $mail.textContent = user.email || "";
+      await loadProfile(targetUid);
+    });
+  </script>
 </body>
 </html>
