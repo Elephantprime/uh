@@ -1,229 +1,229 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Unhinged — Profile</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unhinged — Profile Swipe</title>
 <style>
-  body {font-family: Arial, sans-serif; background:#0e0e12; color:#fff; margin:0; padding:0;}
-  header {display:flex; justify-content:space-between; align-items:center; padding:1rem; background:#15161b;}
-  button, .chaos-btn {padding:.5rem 1rem; border:none; border-radius:6px; background:#E11D2A; color:#fff; cursor:pointer; text-decoration:none; display:inline-block;}
-  .muted {color:#cfd0de;}
-  .container {max-width:1000px; margin:auto; padding:1rem;}
-  .card {background:#15161b; border:1px solid #2a2a2a; border-radius:8px; padding:1rem; margin-bottom:1rem;}
-  label {display:block; margin:.5rem 0 .25rem;}
-  input, textarea, select {width:100%; padding:.6rem; border:1px solid #2a2a2a; border-radius:6px; background:#12131a; color:#fff;}
-  #preview {display:none; width:120px; height:120px; border-radius:12px; object-fit:cover; margin-top:.5rem;}
-  .filter-bar {margin:1rem 0; background:#15161b; border:1px solid #2a2a2a; border-radius:8px; padding:1rem;}
-  .filters {display:none; margin-top:1rem;}
-  .profile-grid {display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:1rem;}
-  .profile-card {background:#1b1c22; border-radius:8px; padding:1rem; text-align:center;}
-  .profile-card img {width:100%; height:180px; object-fit:cover; border-radius:8px;}
-  .profile-card h3 {margin:.5rem 0;}
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0e0e12;
+    color: #fff;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .photo-container {
+    position: relative;
+    flex: 1;
+    background: #000;
+    overflow: hidden;
+    touch-action: pan-y;
+  }
+  .main-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  .info-overlay {
+    position: absolute;
+    bottom: 80px;
+    left: 0;
+    right: 0;
+    padding: 16px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    pointer-events: none;
+  }
+  .info-overlay h2 { margin: 0; font-size: 1.6rem; }
+  .info-overlay .sub { font-size: 0.9rem; color: #ddd; margin-top: 4px; }
+  .badges, .flags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .badges img {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 1px solid #4cafef; background: #2a2a3a; padding: 2px;
+  }
+  .flags img {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 1px solid #E11D2A; background: #3a2a2a; padding: 2px;
+  }
+  .indicator {
+    position: absolute;
+    top: 40px;
+    font-size: 2rem;
+    font-weight: bold;
+    padding: 10px 20px;
+    border: 4px solid;
+    border-radius: 8px;
+    opacity: 0;
+    transform: rotate(-20deg);
+    pointer-events: none;
+  }
+  .indicator.pass {
+    left: 20px;
+    color: #E11D2A;
+    border-color: #E11D2A;
+  }
+  .indicator.like {
+    right: 20px;
+    color: #4CAF50;
+    border-color: #4CAF50;
+    transform: rotate(20deg);
+  }
+  .actions {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 12px;
+    background: #0e0e12;
+  }
+  .action-btn {
+    width: 56px; height: 56px; border-radius: 50%;
+    border: none; font-size: 1.5rem; display: flex;
+    align-items: center; justify-content: center; cursor: pointer;
+  }
+  .pass-btn { background: #2a2a2a; color: #E11D2A; }
+  .like-btn { background: #2a2a2a; color: #4CAF50; }
+  .chaos-btn {
+    background: #E11D2A; color: #fff; font-size: 0.9rem;
+    border-radius: 16px; padding: 8px 16px; cursor: pointer; border: none;
+  }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Your Profile</h1>
-  <button id="logout">Sign out</button>
-</header>
+<div class="photo-container" id="photo-container">
+  <img class="main-photo" id="main-photo" src="" alt="Profile Photo">
+  <div class="info-overlay">
+    <h2 id="name"></h2>
+    <div class="sub" id="sub-info"></div>
+    <div class="badges" id="badges"></div>
+    <div class="flags" id="flags"></div>
+  </div>
+  <div class="indicator pass" id="pass-indicator">PASS</div>
+  <div class="indicator like" id="like-indicator">LIKE</div>
+</div>
 
-<div class="container">
-
-  <!-- Profile Editor -->
-  <section class="card">
-    <h2>Profile Info</h2>
-    <div id="status" class="muted"></div>
-    <img id="preview" alt="Avatar preview">
-    <p id="uidline"></p>
-    <form id="edit-form">
-      <label for="displayName">Display name</label>
-      <input id="displayName" type="text" />
-      <label for="bioInput">Bio</label>
-      <textarea id="bioInput" rows="3"></textarea>
-      <label for="avatar">Avatar</label>
-      <input id="avatar" type="file" accept="image/*" />
-      <button type="submit" id="save">Save</button>
-      <span id="save-status" class="muted"></span>
-    </form>
-  </section>
-
-  <!-- Filter Bar -->
-  <section class="filter-bar">
-    <button id="toggle-filters">Filters</button>
-    <div class="filters" id="filters">
-      <label for="filter-location">Location</label>
-      <input id="filter-location" type="text" placeholder="Enter city or region" />
-      <label for="filter-age">Age Range</label>
-      <select id="filter-age">
-        <option value="">Any</option>
-        <option value="18-25">18–25</option>
-        <option value="26-35">26–35</option>
-        <option value="36-50">36–50</option>
-        <option value="50+">50+</option>
-      </select>
-      <label for="filter-gender">Gender</label>
-      <select id="filter-gender">
-        <option value="">Any</option>
-        <option value="female">Female</option>
-        <option value="male">Male</option>
-        <option value="nonbinary">Non-binary</option>
-      </select>
-      <button id="apply-filters">Apply Filters</button>
-    </div>
-  </section>
-
-  <!-- Matches Feed -->
-  <section>
-    <h2>Your Matches</h2>
-    <div class="profile-grid" id="matches"></div>
-  </section>
-
+<div class="actions">
+  <button class="action-btn pass-btn" id="pass-btn">✖</button>
+  <button class="chaos-btn" onclick="location.href='./app.html'">Community Chaos</button>
+  <button class="action-btn like-btn" id="like-btn">❤</button>
 </div>
 
 <script type="module">
-  import { auth, db, storage } from "./js/firebase.js";
-  import { onAuthStateChanged, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { doc, getDoc, setDoc, getDocs, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-  import { ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+  import { auth, db } from "./js/firebase.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  const $ = id => document.getElementById(id);
-  const statusEl = $("status");
-  const uidLine  = $("uidline");
-  const dispEdit = $("displayName");
-  const bioInput = $("bioInput");
-  const avatar   = $("avatar");
-  const preview  = $("preview");
-  const saveBtn  = $("save");
+  const photoContainer = document.getElementById("photo-container");
+  const mainPhoto = document.getElementById("main-photo");
+  const nameEl = document.getElementById("name");
+  const subInfo = document.getElementById("sub-info");
+  const badgesEl = document.getElementById("badges");
+  const flagsEl = document.getElementById("flags");
+  const passBtn = document.getElementById("pass-btn");
+  const likeBtn = document.getElementById("like-btn");
+  const passIndicator = document.getElementById("pass-indicator");
+  const likeIndicator = document.getElementById("like-indicator");
 
-  let me = null;
-  let currentPhotoURL = "";
+  let matches = [];
+  let currentIndex = 0;
+  let startX = 0;
+  let currentX = 0;
+  let isDragging = false;
 
-  // Toggle filters
-  $("toggle-filters").addEventListener("click", () => {
-    const f = $("filters");
-    f.style.display = f.style.display === "block" ? "none" : "block";
-  });
+  function renderProfile(profile) {
+    if (!profile) {
+      mainPhoto.src = "";
+      nameEl.textContent = "No more matches";
+      subInfo.textContent = "";
+      badgesEl.innerHTML = "";
+      flagsEl.innerHTML = "";
+      return;
+    }
+    mainPhoto.src = profile.photoURL || "https://via.placeholder.com/500x800";
+    nameEl.textContent = `${profile.displayName || "Member"}, ${profile.age || ""}`;
+    subInfo.textContent = `${profile.location || ""}`;
 
-  // Load matches from Firestore
-  async function loadMatches(filters = {}) {
-    const matchesEl = $("matches");
-    matchesEl.innerHTML = "Loading...";
-    const snap = await getDocs(collection(db, "users"));
-    let profiles = [];
-    snap.forEach(docu => {
-      if (!me || docu.id === me.uid) return; // skip current user
-      const data = docu.data();
-      profiles.push(data);
+    badgesEl.innerHTML = "";
+    (profile.badges || []).forEach(url => {
+      const img = document.createElement("img");
+      img.src = url;
+      badgesEl.appendChild(img);
     });
 
-    // Simple filter logic (client-side)
-    if (filters.gender) {
-      profiles = profiles.filter(p => (p.gender || "").toLowerCase() === filters.gender.toLowerCase());
-    }
-    if (filters.ageRange) {
-      // Assume we have 'age' in profile
-      const [min, max] = filters.ageRange.split("-");
-      profiles = profiles.filter(p => {
-        if (!p.age) return false;
-        if (max) return p.age >= parseInt(min) && p.age <= parseInt(max);
-        return p.age >= parseInt(min);
-      });
-    }
-    if (filters.location) {
-      profiles = profiles.filter(p => (p.location || "").toLowerCase().includes(filters.location.toLowerCase()));
-    }
-
-    // Render
-    matchesEl.innerHTML = "";
-    profiles.forEach(p => {
-      const card = document.createElement("div");
-      card.className = "profile-card";
-      card.innerHTML = `
-        <img src="${p.photoURL || 'https://via.placeholder.com/300x180'}" alt="">
-        <h3>${p.displayName || "Member"}</h3>
-        <p>${p.bio || ""}</p>
-        <a href="./app.html" class="chaos-btn">Community Chaos</a>
-      `;
-      matchesEl.appendChild(card);
+    flagsEl.innerHTML = "";
+    (profile.flags || []).forEach(() => {
+      const flagIcon = document.createElement("img");
+      flagIcon.src = "https://upload.wikimedia.org/wikipedia/commons/f/f7/Flag_icon_red.svg";
+      flagsEl.appendChild(flagIcon);
     });
   }
 
-  $("apply-filters").addEventListener("click", () => {
-    loadMatches({
-      location: $("filter-location").value.trim(),
-      ageRange: $("filter-age").value,
-      gender: $("filter-gender").value
-    });
+  function nextProfile() {
+    currentIndex++;
+    renderProfile(matches[currentIndex]);
+  }
+
+  function showIndicator(type) {
+    if (type === "pass") {
+      passIndicator.style.opacity = 1;
+      likeIndicator.style.opacity = 0;
+    } else if (type === "like") {
+      likeIndicator.style.opacity = 1;
+      passIndicator.style.opacity = 0;
+    } else {
+      passIndicator.style.opacity = 0;
+      likeIndicator.style.opacity = 0;
+    }
+  }
+
+  // Swipe events
+  photoContainer.addEventListener("touchstart", e => {
+    startX = e.touches[0].clientX;
+    isDragging = true;
   });
 
-  // Load current user
+  photoContainer.addEventListener("touchmove", e => {
+    if (!isDragging) return;
+    currentX = e.touches[0].clientX - startX;
+    if (currentX > 50) showIndicator("like");
+    else if (currentX < -50) showIndicator("pass");
+    else showIndicator(null);
+  });
+
+  photoContainer.addEventListener("touchend", () => {
+    if (!isDragging) return;
+    if (currentX > 100) {
+      nextProfile();
+    } else if (currentX < -100) {
+      nextProfile();
+    }
+    showIndicator(null);
+    currentX = 0;
+    isDragging = false;
+  });
+
+  passBtn.addEventListener("click", nextProfile);
+  likeBtn.addEventListener("click", nextProfile);
+
   onAuthStateChanged(auth, async (user) => {
-    if (!user) return location.replace("./login.html");
-    me = user;
-    uidLine.textContent = `UID: ${me.uid}`;
-    currentPhotoURL = me.photoURL || "";
-    if (currentPhotoURL) {
-      preview.src = currentPhotoURL;
-      preview.style.display = "block";
+    if (!user) {
+      location.replace("./login.html");
+      return;
     }
-
-    // Load or create profile doc
-    const uref = doc(db, "users", me.uid);
-    const snap = await getDoc(uref);
-    if (!snap.exists()) {
-      await setDoc(uref, {
-        uid: me.uid,
-        displayName: me.displayName || "Member",
-        bio: "",
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
-    }
-    const data = (await getDoc(uref)).data();
-    dispEdit.value = data.displayName || "";
-    bioInput.value = data.bio || "";
-
-    loadMatches();
-  });
-
-  $("edit-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (!me) return;
-    saveBtn.disabled = true;
-    $("save-status").textContent = "Saving...";
-    try {
-      let photoURL = currentPhotoURL;
-      const f = avatar.files?.[0];
-      if (f) {
-        const path = `avatars/${me.uid}/${Date.now()}_${f.name}`;
-        const r = sRef(storage, path);
-        await uploadBytes(r, f);
-        photoURL = await getDownloadURL(r);
-        preview.src = photoURL;
-        preview.style.display = "block";
+    const snap = await getDocs(collection(db, "users"));
+    matches = [];
+    snap.forEach(doc => {
+      if (doc.id !== user.uid) {
+        matches.push(doc.data());
       }
-      await updateProfile(me, { displayName: dispEdit.value.trim(), photoURL });
-      await setDoc(doc(db, "users", me.uid), {
-        displayName: dispEdit.value.trim(),
-        bio: bioInput.value.trim(),
-        photoURL,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-      currentPhotoURL = photoURL;
-      $("save-status").textContent = "Saved";
-    } catch (err) {
-      console.error(err);
-      $("save-status").textContent = "Error saving profile.";
-    } finally {
-      saveBtn.disabled = false;
-    }
-  });
-
-  $("logout").addEventListener("click", async () => {
-    await signOut(auth);
-    location.replace("./login.html");
+    });
+    currentIndex = 0;
+    renderProfile(matches[currentIndex]);
   });
 </script>
 
