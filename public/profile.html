@@ -17,8 +17,9 @@
     .btn.secondary{background:#2a2a2a}
     .btn.ghost{background:transparent;border:1px solid #2a2a2a}
     .btn.pill{border-radius:16px;padding:.55rem 1rem}
+    .btn.small{padding:.35rem .7rem;font-size:.9rem}
 
-    /* Special chaos button (matches swipe action style) */
+    /* Special chaos button */
     .chaos-btn{background:var(--red);color:#fff;border:none;border-radius:16px;padding:8px 16px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
 
     /* Text helpers */
@@ -50,18 +51,16 @@
     /* ===== SECTION: Bottom Actions ===== */
     .actions{width:100%;max-width:480px;display:flex;justify-content:space-around;align-items:center;padding:8px 0 16px}
     .action-btn{width:56px;height:56px;border-radius:50%;border:none;font-size:1.5rem;display:flex;align-items:center;justify-content:center;cursor:pointer}
-    .pass-btn{background:#2a2a2a;color:var(--red)}
-    .like-btn{background:#2a2a2a;color:var(--green)}
+    .pass-btn{background:#2a2a2a;color:var(--red)} .like-btn{background:#2a2a2a;color:var(--green)}
 
-    /* ===== SECTION: Edit Profile Modal ===== */
+    /* ===== SECTION: Modal Base ===== */
     .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:1rem;z-index:50}
     .modal{width:100%;max-width:680px;background:var(--panel);border:1px solid #2a2a2a;border-radius:12px;padding:1rem}
     .modal h3{margin:0 0 .5rem}
     label{display:flex;align-items:center;gap:.35rem;margin:.5rem 0 .25rem}
     .req{color:#ff6b6b;font-weight:700}
-    input[type="text"],textarea,input[type="number"]{width:100%;padding:.6rem;border:1px solid #2a2a2a;border-radius:8px;background:#12131a;color:#fff}
-    .row{display:flex;gap:.5rem}
-    .row>*{flex:1}
+    input[type="text"],textarea,input[type="number"],select{width:100%;padding:.6rem;border:1px solid #2a2a2a;border-radius:8px;background:#12131a;color:#fff}
+    .row{display:flex;gap:.5rem}.row>*{flex:1}
     .status{margin-top:.5rem;font-size:.9rem}
     .ok{color:#6fdc8c}.err{color:#ff8e8e}.prog{color:#ffd27f}
     .invalid{outline:2px solid #ff6b6b;outline-offset:2px;border-color:#ff6b6b !important}
@@ -82,6 +81,7 @@
     <div class="brand" id="topLine">Your Profile</div>
     <div class="nav-actions">
       <a class="chaos-btn" href="./app.html">Community Chaos</a>
+      <button class="btn secondary" id="filterBtn">Filters</button>
       <button class="btn secondary" id="myProfileBtn">My Profile</button>
       <button class="btn" id="editBtn">Edit Profile</button>
       <button class="btn secondary" id="logoutBtn">Logout</button>
@@ -113,6 +113,41 @@
     </div>
   </div>
 
+  <!-- ===== SECTION: Filter Modal ===== -->
+  <div class="modal-backdrop" id="filterModal">
+    <div class="modal">
+      <h3>Filters</h3>
+      <div class="row">
+        <div>
+          <label for="fLocation">Location contains</label>
+          <input id="fLocation" type="text" placeholder="e.g., Atlanta" />
+        </div>
+        <div>
+          <label for="fGender">Gender</label>
+          <select id="fGender">
+            <option value="any">Any</option>
+            <option value="female">Female</option>
+            <option value="male">Male</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="fAgeMin">Age min</label>
+          <input id="fAgeMin" type="number" min="18" max="100" placeholder="18" />
+        </div>
+        <div>
+          <label for="fAgeMax">Age max</label>
+          <input id="fAgeMax" type="number" min="18" max="100" placeholder="100" />
+        </div>
+      </div>
+      <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem">
+        <button class="btn secondary" id="filterCancel">Cancel</button>
+        <button class="btn" id="filterApply">Apply</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== SECTION: Edit Profile Modal ===== -->
   <div class="modal-backdrop" id="editModal">
     <div class="modal">
@@ -141,6 +176,19 @@
           <label for="location">Location <span class="req" id="reqLocation" hidden>*</span></label>
           <input id="location" type="text" placeholder="City, State" />
         </div>
+      </div>
+
+      <!-- NEW: Gender (for filters to work) -->
+      <div class="row">
+        <div>
+          <label for="gender">Gender</label>
+          <select id="gender">
+            <option value="">Prefer not to say</option>
+            <option value="female">Female</option>
+            <option value="male">Male</option>
+          </select>
+        </div>
+        <div></div>
       </div>
 
       <label for="bio">Bio</label>
@@ -175,12 +223,15 @@
     import { collection, getDocs, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-    /* ===== SECTION: Config (Requirements) ===== */
+    /* ===== SECTION: Config (Requirements & Membership) ===== */
     const REQUIRED = { PHOTO: true, LOCATION: true, DISPLAY_NAME: false, AGE: false };
+    // Member-gating (free users can swipe matches; only members can see "who viewed/liked you")
+    const MEMBERSHIP = { requiredForViews: true, requiredForLikes: true };
 
     /* ===== SECTION: DOM Refs ===== */
     // Top bar
     const topLine = document.getElementById("topLine");
+    const filterBtn = document.getElementById("filterBtn");
     const myProfileBtn = document.getElementById("myProfileBtn");
     const editBtn = document.getElementById("editBtn");
     const logoutBtn = document.getElementById("logoutBtn");
@@ -199,7 +250,16 @@
     const likeIndicator = document.getElementById("like-indicator");
     const emptyEl = document.getElementById("empty");
 
-    // Modal
+    // Filter modal
+    const filterModal = document.getElementById("filterModal");
+    const fLocation = document.getElementById("fLocation");
+    const fGender = document.getElementById("fGender");
+    const fAgeMin = document.getElementById("fAgeMin");
+    const fAgeMax = document.getElementById("fAgeMax");
+    const filterApply = document.getElementById("filterApply");
+    const filterCancel = document.getElementById("filterCancel");
+
+    // Edit modal
     const editModal = document.getElementById("editModal");
     const saveEdit = document.getElementById("saveEdit");
     const cancelEdit = document.getElementById("cancelEdit");
@@ -208,6 +268,7 @@
     const usernameInput = document.getElementById("username");
     const ageInput = document.getElementById("age");
     const locationInput = document.getElementById("location");
+    const genderInput = document.getElementById("gender");
     const bioInput = document.getElementById("bio");
     const avatarInput = document.getElementById("avatar");
     const uploadStatus = document.getElementById("uploadStatus");
@@ -222,10 +283,12 @@
     /* ===== SECTION: State ===== */
     let me = null;
     let myDocCached = null;
-    let matches = [];
+    let allUsers = [];     // all other user docs (raw)
+    let matches = [];      // filtered list
     let currentIndex = 0;
     let previewURLs = [];
     let _profileNavGuard = false;
+    const FILTERS = { location:"", gender:"any", ageMin:null, ageMax:null };
 
     /* ===== SECTION: Required Markers ===== */
     reqDisplayName.hidden = !REQUIRED.DISPLAY_NAME;
@@ -320,7 +383,7 @@
     }
 
     // Live validation listeners
-    [displayNameInput, usernameInput, ageInput, locationInput, bioInput].forEach(el=>el.addEventListener("input",()=>refreshSaveButtonState(myDocCached)));
+    [displayNameInput, usernameInput, ageInput, locationInput, genderInput, bioInput].forEach(el=>el.addEventListener("input",()=>refreshSaveButtonState(myDocCached)));
     avatarInput.addEventListener("change",(e)=>{ renderPreviews(e.target.files); refreshSaveButtonState(myDocCached); });
 
     /* ===== SECTION: Swipe (Touch/Buttons) ===== */
@@ -337,15 +400,43 @@
     likeBtn.addEventListener("click", nextProfile);
 
     /* ===== SECTION: Modal (Open/Close) ===== */
-    editBtn.addEventListener("click", ()=>{ uploadStatus.textContent=""; displayNameInput.classList.remove("invalid"); ageInput.classList.remove("invalid"); locationInput.classList.remove("invalid"); editModal.style.display="flex"; refreshSaveButtonState(myDocCached); });
-    cancelEdit.addEventListener("click", ()=>{ editModal.style.display="none"; clearPreviews(); displayNameInput.classList.remove("invalid"); ageInput.classList.remove("invalid"); locationInput.classList.remove("invalid"); });
+    editBtn.addEventListener("click", ()=>{ uploadStatus.textContent=""; ["invalid"].forEach(c=>{displayNameInput.classList.remove(c); ageInput.classList.remove(c); locationInput.classList.remove(c);}); editModal.style.display="flex"; refreshSaveButtonState(myDocCached); });
+    cancelEdit.addEventListener("click", ()=>{ editModal.style.display="none"; clearPreviews(); ["invalid"].forEach(c=>{displayNameInput.classList.remove(c); ageInput.classList.remove(c); locationInput.classList.remove(c);}); });
+
+    filterBtn.addEventListener("click", ()=>{ filterModal.style.display="flex";
+      // preload from state
+      fLocation.value = FILTERS.location || "";
+      fGender.value = FILTERS.gender || "any";
+      fAgeMin.value = FILTERS.ageMin ?? "";
+      fAgeMax.value = FILTERS.ageMax ?? "";
+    });
+    filterCancel.addEventListener("click", ()=>{ filterModal.style.display="none"; });
+    filterApply.addEventListener("click", ()=> {
+      FILTERS.location = (fLocation.value||"").trim();
+      FILTERS.gender = fGender.value || "any";
+      FILTERS.ageMin = fAgeMin.value ? Number(fAgeMin.value) : null;
+      FILTERS.ageMax = fAgeMax.value ? Number(fAgeMax.value) : null;
+      filterModal.style.display="none";
+      rebuildMatches(); // apply filters
+    });
 
     /* ===== SECTION: Data Layer (Load/Create/Save) ===== */
     async function loadOrCreateUserDoc(uid, userObj){
       const uref = doc(db,"users",uid);
       const snap = await getDoc(uref);
       if(!snap.exists()){
-        const seed = { uid, displayName:userObj.displayName||"Member", username:"", photoURL:userObj.photoURL||"", photos:userObj.photoURL?[userObj.photoURL]:[], bio:"", age:null, location:"", badges:[], flags:[], createdAt:serverTimestamp(), updatedAt:serverTimestamp() };
+        const seed = {
+          uid,
+          displayName:userObj.displayName||"Member",
+          username:"",
+          gender:"",                 // new field (for filters)
+          photoURL:userObj.photoURL||"",
+          photos:userObj.photoURL?[userObj.photoURL]:[],
+          bio:"", age:null, location:"",
+          badges:[], flags:[],
+          membership:{ tier:"free" }, // gate likes/views
+          createdAt:serverTimestamp(), updatedAt:serverTimestamp()
+        };
         await setDoc(uref, seed);
         return seed;
       }
@@ -372,6 +463,7 @@
         const payload = {
           displayName: (displayNameInput.value||"").trim(),
           username: (usernameInput.value||"").trim(),
+          gender: (genderInput.value||"").trim(),
           bio: (bioInput.value||"").trim(),
           age: ageInput.value ? Number(ageInput.value) : null,
           location: (locationInput.value||"").trim(),
@@ -387,17 +479,67 @@
 
         avatarInput.value=""; clearPreviews();
         showOK("Profile saved."); setTimeout(()=>{ editModal.style.display="none"; }, 500);
+
+        // re-apply filters in case gender/location/age changed
+        rebuildMatches();
       }catch(e){ showError(`Save failed: ${e?.message||'error'}`); }
       finally{ saveEdit.disabled=false; }
     }
     saveEdit.addEventListener("click", saveEdits);
 
+    /* ===== SECTION: Filter Logic ===== */
+    function applyFilters(list){
+      return list.filter(u=>{
+        // Location contains (case-insensitive)
+        if (FILTERS.location) {
+          const s = (u.location||"").toLowerCase();
+          if (!s.includes(FILTERS.location.toLowerCase())) return false;
+        }
+        // Gender
+        if (FILTERS.gender && FILTERS.gender!=="any") {
+          const g = (u.gender||"").toLowerCase();
+          if (g !== FILTERS.gender) return false;
+        }
+        // Age range
+        const age = typeof u.age==="number" ? u.age : null;
+        if (FILTERS.ageMin!=null && (age==null || age < FILTERS.ageMin)) return false;
+        if (FILTERS.ageMax!=null && (age==null || age > FILTERS.ageMax)) return false;
+        return true;
+      });
+    }
+
+    function rebuildMatches(){
+      // Start from all other users; fall back to self if empty
+      const filtered = applyFilters(allUsers);
+      matches = filtered.length ? filtered : (myDocCached ? [myDocCached] : []);
+      currentIndex = 0;
+      renderProfile(matches[currentIndex] || null);
+    }
+
+    /* ===== SECTION: Membership Gating Stubs ===== */
+    function isMember(userDoc){
+      const tier = userDoc?.membership?.tier || "free";
+      return tier !== "free";
+    }
+    // Example usage (hook these to future UI buttons for “Who liked you” / “Who viewed you”)
+    async function openLikesList(){
+      if (MEMBERSHIP.requiredForLikes && !isMember(myDocCached)) {
+        alert("Upgrade to a member to see who liked you.");
+        return;
+      }
+      // TODO: show likes list
+    }
+    async function openViewsList(){
+      if (MEMBERSHIP.requiredForViews && !isMember(myDocCached)) {
+        alert("Upgrade to a member to see who viewed your profile.");
+        return;
+      }
+      // TODO: show views list
+    }
+
     /* ===== SECTION: Auth / Init (No Loops) ===== */
     myProfileBtn.addEventListener("click", ()=>{ if(me){ location.replace(`./profile.html?uid=${encodeURIComponent(me.uid)}`); } });
-    logoutBtn.addEventListener("click", async ()=>{
-      try { await signOut(auth); location.replace("./login.html"); }
-      catch(e){ console.error("Logout error:", e); }
-    });
+    logoutBtn.addEventListener("click", async ()=>{ try{ await signOut(auth); location.replace("./login.html"); }catch(e){ console.error("Logout error:", e); } });
 
     onAuthStateChanged(auth, async (user)=>{
       if(!user){
@@ -410,6 +552,7 @@
       myDocCached = await loadOrCreateUserDoc(me.uid, me);
       displayNameInput.value = myDocCached.displayName || "";
       usernameInput.value   = myDocCached.username || "";
+      genderInput.value     = myDocCached.gender || "";
       bioInput.value        = myDocCached.bio || "";
       ageInput.value        = myDocCached.age || "";
       locationInput.value   = myDocCached.location || "";
@@ -417,15 +560,12 @@
       topLine.textContent   = myDocCached.username ? `@${myDocCached.username}` : `UID: ${me.uid}`;
       uidLine.textContent   = topLine.textContent;
 
-      // Load matches (others); fallback to self
+      // Load others (exclude me)
       const snap = await getDocs(collection(db,"users"));
-      matches = [];
-      snap.forEach(d=>{ if(d.id!==me.uid) matches.push(d.data()); });
-      if(!matches.length) matches.push(myDocCached);
+      allUsers = [];
+      snap.forEach(d=>{ if(d.id!==me.uid) allUsers.push(d.data()); });
 
-      currentIndex=0; renderProfile(matches[currentIndex]);
-
-      // Initialize validation state
+      rebuildMatches(); // applies current FILTERS
       refreshSaveButtonState(myDocCached);
     });
   </script>
