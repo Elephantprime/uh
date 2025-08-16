@@ -402,11 +402,255 @@
           createdAt:serverTimestamp(), updatedAt:serverTimestamp()
         };
         await setDoc(uref, seed);
-        return seed;
-      }
-      return snap.data();
-    }
+/* ===== SECTION: State ===== */
+let me = null;
+let myDocCached = null;
+let allUsers = [];     // other user docs
+let matches = [];      // swipe list (others) or self fallback
+let currentIndex = 0;
+let previewURLs = [];
+let _profileNavGuard = false;
 
+/* Neutral placeholder (no stock faces) */
+const NEUTRAL_PHOTO = "data:image/svg+xml;utf8," + encodeURIComponent(
+  `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1200'><rect width='100%' height='100%' fill='#0b0b0f'/><circle cx='400' cy='420' r='160' fill='#20222b'/><rect x='210' y='650' width='380' height='260' rx='28' fill='#20222b'/></svg>`
+);
+
+/* ===== SECTION: Required Markers ===== */
+reqDisplayName.hidden = !REQUIRED.DISPLAY_NAME;
+reqAge.hidden = !REQUIRED.AGE;
+reqLocation.hidden = !REQUIRED.LOCATION;
+reqPhoto.hidden = !REQUIRED.PHOTO;
+
+/* ===== SECTION: Helper – UI Feedback ===== */
+function showError(msg){ uploadStatus.innerHTML = `<span class="err">${msg}</span>`; }
+function showOK(msg){ uploadStatus.innerHTML = `<span class="ok">${msg}</span>`; }
+
+/* ===== SECTION: Helper – Renderers ===== */
+function renderBadges(badges = []) {
+  badgesEl.innerHTML = "";
+  (badges || []).forEach(url => {
+    const img = document.createElement("img");
+    img.src = url;
+    img.alt = "badge";
+    badgesEl.appendChild(img);
+  });
+}
+function renderFlags(flags = []) {
+  flagsEl.innerHTML = "";
+  const count = Array.isArray(flags) ? flags.length : 0;
+  for (let i = 0; i < count; i++){
+    const img = document.createElement("img");
+    img.src = "https://upload.wikimedia.org/wikipedia/commons/f/f7/Flag_icon_red.svg";
+    img.alt = "red flag";
+    flagsEl.appendChild(img);
+  }
+}
+function safePrimaryPhoto(p){
+  const cand = p?.photoURL || (Array.isArray(p?.photos) && p.photos[0]) || "";
+  // Only use http/https URLs; otherwise use neutral placeholder (prevents “random person” fallbacks)
+  if (typeof cand === "string" && /^https?:\/\//i.test(cand)) return cand;
+  return "";
+}
+function renderProfile(p) {
+  if (!p) {
+    mainPhoto.src = NEUTRAL_PHOTO;
+    nameEl.textContent = "";
+    handleEl.textContent = "";
+    subInfo.textContent = "";
+    renderBadges([]);
+    renderFlags([]);
+    emptyEl.style.display = "flex";
+    return;
+  }
+  emptyEl.style.display = "none";
+  const primary = safePrimaryPhoto(p) || NEUTRAL_PHOTO;
+  mainPhoto.src = primary;
+
+  const name = p.displayName || "Member";
+  const age  = (typeof p.age === "number" && p.age >= 0) ? `, ${p.age}` : "";
+  nameEl.textContent = `${name}${age}`;
+  handleEl.textContent = p.username ? `@${p.username}` : "";
+
+  const hobbyRaw = (p.hobbies || "").trim();
+  const interestRaw = (p.interests || "").trim();
+  const hobbyHint = hobbyRaw ? ` • ${hobbyRaw.slice(0,20)}${hobbyRaw.length>20?'…':''}` : "";
+  const interestHint = interestRaw ? ` • ${interestRaw.slice(0,20)}${interestRaw.length>20?'…':''}` : "";
+  subInfo.textContent = (p.location || "") + hobbyHint + interestHint;
+
+  renderBadges(p.badges || []);
+  renderFlags(p.flags || []);
+}
+function renderGallery(photos = []) {
+  galleryEl.innerHTML = "";
+  (photos || []).forEach((url, i) => {
+    const box = document.createElement("div");
+    box.className = "thumb" + (i === 0 ? " primary" : "");
+    const img = document.createElement("img");
+    img.src = url;
+    const lbl = document.createElement("div");
+    lbl.className = "label-pill";
+    lbl.textContent = i === 0 ? "Primary" : `Photo ${i + 1}`;
+    box.appendChild(img);
+    box.appendChild(lbl);
+    box.addEventListener("click", async () => {
+      try {
+        if (!me) return;
+        const uref = doc(db, "users", me.uid);
+        const snap = await getDoc(uref);
+        const current = snap.data() || {};
+        let photosNow = Array.isArray(current.photos) ? [...current.photos] : [];
+        const idx = photosNow.indexOf(url);
+        if (idx > 0) { photosNow.splice(idx, 1); photosNow.unshift(url); }
+        await updateProfile(me, { photoURL: url });
+        await setDoc(
+          uref,
+          { photoURL: url, photos: photosNow, updatedAt: serverTimestamp() },
+          { merge: true }
+        );
+        myDocCached = { ...(myDocCached || {}), photoURL: url, photos: photosNow };
+        renderGallery(photosNow);
+        if (!matches.length) renderProfile(myDocCached);
+        showOK("Primary photo updated.");
+      } catch (e) {
+        showError(`Could not set primary: ${e?.message || "error"}`);
+      }
+    });
+    galleryEl.appendChild(box);
+  });
+}
+function clearPreviews(){
+  previewURLs.forEach(u => URL.revokeObjectURL(u));
+  previewURLs = [];
+  previewGallery.innerHTML = "";
+  previewTitle.hidden = true;
+  previewGallery.hidden = true;
+}
+function renderPreviews(files){
+  clearPreviews();
+  if (!files?.length) return;
+  previewTitle.hidden = false;
+  previewGallery.hidden = true; // show after we add at least one
+  [...files].forEach((f, i) => {
+    const url = URL.createObjectURL(f);
+    previewURLs.push(url);
+    const box = document.createElement("div");
+    box.className = "thumb";
+    const img = document.createElement("img");
+    img.src = url;
+    const lbl = document.createElement("div");
+    lbl.className = "label-pill";
+    lbl.textContent = `New ${i + 1}`;
+    box.appendChild(img);
+    box.appendChild(lbl);
+    previewGallery.appendChild(box);
+  });
+  previewGallery.hidden = false;
+}
+
+/* ===== SECTION: Validation ===== */
+function validateBeforeSave(currentDoc, filesPending){
+  const pending = (filesPending && filesPending.length) || 0;
+  const saved = Array.isArray(currentDoc?.photos) ? currentDoc.photos : [];
+  const hasPhoto = saved.length > 0 || pending > 0 || !!currentDoc?.photoURL;
+  if (REQUIRED.PHOTO && !hasPhoto) return { ok:false, message:"Add at least one photo before saving.", focus:"photo" };
+
+  const loc = (locationInput.value || "").trim();
+  if (REQUIRED.LOCATION && !loc) return { ok:false, message:"Please enter your location before saving.", focus:"location" };
+
+  const dn = (displayNameInput.value || "").trim();
+  if (REQUIRED.DISPLAY_NAME && !dn) return { ok:false, message:"Please enter your display name before saving.", focus:"displayName" };
+
+  if (REQUIRED.AGE){
+    const a = Number(ageInput.value);
+    if (!Number.isFinite(a) || a < 18 || a > 100) return { ok:false, message:"Please enter a valid age (18–100).", focus:"age" };
+  }
+  return { ok:true };
+}
+function refreshSaveButtonState(currentDoc){
+  const res = validateBeforeSave(currentDoc, avatarInput?.files);
+  saveEdit.disabled = !res.ok;
+  if (!res.ok) uploadStatus.innerHTML = `<span class="prog">${res.message}</span>`;
+  else uploadStatus.textContent = "";
+}
+function focusInvalid(key){
+  if (key === "location"){ locationInput.classList.add("invalid"); locationInput.scrollIntoView({behavior:"smooth",block:"center"}); locationInput.focus(); }
+  if (key === "displayName"){ displayNameInput.classList.add("invalid"); displayNameInput.scrollIntoView({behavior:"smooth",block:"center"}); displayNameInput.focus(); }
+  if (key === "age"){ ageInput.classList.add("invalid"); ageInput.scrollIntoView({behavior:"smooth",block:"center"}); ageInput.focus(); }
+  if (key === "photo"){ avatarInput.scrollIntoView({behavior:"smooth",block:"center"}); }
+}
+
+// Live validation & previews
+[displayNameInput, usernameInput, ageInput, locationInput, bioInput]
+  .filter(Boolean)
+  .forEach(el => el.addEventListener("input", () => refreshSaveButtonState(myDocCached)));
+[genderInput, hobbiesInput, interestsInput]
+  .filter(Boolean)
+  .forEach(el => el.addEventListener("input", () => refreshSaveButtonState(myDocCached)));
+avatarInput.addEventListener("change", (e) => { renderPreviews(e.target.files); refreshSaveButtonState(myDocCached); });
+
+/* ===== SECTION: Swipe (Touch/Buttons) ===== */
+function nextProfile(){
+  currentIndex++;
+  renderProfile(matches[currentIndex] || null);
+}
+function showIndicator(t){
+  passIndicator.style.opacity = t === "pass" ? 1 : 0;
+  likeIndicator.style.opacity = t === "like" ? 1 : 0;
+}
+let startX = 0, dx = 0, dragging = false;
+cardFrame.addEventListener("touchstart", e => { startX = e.touches[0].clientX; dragging = true; });
+cardFrame.addEventListener("touchmove", e => {
+  if (!dragging) return;
+  dx = e.touches[0].clientX - startX;
+  if (dx > 50) showIndicator("like");
+  else if (dx < -50) showIndicator("pass");
+  else showIndicator(null);
+});
+cardFrame.addEventListener("touchend", () => {
+  if (!dragging) return;
+  if (Math.abs(dx) > 100) nextProfile();
+  showIndicator(null);
+  dragging = false; dx = 0;
+});
+passBtn.addEventListener("click", nextProfile);
+likeBtn.addEventListener("click", nextProfile);
+
+// --- Open public profile when you click the photo ---
+mainPhoto.addEventListener("click", () => {
+  const p = matches[currentIndex];
+  if (!p || !p.uid) return; // requires uid
+  location.href = `./user.html?uid=${encodeURIComponent(p.uid)}`;
+});
+
+/* ===== SECTION: Data Layer (Load/Create/Save) ===== */
+async function loadOrCreateUserDoc(uid, userObj){
+  const uref = doc(db, "users", uid);
+  const snap = await getDoc(uref);
+  if (!snap.exists()){
+    const seed = {
+      uid,
+      displayName: userObj.displayName || "Member",
+      username: "",
+      gender: "",
+      hobbies: "",
+      interests: "",
+      photoURL: userObj.photoURL || "",
+      photos: userObj.photoURL ? [userObj.photoURL] : [],
+      bio: "",
+      age: null,
+      location: "",
+      badges: [],
+      flags: [],
+      membership: { tier: "free" },
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+    await setDoc(uref, seed);
+    return seed;
+  }
+  return snap.data();
+}
     async function saveEdits(){
       if(!me) return;
       saveEdit.disabled = true; uploadStatus.innerHTML = `<span class="prog">Saving…</span>`;
