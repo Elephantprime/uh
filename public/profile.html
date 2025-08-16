@@ -49,6 +49,7 @@
     pointer-events:none;
   }
   .info-overlay h2 { margin:0; font-size:1.4rem; }
+  .handle { font-size:.95rem; color:#cfd0de; margin-top:2px; }
   .sub { font-size:.9rem; color:#ddd; margin-top:2px; }
   .badges, .flags { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
   .badges img {
@@ -84,7 +85,7 @@
   .modal-backdrop {
     position:fixed; inset:0; background:rgba(0,0,0,.65); display:none; align-items:center; justify-content:center; padding:1rem;
   }
-  .modal { width:100%; max-width:620px; background:var(--panel); border:1px solid #2a2a2a; border-radius:12px; padding:1rem; }
+  .modal { width:100%; max-width:640px; background:var(--panel); border:1px solid #2a2a2a; border-radius:12px; padding:1rem; }
   .modal h3 { margin:0 0 .5rem; }
   label { display:block; margin:.5rem 0 .25rem; color:#fff; }
   input[type="text"], textarea, input[type="number"] {
@@ -102,10 +103,14 @@
     gap:8px;
   }
   .thumb {
-    position:relative; width:100%; padding-top:100%; border:1px solid #2a2a2a; border-radius:8px; overflow:hidden; background:#0b0b0f;
+    position:relative; width:100%; padding-top:100%; border:2px solid #2a2a2a; border-radius:8px; overflow:hidden; background:#0b0b0f; cursor:pointer;
   }
   .thumb img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
-  .label-pill { position:absolute; left:6px; top:6px; font-size:.7rem; background:#000000aa; padding:2px 6px; border-radius:999px; border:1px solid #2a2a2a; }
+  .label-pill {
+    position:absolute; left:6px; top:6px; font-size:.7rem; background:#000000aa; padding:2px 6px; border-radius:999px; border:1px solid #2a2a2a;
+  }
+  .thumb.primary { border-color: var(--red); }
+  .hint { font-size:.85rem; color:#cfd0de; margin-top:.25rem; }
 
   /* Empty state */
   .empty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#ddd; font-size:1.1rem; }
@@ -129,6 +134,7 @@
     <img class="main-photo" id="main-photo" src="" alt="Profile Photo">
     <div class="info-overlay">
       <h2 id="name"></h2>
+      <div class="handle" id="handle"></div>
       <div class="sub" id="sub-info"></div>
       <div class="badges" id="badges"></div>
       <div class="flags" id="flags"></div>
@@ -146,28 +152,40 @@
   </div>
 </div>
 
-<!-- Edit Profile Modal (with photo gallery) -->
+<!-- Edit Profile Modal (with username + photo gallery primary) -->
 <div class="modal-backdrop" id="editModal">
   <div class="modal">
     <h3>Edit Profile</h3>
     <div class="muted" id="uidLine"></div>
+
     <div class="row">
       <div>
         <label for="displayName">Display name</label>
         <input id="displayName" type="text" />
       </div>
       <div>
+        <label for="username">Username</label>
+        <input id="username" type="text" placeholder="yourhandle" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
         <label for="age">Age</label>
         <input id="age" type="number" min="18" max="100" />
       </div>
+      <div>
+        <label for="location">Location</label>
+        <input id="location" type="text" placeholder="City, State" />
+      </div>
     </div>
-    <label for="location">Location</label>
-    <input id="location" type="text" placeholder="City, State" />
+
     <label for="bio">Bio</label>
     <textarea id="bio" rows="3" placeholder="Say something…"></textarea>
 
     <label for="avatar">Add photos (you can select multiple)</label>
     <input id="avatar" type="file" accept="image/*" multiple />
+    <div class="hint">Click a saved photo below to set it as your <b>Primary</b>.</div>
 
     <div class="muted" style="margin-top:.5rem;">Saved Photos</div>
     <div class="gallery" id="gallery"></div>
@@ -189,6 +207,7 @@
   const cardFrame = document.getElementById("cardFrame");
   const mainPhoto = document.getElementById("main-photo");
   const nameEl = document.getElementById("name");
+  const handleEl = document.getElementById("handle");
   const subInfo = document.getElementById("sub-info");
   const badgesEl = document.getElementById("badges");
   const flagsEl = document.getElementById("flags");
@@ -204,6 +223,7 @@
   const cancelEdit = document.getElementById("cancelEdit");
   const uidLine = document.getElementById("uidLine");
   const displayNameInput = document.getElementById("displayName");
+  const usernameInput = document.getElementById("username");
   const ageInput = document.getElementById("age");
   const locationInput = document.getElementById("location");
   const bioInput = document.getElementById("bio");
@@ -238,6 +258,7 @@
     if (!profile) {
       mainPhoto.src = "";
       nameEl.textContent = "";
+      handleEl.textContent = "";
       subInfo.textContent = "";
       renderBadges([]);
       renderFlags([]);
@@ -250,16 +271,19 @@
     const name = profile.displayName || "Member";
     const age = profile.age ? `, ${profile.age}` : "";
     nameEl.textContent = `${name}${age}`;
+    handleEl.textContent = profile.username ? `@${profile.username}` : "";
     subInfo.textContent = profile.location || "";
     renderBadges(profile.badges || []);
     renderFlags(profile.flags || []);
   }
+
   function renderGallery(photos=[]) {
     galleryEl.innerHTML = "";
-    if (!Array.isArray(photos) || !photos.length) return;
+    if (!Array.isArray(photos)) photos = [];
     photos.forEach((url, i) => {
       const box = document.createElement("div");
-      box.className = "thumb";
+      box.className = "thumb" + (i===0 ? " primary" : "");
+      box.dataset.url = url;
       const img = document.createElement("img");
       img.src = url;
       const lbl = document.createElement("div");
@@ -267,6 +291,27 @@
       lbl.textContent = i===0 ? "Primary" : `Photo ${i+1}`;
       box.appendChild(img);
       box.appendChild(lbl);
+      // Click to set primary
+      box.addEventListener("click", async () => {
+        if (!me) return;
+        const uref = doc(db, "users", me.uid);
+        const snap = await getDoc(uref);
+        const current = snap.data() || {};
+        let photosNow = Array.isArray(current.photos) ? [...current.photos] : [];
+        const index = photosNow.indexOf(url);
+        if (index > 0) {
+          // move clicked to front
+          photosNow.splice(index,1);
+          photosNow.unshift(url);
+        }
+        // update Auth profile photoURL and Firestore
+        await updateProfile(me, { photoURL: url });
+        await setDoc(uref, { photoURL: url, photos: photosNow, updatedAt: serverTimestamp() }, { merge: true });
+        myDocCached = { ...(myDocCached||{}), photoURL: url, photos: photosNow };
+        renderGallery(photosNow);
+        // if you are alone (fallback shows your own card), refresh
+        if (!matches.length) renderProfile(myDocCached);
+      });
       galleryEl.appendChild(box);
     });
   }
@@ -310,10 +355,18 @@
     const snap = await getDoc(uref);
     if (!snap.exists()) {
       const seed = {
-        uid, displayName: userObj.displayName || "Member", photoURL: userObj.photoURL || "",
+        uid,
+        displayName: userObj.displayName || "Member",
+        username: "",
+        photoURL: userObj.photoURL || "",
         photos: userObj.photoURL ? [userObj.photoURL] : [],
-        bio: "", age: null, location: "", badges: [], flags: [],
-        createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+        bio: "",
+        age: null,
+        location: "",
+        badges: [],
+        flags: [],
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       };
       await setDoc(uref, seed);
       return seed;
@@ -321,13 +374,15 @@
     return snap.data();
   }
 
-  // Save edits (supports multiple photo uploads + gallery persistence)
+  // Save edits (supports multiple photo uploads + primary persists)
   saveEdit.addEventListener("click", async () => {
     if (!me) return;
     const uref = doc(db, "users", me.uid);
-    const current = (await getDoc(uref)).data() || {};
+    const snap = await getDoc(uref);
+    const current = snap.data() || {};
     let photos = Array.isArray(current.photos) ? [...current.photos] : [];
-    // Upload any newly selected files
+
+    // Upload newly selected files
     const files = Array.from(avatarInput.files || []);
     for (const f of files) {
       const path = `avatars/${me.uid}/${Date.now()}_${f.name}`;
@@ -336,14 +391,17 @@
       const url = await getDownloadURL(r);
       photos.push(url);
     }
-    // Ensure a primary photoURL exists
+
+    // Ensure a primary photoURL exists (use first photo if not set)
     let photoURL = current.photoURL || photos[0] || "";
     if (!current.photoURL && photos[0]) {
       await updateProfile(me, { photoURL: photos[0] });
       photoURL = photos[0];
     }
+
     const payload = {
       displayName: displayNameInput.value.trim(),
+      username: usernameInput.value.trim(),
       bio: bioInput.value.trim(),
       age: ageInput.value ? Number(ageInput.value) : null,
       location: locationInput.value.trim(),
@@ -368,6 +426,7 @@
     // Ensure a doc, then prefill modal + gallery
     myDocCached = await loadOrCreateUserDoc(me.uid, me);
     displayNameInput.value = myDocCached.displayName || "";
+    usernameInput.value = myDocCached.username || "";
     bioInput.value = myDocCached.bio || "";
     ageInput.value = myDocCached.age || "";
     locationInput.value = myDocCached.location || "";
