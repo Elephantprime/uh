@@ -724,7 +724,7 @@ Last profile.
         </div>
       `;
       
-      if// make the whole card open their public profile
+      //make the whole card open their public profile
   item.dataset.uid = u?.uid || "";
   item.addEventListener("click", (ev) => {
     if (ev.target.closest(".lock-badge, .pill, button")) return;
