@@ -1,220 +1,368 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Unhinged — Join Now</title>
-  <style>
-    :root { --bg:#0e0e12; --panel:#15161b; --muted:#cfd0de; --red:#E11D2A; --ok:#35d296; }
-    *{box-sizing:border-box}
-    body{font-family:Arial, sans-serif;max-width:720px;margin:0 auto;padding:2rem;background:var(--bg);color:#fff}
-    h1,h2,h3{margin:.2rem 0}
-    .card{margin-top:1rem;padding:1rem;border:1px solid #2a2a2a;border-radius:12px;background:var(--panel)}
-    label{display:block;margin:.4rem 0 .25rem}
-    input{width:100%;padding:.6rem;margin-bottom:.8rem;border:1px solid #2a2a2a;border-radius:8px;background:#12131a;color:#fff}
-    .row{display:flex;gap:.6rem}
-    .row>*{flex:1}
-    .btn{padding:.65rem 1rem;border:none;background:var(--red);color:#fff;border-radius:8px;cursor:pointer}
-    .btn.ghost{background:transparent;border:1px solid #2a2a2a}
-    .btn.ok{background:var(--ok)}
-    .muted{color:var(--muted)}
-    .err{color:#ff8e8e}
-    .ok{color:#89f0b7}
-    .prog{color:#ffd27f}
-    .q{margin:.75rem 0}
-    .q strong{display:block;margin-bottom:.25rem}
-    .q label{display:flex;gap:.5rem;align-items:center;margin:.25rem 0}
-    .divider{height:1px;background:#2a2a2a;margin:12px 0;border:0}
-    .req{color:#ff6b6b;font-weight:700;margin-left:.25rem}
-    .invalid{outline:2px solid #ff6b6b;outline-offset:2px;border-color:#ff6b6b !important}
-    .topnav{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
-    a{color:#9ecbff}
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unhinged — Profile</title>
+<style>
+  :root { --bg:#0e0e12; --panel:#15161b; --muted:#cfd0de; --red:#E11D2A; --green:#4CAF50; }
+  * { box-sizing:border-box; }
+  body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:#fff;min-height:100vh;display:flex;flex-direction:column}
+  .btn{border:none;background:var(--red);color:#fff;padding:.5rem .9rem;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+  .btn.secondary{background:#2a2a2a}.btn.ghost{background:transparent;border:1px solid #2a2a2a}
+  .muted{color:var(--muted);font-size:.9rem}
+
+  .topbar{display:flex;gap:.5rem;align-items:center;justify-content:space-between;padding:.75rem 1rem;background:var(--panel);border-bottom:1px solid #2a2a2a}
+  .brand{font-weight:700}
+  .nav-actions{display:flex;gap:.5rem}
+
+  .content{flex:1;display:flex;flex-direction:column;align-items:center;padding:12px;gap:12px;width:100%}
+  .card-frame{position:relative;width:92%;max-width:420px;height:72vh;border:2px solid #2a2a2a;border-radius:16px;overflow:hidden;background:#000;box-shadow:0 8px 24px rgba(0,0,0,.4);touch-action:pan-y}
+  .main-photo{width:100%;height:100%;object-fit:cover;user-select:none;-webkit-user-drag:none}
+  .info-overlay{position:absolute;left:0;right:0;bottom:0;padding:14px 16px;background:linear-gradient(transparent, rgba(0,0,0,.78));pointer-events:none}
+  .info-overlay h2{margin:0;font-size:1.4rem}
+  .handle{font-size:.95rem;color:#cfd0de;margin-top:2px}
+  .sub{font-size:.9rem;color:#ddd;margin-top:2px}
+  .badges,.flags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .badges img{width:28px;height:28px;border-radius:50%;border:1px solid #4cafef;background:#2a2a3a;padding:2px}
+  .flags img{width:24px;height:24px;border-radius:50%;border:1px solid var(--red);background:#3a2a2a;padding:2px}
+  .indicator{position:absolute;top:16px;font-size:1.4rem;font-weight:700;padding:6px 12px;border:3px solid;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .12s ease}
+  .indicator.pass{left:14px;color:var(--red);border-color:var(--red);transform:rotate(-18deg)}
+  .indicator.like{right:14px;color:var(--green);border-color:var(--green);transform:rotate(18deg)}
+  .empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#ddd;font-size:1.1rem}
+
+  .actions{width:100%;max-width:480px;display:flex;justify-content:space-around;align-items:center;padding:8px 0 16px}
+  .action-btn{width:56px;height:56px;border-radius:50%;border:none;font-size:1.5rem;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .pass-btn{background:#2a2a2a;color:var(--red)} .like-btn{background:#2a2a2a;color:var(--green)} .chaos-btn{background:var(--red);color:#fff;border:none;border-radius:16px;padding:8px 16px;cursor:pointer}
+
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:1rem;z-index:50}
+  .modal{width:100%;max-width:680px;background:var(--panel);border:1px solid #2a2a2a;border-radius:12px;padding:1rem}
+  .modal h3{margin:0 0 .5rem}
+  label{display:flex;align-items:center;gap:.35rem;margin:.5rem 0 .25rem}
+  .req{color:#ff6b6b;font-weight:700}
+  input[type="text"],textarea,input[type="number"]{width:100%;padding:.6rem;border:1px solid #2a2a2a;border-radius:8px;background:#12131a;color:#fff}
+  .row{display:flex;gap:.5rem}.row>*{flex:1}
+  .status{margin-top:.5rem;font-size:.9rem}
+  .ok{color:#6fdc8c}.err{color:#ff8e8e}.prog{color:#ffd27f}
+  .invalid{outline:2px solid #ff6b6b;outline-offset:2px;border-color:#ff6b6b !important}
+
+  .gallery{margin-top:.5rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
+  .thumb{position:relative;width:100%;padding-top:100%;border:2px solid #2a2a2a;border-radius:8px;overflow:hidden;background:#0b0b0f;cursor:pointer}
+  .thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .label-pill{position:absolute;left:6px;top:6px;font-size:.7rem;background:#000000aa;padding:2px 6px;border-radius:999px;border:1px solid #2a2a2a}
+  .thumb.primary{border-color:var(--red)}
+  .hint{font-size:.85rem;color:#cfd0de;margin-top:.25rem}
+</style>
 </head>
 <body>
-  <div class="topnav">
-    <h1>Join Unhinged</h1>
-    <a href="./login.html">Already have an account?</a>
+
+<div class="topbar">
+  <div class="brand" id="topLine">Your Profile</div>
+  <div class="nav-actions">
+    <a class="btn ghost" href="./app.html">Community Chaos</a>
+    <button class="btn secondary" id="myProfileBtn">My Profile</button>
+    <button class="btn" id="editBtn">Edit Profile</button>
+  </div>
+</div>
+
+<div class="content">
+  <div class="card-frame" id="cardFrame">
+    <img class="main-photo" id="main-photo" src="" alt="Profile Photo">
+    <div class="info-overlay">
+      <h2 id="name"></h2>
+      <div class="handle" id="handle"></div>
+      <div class="sub" id="sub-info"></div>
+      <div class="badges" id="badges"></div>
+      <div class="flags" id="flags"></div>
+    </div>
+    <div class="indicator pass" id="pass-indicator">PASS</div>
+    <div class="indicator like" id="like-indicator">LIKE</div>
+    <div class="empty" id="empty" style="display:none;">No more matches</div>
   </div>
 
-  <!-- Step 1: Account basics -->
-  <div class="card" id="step1">
-    <h3>Create your account</h3>
-    <p class="muted" style="margin-top:0">Use your email and a strong password. You’ll take a quick quiz next.</p>
-    <label for="email">Email <span class="req">*</span></label>
-    <input id="email" type="email" autocomplete="username" required />
-    <label for="password">Password <span class="req">*</span></label>
-    <input id="password" type="password" autocomplete="new-password" required />
+  <div class="actions">
+    <button class="action-btn pass-btn" id="pass-btn">✖</button>
+    <button class="chaos-btn" onclick="location.href='./app.html'">Community Chaos</button>
+    <button class="action-btn like-btn" id="like-btn">❤</button>
+  </div>
+</div>
+
+<!-- Edit Profile -->
+<div class="modal-backdrop" id="editModal">
+  <div class="modal">
+    <h3>Edit Profile</h3>
+    <div class="muted" id="uidLine"></div>
+
     <div class="row">
-      <button class="btn" id="toQuiz">Continue to Quiz</button>
-      <button class="btn ghost" id="cancel1" onclick="location.href='./login.html'">Cancel</button>
-    </div>
-    <div class="muted" id="s1status"></div>
-  </div>
-
-  <!-- Step 2: Quiz (must complete before account is created) -->
-  <div class="card" id="step2" style="display:none">
-    <h3>Quick Start Quiz</h3>
-    <p class="muted" style="margin-top:0">Complete this so we can personalize your matches. All questions are required.</p>
-
-    <!-- 8 sample questions to start; we’ll replace with your real set later -->
-    <div class="q">
-      <strong>1) What are you looking for? <span class="req">*</span></strong>
-      <label><input type="radio" name="q1" value="serious"> Something serious</label>
-      <label><input type="radio" name="q1" value="casual"> Casual</label>
-      <label><input type="radio" name="q1" value="unsure"> Not sure yet</label>
+      <div>
+        <label for="displayName">Display name <span class="req" id="reqDisplayName" hidden>*</span></label>
+        <input id="displayName" type="text" />
+      </div>
+      <div>
+        <label for="username">Username</label>
+        <input id="username" type="text" placeholder="yourhandle" />
+      </div>
     </div>
 
-    <div class="q">
-      <strong>2) Weekend vibe? <span class="req">*</span></strong>
-      <label><input type="radio" name="q2" value="outdoor"> Outdoorsy</label>
-      <label><input type="radio" name="q2" value="homebody"> Homebody</label>
-      <label><input type="radio" name="q2" value="nightlife"> Nightlife</label>
-    </div>
-
-    <div class="q">
-      <strong>3) Biggest red flag for you? <span class="req">*</span></strong>
-      <label><input type="radio" name="q3" value="lateness"> Always late</label>
-      <label><input type="radio" name="q3" value="messy"> Messy</label>
-      <label><input type="radio" name="q3" value="none"> None of these</label>
-    </div>
-
-    <div class="q">
-      <strong>4) Kids? <span class="req">*</span></strong>
-      <label><input type="radio" name="q4" value="want"> Want kids</label>
-      <label><input type="radio" name="q4" value="dontwant"> Don’t want kids</label>
-      <label><input type="radio" name="q4" value="open"> Open/Maybe</label>
-    </div>
-
-    <div class="q">
-      <strong>5) Smoking? <span class="req">*</span></strong>
-      <label><input type="radio" name="q5" value="no"> No</label>
-      <label><input type="radio" name="q5" value="sometimes"> Sometimes</label>
-      <label><input type="radio" name="q5" value="yes"> Yes</label>
-    </div>
-
-    <div class="q">
-      <strong>6) Pets at home? <span class="req">*</span></strong>
-      <label><input type="radio" name="q6" value="dog"> Dog(s)</label>
-      <label><input type="radio" name="q6" value="cat"> Cat(s)</label>
-      <label><input type="radio" name="q6" value="none"> None</label>
-    </div>
-
-    <div class="q">
-      <strong>7) Political comfort zone? <span class="req">*</span></strong>
-      <label><input type="radio" name="q7" value="aligned"> Prefer aligned</label>
-      <label><input type="radio" name="q7" value="open"> Open to different</label>
-      <label><input type="radio" name="q7" value="avoid"> Avoid politics</label>
-    </div>
-
-    <div class="q">
-      <strong>8) Night owl or early bird? <span class="req">*</span></strong>
-      <label><input type="radio" name="q8" value="owl"> Night owl</label>
-      <label><input type="radio" name="q8" value="bird"> Early bird</label>
-      <label><input type="radio" name="q8" value="both"> Both/depends</label>
-    </div>
-
-    <div class="divider"></div>
     <div class="row">
-      <button class="btn ghost" id="back1">Back</button>
-      <button class="btn ok" id="create">Create Account</button>
+      <div>
+        <label for="age">Age <span class="req" id="reqAge" hidden>*</span></label>
+        <input id="age" type="number" min="18" max="100" />
+      </div>
+      <div>
+        <label for="location">Location <span class="req" id="reqLocation" hidden>*</span></label>
+        <input id="location" type="text" placeholder="City, State" />
+      </div>
     </div>
-    <div id="s2status" class="muted" style="margin-top:.5rem"></div>
+
+    <label for="bio">Bio</label>
+    <textarea id="bio" rows="3" placeholder="Say something…"></textarea>
+
+    <label for="avatar" style="margin-top:.5rem;">Add photos (you can select multiple) <span class="req" id="reqPhoto" hidden>*</span></label>
+    <input id="avatar" type="file" accept="image/*" multiple />
+    <div class="hint">Click a saved photo below to set it as your <b>Primary</b>. Selected files preview below before upload.</div>
+    <div class="status" id="uploadStatus"></div>
+
+    <div class="muted" style="margin-top:.5rem;" id="previewTitle" hidden>Selected (not yet uploaded)</div>
+    <div class="gallery" id="previewGallery" hidden></div>
+
+    <div class="muted" style="margin-top:.75rem;">Saved Photos</div>
+    <div class="gallery" id="gallery"></div>
+
+    <div style="margin-top:.75rem;display:flex;gap:.5rem;justify-content:flex-end;">
+      <button class="btn secondary" id="cancelEdit">Cancel</button>
+      <button class="btn" id="saveEdit">Save</button>
+    </div>
   </div>
+</div>
 
-  <script type="module">
-    import { auth, db } from "./js/firebase.js";
-    import { onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<script type="module">
+  import { auth, db, storage } from "./js/firebase.js";
+  import { onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { collection, getDocs, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-    // Elements
-    const step1 = document.getElementById("step1");
-    const step2 = document.getElementById("step2");
-    const email = document.getElementById("email");
-    const pass  = document.getElementById("password");
-    const toQuiz = document.getElementById("toQuiz");
-    const back1  = document.getElementById("back1");
-    const createBtn = document.getElementById("create");
-    const s1status = document.getElementById("s1status");
-    const s2status = document.getElementById("s2status");
+  /* ---- Requirements (flip as needed) ---- */
+  const REQUIRED = { PHOTO: true, LOCATION: true, DISPLAY_NAME: false, AGE: false };
 
-    // If already signed in, skip signup
-    onAuthStateChanged(auth, (user) => {
-      if (user) location.replace(`./profile.html?uid=${encodeURIComponent(user.uid)}`);
+  // Refs
+  const topLine = document.getElementById("topLine");
+  const cardFrame = document.getElementById("cardFrame");
+  const mainPhoto = document.getElementById("main-photo");
+  const nameEl = document.getElementById("name");
+  const handleEl = document.getElementById("handle");
+  const subInfo = document.getElementById("sub-info");
+  const badgesEl = document.getElementById("badges");
+  const flagsEl = document.getElementById("flags");
+  const passBtn = document.getElementById("pass-btn");
+  const likeBtn = document.getElementById("like-btn");
+  const passIndicator = document.getElementById("pass-indicator");
+  const likeIndicator = document.getElementById("like-indicator");
+  const emptyEl = document.getElementById("empty");
+  const editBtn = document.getElementById("editBtn");
+  const editModal = document.getElementById("editModal");
+  const saveEdit = document.getElementById("saveEdit");
+  const cancelEdit = document.getElementById("cancelEdit");
+  const uidLine = document.getElementById("uidLine");
+  const displayNameInput = document.getElementById("displayName");
+  const usernameInput = document.getElementById("username");
+  const ageInput = document.getElementById("age");
+  const locationInput = document.getElementById("location");
+  const bioInput = document.getElementById("bio");
+  const avatarInput = document.getElementById("avatar");
+  const uploadStatus = document.getElementById("uploadStatus");
+  const galleryEl = document.getElementById("gallery");
+  const previewTitle = document.getElementById("previewTitle");
+  const previewGallery = document.getElementById("previewGallery");
+  const myProfileBtn = document.getElementById("myProfileBtn");
+  const reqDisplayName = document.getElementById("reqDisplayName");
+  const reqAge = document.getElementById("reqAge");
+  const reqLocation = document.getElementById("reqLocation");
+  const reqPhoto = document.getElementById("reqPhoto");
+
+  // Mark required
+  reqDisplayName.hidden = !REQUIRED.DISPLAY_NAME;
+  reqAge.hidden = !REQUIRED.AGE;
+  reqLocation.hidden = !REQUIRED.LOCATION;
+  reqPhoto.hidden = !REQUIRED.PHOTO;
+
+  // State
+  let me = null, matches = [], currentIndex = 0, myDocCached = null, previewURLs = [];
+  let _profileNavGuard = false;
+
+  // Helpers
+  function showError(msg){ uploadStatus.innerHTML = `<span class="err">${msg}</span>`; }
+  function showOK(msg){ uploadStatus.innerHTML = `<span class="ok">${msg}</span>`; }
+
+  function renderBadges(badges=[]) {
+    badgesEl.innerHTML = "";
+    badges.forEach(url => { const img = document.createElement("img"); img.src=url; img.alt="badge"; badgesEl.appendChild(img); });
+  }
+  function renderFlags(flags=[]) {
+    flagsEl.innerHTML = "";
+    flags.forEach(()=>{ const img=document.createElement("img"); img.src="https://upload.wikimedia.org/wikipedia/commons/f/f7/Flag_icon_red.svg"; img.alt="flag"; flagsEl.appendChild(img); });
+  }
+  function renderProfile(p) {
+    if (!p) { mainPhoto.src=""; nameEl.textContent=""; handleEl.textContent=""; subInfo.textContent=""; renderBadges([]); renderFlags([]); emptyEl.style.display="flex"; return; }
+    emptyEl.style.display="none";
+    const primary = p.photoURL || (Array.isArray(p.photos)&&p.photos[0]) || "https://via.placeholder.com/800x1200";
+    mainPhoto.src = primary;
+    const name = p.displayName || "Member";
+    const age  = p.age ? `, ${p.age}` : "";
+    nameEl.textContent = `${name}${age}`;
+    handleEl.textContent = p.username ? `@${p.username}` : "";
+    subInfo.textContent = p.location || "";
+    renderBadges(p.badges||[]); renderFlags(p.flags||[]);
+  }
+  function renderGallery(photos=[]) {
+    galleryEl.innerHTML = "";
+    (photos||[]).forEach((url,i)=>{
+      const box=document.createElement("div"); box.className="thumb"+(i===0?" primary":"");
+      const img=document.createElement("img"); img.src=url;
+      const lbl=document.createElement("div"); lbl.className="label-pill"; lbl.textContent = i===0?"Primary":`Photo ${i+1}`;
+      box.appendChild(img); box.appendChild(lbl);
+      box.addEventListener("click", async ()=>{
+        try{
+          if(!me) return;
+          const uref = doc(db,"users",me.uid);
+          const snap = await getDoc(uref); const current = snap.data()||{};
+          let photosNow = Array.isArray(current.photos)?[...current.photos]:[];
+          const idx = photosNow.indexOf(url); if (idx>0){ photosNow.splice(idx,1); photosNow.unshift(url); }
+          await updateProfile(me,{ photoURL:url });
+          await setDoc(uref,{ photoURL:url, photos:photosNow, updatedAt:serverTimestamp() },{ merge:true });
+          myDocCached = { ...(myDocCached||{}), photoURL:url, photos:photosNow };
+          renderGallery(photosNow); if(!matches.length) renderProfile(myDocCached);
+          showOK("Primary photo updated.");
+        }catch(e){ showError(`Could not set primary: ${e?.message||'error'}`); }
+      });
+      galleryEl.appendChild(box);
     });
+  }
+  function clearPreviews(){ previewURLs.forEach(u=>URL.revokeObjectURL(u)); previewURLs=[]; previewGallery.innerHTML=""; previewTitle.hidden=true; previewGallery.hidden=true; }
+  function renderPreviews(files){ clearPreviews(); if(!files?.length) return; previewTitle.hidden=false; previewGallery.hidden=false;
+    [...files].forEach((f,i)=>{ const url=URL.createObjectURL(f); previewURLs.push(url);
+      const box=document.createElement("div"); box.className="thumb";
+      const img=document.createElement("img"); img.src=url;
+      const lbl=document.createElement("div"); lbl.className="label-pill"; lbl.textContent=`New ${i+1}`;
+      box.appendChild(img); box.appendChild(lbl); previewGallery.appendChild(box);
+    });
+  }
 
-    function mapErr(code, fallback="Something went wrong"){
-      const m = {
-        "auth/email-already-in-use":"That email is already in use.",
-        "auth/invalid-email":"Invalid email address.",
-        "auth/weak-password":"Password is too weak.",
-        "auth/operation-not-allowed":"Sign-up is disabled for this project."
+  // Validation
+  function validateBeforeSave(currentDoc, filesPending){
+    const pending = (filesPending&&filesPending.length)||0;
+    const saved = Array.isArray(currentDoc?.photos)?currentDoc.photos:[];
+    const hasPhoto = saved.length>0 || pending>0 || !!currentDoc?.photoURL;
+    if(REQUIRED.PHOTO && !hasPhoto) return {ok:false, message:"Add at least one photo before saving.", focus:"photo"};
+    const loc=(locationInput.value||"").trim(); if(REQUIRED.LOCATION && !loc) return {ok:false, message:"Please enter your location before saving.", focus:"location"};
+    const dn=(displayNameInput.value||"").trim(); if(REQUIRED.DISPLAY_NAME && !dn) return {ok:false, message:"Please enter your display name before saving.", focus:"displayName"};
+    if(REQUIRED.AGE){ const a=Number(ageInput.value); if(!Number.isFinite(a)||a<18||a>100) return {ok:false, message:"Please enter a valid age (18–100).", focus:"age"} }
+    return {ok:true};
+  }
+  function refreshSaveButtonState(currentDoc){
+    const res = validateBeforeSave(currentDoc, avatarInput.files);
+    saveEdit.disabled = !res.ok;
+    if(!res.ok) uploadStatus.innerHTML = `<span class="prog">${res.message}</span>`; else uploadStatus.textContent="";
+  }
+  function focusInvalid(key){
+    if(key==="location"){ locationInput.classList.add("invalid"); locationInput.scrollIntoView({behavior:"smooth",block:"center"}); locationInput.focus(); }
+    if(key==="displayName"){ displayNameInput.classList.add("invalid"); displayNameInput.scrollIntoView({behavior:"smooth",block:"center"}); displayNameInput.focus(); }
+    if(key==="age"){ ageInput.classList.add("invalid"); ageInput.scrollIntoView({behavior:"smooth",block:"center"}); ageInput.focus(); }
+    if(key==="photo"){ avatarInput.scrollIntoView({behavior:"smooth",block:"center"}); }
+  }
+  [displayNameInput, usernameInput, ageInput, locationInput, bioInput].forEach(el=>el.addEventListener("input",()=>refreshSaveButtonState(myDocCached)));
+  avatarInput.addEventListener("change",(e)=>{ renderPreviews(e.target.files); refreshSaveButtonState(myDocCached); });
+
+  // Swipe
+  function nextProfile(){ currentIndex++; renderProfile(matches[currentIndex]||null); }
+  function showIndicator(t){ passIndicator.style.opacity = t==="pass"?1:0; likeIndicator.style.opacity = t==="like"?1:0; }
+  let startX=0, dx=0, dragging=false;
+  cardFrame.addEventListener("touchstart", e=>{ startX=e.touches[0].clientX; dragging=true; });
+  cardFrame.addEventListener("touchmove", e=>{ if(!dragging)return; dx=e.touches[0].clientX-startX; if(dx>50)showIndicator("like"); else if(dx<-50)showIndicator("pass"); else showIndicator(null); });
+  cardFrame.addEventListener("touchend", ()=>{ if(!dragging)return; if(Math.abs(dx)>100) nextProfile(); showIndicator(null); dragging=false; dx=0; });
+  passBtn.addEventListener("click", nextProfile); likeBtn.addEventListener("click", nextProfile);
+
+  // Modal
+  editBtn.addEventListener("click", ()=>{ uploadStatus.textContent=""; displayNameInput.classList.remove("invalid"); ageInput.classList.remove("invalid"); locationInput.classList.remove("invalid"); editModal.style.display="flex"; refreshSaveButtonState(myDocCached); });
+  cancelEdit.addEventListener("click", ()=>{ editModal.style.display="none"; clearPreviews(); displayNameInput.classList.remove("invalid"); ageInput.classList.remove("invalid"); locationInput.classList.remove("invalid"); });
+
+  async function loadOrCreateUserDoc(uid, userObj){
+    const uref = doc(db,"users",uid);
+    const snap = await getDoc(uref);
+    if(!snap.exists()){
+      const seed = { uid, displayName:userObj.displayName||"Member", username:"", photoURL:userObj.photoURL||"", photos:userObj.photoURL?[userObj.photoURL]:[], bio:"", age:null, location:"", badges:[], flags:[], createdAt:serverTimestamp(), updatedAt:serverTimestamp() };
+      await setDoc(uref, seed);
+      return seed;
+    }
+    return snap.data();
+  }
+
+  saveEdit.addEventListener("click", async ()=>{
+    if(!me) return;
+    saveEdit.disabled = true; uploadStatus.innerHTML = `<span class="prog">Saving…</span>`;
+    try{
+      const uref = doc(db,"users",me.uid);
+      const pre = await getDoc(uref); const currentDoc = pre.data()||{};
+      const files = Array.from(avatarInput.files||[]);
+      const check = validateBeforeSave(currentDoc, files);
+      if(!check.ok){ showError(check.message); focusInvalid(check.focus); saveEdit.disabled=false; return; }
+
+      let photos = Array.isArray(currentDoc.photos)?[...currentDoc.photos]:[];
+      if(files.length){ uploadStatus.innerHTML = `<span class="prog">Uploading ${files.length} photo(s)…</span>`; }
+      for(const f of files){ const path=`avatars/${me.uid}/${Date.now()}_${f.name}`; const r=sRef(storage,path); await uploadBytes(r,f); const url=await getDownloadURL(r); photos.push(url); }
+
+      let photoURL = currentDoc.photoURL || photos[0] || "";
+      if(!currentDoc.photoURL && photos[0]){ await updateProfile(me,{ photoURL:photos[0] }); photoURL = photos[0]; }
+
+      const payload = {
+        displayName: (displayNameInput.value||"").trim(),
+        username: (usernameInput.value||"").trim(),
+        bio: (bioInput.value||"").trim(),
+        age: ageInput.value ? Number(ageInput.value) : null,
+        location: (locationInput.value||"").trim(),
+        photoURL, photos, updatedAt: serverTimestamp()
       };
-      return m[code] || fallback;
+      await setDoc(uref, payload, { merge:true });
+      myDocCached = { ...(myDocCached||{}), ...payload };
+
+      topLine.textContent = myDocCached.username ? `@${myDocCached.username}` : `UID: ${me.uid}`;
+      handleEl.textContent = myDocCached.username ? `@${myDocCached.username}` : "";
+
+      renderGallery(photos); if(!matches.length) renderProfile(myDocCached);
+
+      avatarInput.value=""; clearPreviews();
+      showOK("Profile saved."); setTimeout(()=>{ editModal.style.display="none"; }, 500);
+    }catch(e){ showError(`Save failed: ${e?.message||'error'}`); }
+    finally{ saveEdit.disabled=false; }
+  });
+
+  // AUTH — single guarded redirect to login if signed out; no URL rewriting here.
+  onAuthStateChanged(auth, async (user)=>{
+    if(!user){
+      if(!_profileNavGuard){ _profileNavGuard=true; location.replace("./login.html"); }
+      return;
     }
+    me = user;
+    document.getElementById("myProfileBtn").onclick = ()=> location.replace(`./profile.html?uid=${encodeURIComponent(me.uid)}`);
 
-    // Helpers for quiz
-    const qNames = ["q1","q2","q3","q4","q5","q6","q7","q8"];
-    function getQuizAnswers(){
-      const get = (name)=> document.querySelector(`input[name="${name}"]:checked`)?.value || "";
-      const ans = {};
-      for (const n of qNames) ans[n] = get(n);
-      return ans;
-    }
-    function quizValid(ans){ return qNames.every(n => !!ans[n]); }
+    myDocCached = await loadOrCreateUserDoc(me.uid, me);
+    displayNameInput.value = myDocCached.displayName || "";
+    usernameInput.value   = myDocCached.username || "";
+    bioInput.value        = myDocCached.bio || "";
+    ageInput.value        = myDocCached.age || "";
+    locationInput.value   = myDocCached.location || "";
+    renderGallery(myDocCached.photos || []);
+    topLine.textContent   = myDocCached.username ? `@${myDocCached.username}` : `UID: ${me.uid}`;
+    uidLine.textContent   = topLine.textContent;
 
-    // Step controls
-    toQuiz.addEventListener("click", ()=>{
-      s1status.textContent = "";
-      email.classList.remove("invalid"); pass.classList.remove("invalid");
-      const em = (email.value||"").trim();
-      const pw = pass.value;
-      let ok = true;
-      if (!em) { email.classList.add("invalid"); ok=false; }
-      if (!pw || pw.length < 6) { pass.classList.add("invalid"); ok=false; s1status.innerHTML = '<span class="err">Password must be at least 6 characters.</span>'; }
-      if (!ok) return;
-      step1.style.display = "none";
-      step2.style.display = "block";
-    });
+    const snap = await getDocs(collection(db,"users"));
+    matches = [];
+    snap.forEach(d=>{ if(d.id!==me.uid) matches.push(d.data()); });
+    if(!matches.length) matches.push(myDocCached);
 
-    back1.addEventListener("click", ()=>{
-      step2.style.display = "none";
-      step1.style.display = "block";
-    });
+    currentIndex=0; renderProfile(matches[currentIndex]);
+  });
+</script>
 
-    // Create account AFTER quiz is valid
-    createBtn.addEventListener("click", async ()=>{
-      s2status.innerHTML = "";
-      const answers = getQuizAnswers();
-      if (!quizValid(answers)) {
-        s2status.innerHTML = '<span class="err">Please answer all questions.</span>';
-        return;
-      }
-      try{
-        s2status.innerHTML = '<span class="prog">Creating your account…</span>';
-        const cred = await createUserWithEmailAndPassword(auth, (email.value||"").trim(), pass.value);
-        const uid = cred.user.uid;
-
-        // Seed a minimal user doc + save quiz
-        await setDoc(doc(db,"users",uid), {
-          uid,
-          email: (email.value||"").trim(),
-          displayName: cred.user.displayName || "Member",
-          photoURL: cred.user.photoURL || "",
-          photos: cred.user.photoURL ? [cred.user.photoURL] : [],
-          bio: "", age: null, location: "", badges: [], flags: [],
-          quiz: { completed:true, answers:answers, completedAt: serverTimestamp() },
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        }, { merge:true });
-
-        s2status.innerHTML = '<span class="ok">Account created!</span>';
-        location.replace(`./profile.html?uid=${encodeURIComponent(uid)}`);
-      }catch(err){
-        console.error(err);
-        s2status.innerHTML = `<span class="err">${mapErr(err.code, err.message)}</span>`;
-      }
-    });
-  </script>
 </body>
 </html>
