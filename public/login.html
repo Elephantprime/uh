@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Unhinged — Login</title>
   <style>
-    body{font-family:Arial, sans-serif;max-width:600px;margin:0 auto;padding:2rem;background:#0e0e12;color:#fff}
+    body{font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:2rem;background:#0e0e12;color:#fff}
     form{margin-top:1rem;padding:1rem;border:1px solid #2a2a2a;border-radius:8px;background:#15161b}
-    label{display:block;margin-bottom:.25rem}
-    input{width:100%;padding:.6rem;margin-bottom:1rem;border:1px solid #2a2a2a;border-radius:6px;background:#12131a;color:#fff}
+    label{display:block;margin:.25rem 0}
+    input{width:100%;padding:.6rem;margin-bottom:.8rem;border:1px solid #2a2a2a;border-radius:6px;background:#12131a;color:#fff}
     button{padding:.6rem 1rem;border:none;background:#E11D2A;color:#fff;border-radius:6px;cursor:pointer}
     .sub{color:#cfd0de;min-height:1.2em;margin-top:.5rem}
-    a{color:#9ecbff}
   </style>
 </head>
 <body>
@@ -21,36 +20,49 @@
     <input id="email" type="email" autocomplete="username" required />
     <label for="password">Password</label>
     <input id="password" type="password" autocomplete="current-password" required />
-    <button type="submit">Login</button>
+    <button type="submit" id="signin">Login</button>
     <div class="sub" id="status"></div>
   </form>
-  <p class="sub">New here? <a href="./signup.html">Create an account</a></p>
 
   <script type="module">
-    import { auth } from "./js/firebase.js";
+    import { auth, ensureUserDoc } from "./js/firebase.js";
     import { onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    const form = document.getElementById("login-form");
-    const email = document.getElementById("email");
-    const pass  = document.getElementById("password");
-    const status = document.getElementById("status");
+    const $ = id => document.getElementById(id);
+    const form = $("login-form");
+    const email = $("email");
+    const pass  = $("password");
+    const status = $("status");
 
-    let _navigating = false;
+    function goProfile(uid){ location.replace(`./profile.html?uid=${encodeURIComponent(uid)}`); }
+
+    // Already signed in? go straight to profile
     onAuthStateChanged(auth, (user)=>{
-      if (user && !_navigating) {
-        _navigating = true;
-        location.replace(`./profile.html?uid=${encodeURIComponent(user.uid)}`);
-      }
+      if (user) goProfile(user.uid);
     });
+
+    function mapErr(code, fallback="Login failed"){
+      const m = {
+        "auth/invalid-credential":"Wrong email or password.",
+        "auth/invalid-email":"Invalid email address.",
+        "auth/user-disabled":"Account disabled.",
+        "auth/user-not-found":"No account with that email.",
+        "auth/wrong-password":"Wrong password.",
+        "auth/too-many-requests":"Too many attempts. Try again later."
+      };
+      return m[code] || fallback;
+    }
 
     form.addEventListener("submit", async (e)=>{
       e.preventDefault();
       status.textContent = "Signing in…";
-      try{
+      try {
         const cred = await signInWithEmailAndPassword(auth, (email.value||"").trim(), pass.value);
-        location.replace(`./profile.html?uid=${encodeURIComponent(cred.user.uid)}`);
-      }catch(err){
-        status.textContent = ({"auth/invalid-credential":"Wrong email or password.","auth/invalid-email":"Invalid email.","auth/user-disabled":"Account disabled.","auth/user-not-found":"No account with that email.","auth/wrong-password":"Wrong password.","auth/too-many-requests":"Too many attempts. Try again later."}[err.code] || err.message);
+        await ensureUserDoc(cred.user);              // guarantee users/{uid}
+        goProfile(cred.user.uid);                    // redirect
+      } catch (err) {
+        console.error(err);
+        status.textContent = mapErr(err.code, err.message);
       }
     });
   </script>
