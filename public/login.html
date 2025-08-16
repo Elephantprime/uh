@@ -1,63 +1,130 @@
+<!--
+  Login page for Unhinged.
+
+  This version fixes the original file by properly handling login instead of
+  sign‑up. It signs an existing user in using Firebase Auth and redirects
+  them to their profile page.  Invalid credentials and common errors are
+  mapped to friendly messages.  If the user is already signed in, they are
+  automatically redirected to their profile.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Unhinged — Join</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Unhinged — Log In</title>
   <style>
-    body{font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:2rem;background:#0e0e12;color:#fff}
-    form{margin-top:1rem;padding:1rem;border:1px solid #2a2a2a;border-radius:8px;background:#15161b}
-    label{display:block;margin:.25rem 0}
-    input{width:100%;padding:.6rem;margin-bottom:.8rem;border:1px solid #2a2a2a;border-radius:6px;background:#12131a;color:#fff}
-    button{padding:.6rem 1rem;border:none;background:#E11D2A;color:#fff;border-radius:6px;cursor:pointer}
-    .sub{color:#cfd0de;min-height:1.2em;margin-top:.5rem}
+    /* Simple styling consistent with the rest of the Unhinged app */
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: #0e0e12;
+      color: #fff;
+    }
+    form {
+      margin-top: 1rem;
+      padding: 1rem;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      background: #15161b;
+    }
+    label {
+      display: block;
+      margin: .25rem 0;
+    }
+    input {
+      width: 100%;
+      padding: .6rem;
+      margin-bottom: .8rem;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      background: #12131a;
+      color: #fff;
+    }
+    button {
+      padding: .6rem 1rem;
+      border: none;
+      background: #E11D2A;
+      color: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .sub {
+      color: #cfd0de;
+      min-height: 1.2em;
+      margin-top: .5rem;
+    }
+    .muted {
+      color: #9ecbff;
+      font-size: .9rem;
+      margin-top: 1rem;
+    }
   </style>
 </head>
 <body>
-  <h1>Create Account</h1>
-  <form id="signup-form">
+  <h1>Welcome back</h1>
+  <p class="muted">Sign in to continue.</p>
+  <form id="login-form">
     <label for="email">Email</label>
     <input id="email" type="email" autocomplete="username" required />
+
     <label for="password">Password</label>
-    <input id="password" type="password" autocomplete="new-password" required />
-    <button type="submit" id="signup">Join Now</button>
+    <!-- `autocomplete="current-password"` hints browsers to autofill the user's saved password -->
+    <input id="password" type="password" autocomplete="current-password" required />
+
+    <button type="submit" id="login">Sign In</button>
     <div class="sub" id="status"></div>
   </form>
+  <p class="muted">No account? <a href="./signup.html" style="color:#9ecbff;text-decoration:underline;">Create one</a></p>
 
   <script type="module">
     import { auth, ensureUserDoc } from "./js/firebase.js";
-    import { onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      onAuthStateChanged,
+      signInWithEmailAndPassword
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+    // Helpers to access DOM elements
     const $ = id => document.getElementById(id);
-    const form = $("signup-form");
-    const email = $("email");
-    const pass  = $("password");
+    const form   = $("login-form");
+    const email  = $("email");
+    const pass   = $("password");
     const status = $("status");
 
-    function goProfile(uid){ location.replace(`./profile.html?uid=${encodeURIComponent(uid)}`); }
+    function goProfile(uid) {
+      location.replace(`./profile.html?uid=${encodeURIComponent(uid)}`);
+    }
 
     // If already signed in, go straight to profile
-    onAuthStateChanged(auth, (user)=>{
-      if (user) goProfile(user.uid);
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        goProfile(user.uid);
+      }
     });
 
-    function mapErr(code, fallback="Sign up failed"){
+    // Translate common Firebase Auth error codes into human‑readable messages
+    function mapErr(code, fallback = "Login failed") {
       const m = {
-        "auth/email-already-in-use":"Email already in use.",
-        "auth/invalid-email":"Invalid email address.",
-        "auth/weak-password":"Password is too weak.",
-        "auth/operation-not-allowed":"Signup disabled."
+        "auth/user-not-found":    "No user found with that email.",
+        "auth/wrong-password":    "Incorrect password.",
+        "auth/invalid-email":     "Invalid email address.",
+        "auth/too-many-requests": "Too many failed attempts. Please try again later.",
+        "auth/network-request-failed": "Network error. Please check your connection."
       };
       return m[code] || fallback;
     }
 
-    form.addEventListener("submit", async (e)=>{
+    // Handle the submit event to sign the user in
+    form.addEventListener("submit", async e => {
       e.preventDefault();
-      status.textContent = "Creating account…";
+      status.textContent = "Signing in…";
       try {
-        const cred = await createUserWithEmailAndPassword(auth, (email.value||"").trim(), pass.value);
-        await ensureUserDoc(cred.user);            // seed users/{uid}
-        goProfile(cred.user.uid);                  // redirect
+        const cred = await signInWithEmailAndPassword(auth, (email.value || "").trim(), pass.value);
+        // Ensure the user has a Firestore document; if not, seed it
+        await ensureUserDoc(cred.user);
+        goProfile(cred.user.uid);
       } catch (err) {
         console.error(err);
         status.textContent = mapErr(err.code, err.message);
