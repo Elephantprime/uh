@@ -209,18 +209,22 @@
   <script type="module">
     /* ===== Firebase Imports ===== */
     import { auth, db } from "./js/firebase.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import {
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import {
-      collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit
+      collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit, getDoc, doc
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     /* ===== Chat (Firestore) ===== */
-    const ROOMS = ["#general", "#first-dates", "#gym-rats", "#chaos-lounge"];
+    // Use clean Firestore IDs but show labels with '#'
+    const ROOMS = [
+      { id: "general",      label: "#general" },
+      { id: "first-dates",  label: "#first-dates" },
+      { id: "gym-rats",     label: "#gym-rats" },
+      { id: "chaos-lounge", label: "#chaos-lounge" },
+    ];
     let me = null;
     let myDisplayName = ""; // @username > displayName > fallback
-    let currentRoom = ROOMS[0];
+    let currentRoom = ROOMS[0].id;
     let unsubFeed = null;
 
     // DOM: chat
@@ -268,7 +272,8 @@
     function open(el){ el.style.display = "flex"; }
     function close(el){ el.style.display = "none"; }
     function setSigned(on){
-      meTag.textContent = on ? `In ${currentRoom} as ${myDisplayName}` : "(not in chat)";
+      const label = ROOMS.find(r=>r.id===currentRoom)?.label || "#general";
+      meTag.textContent = on ? `In ${label} as ${myDisplayName}` : "(not in chat)";
       enterChatBtn.style.display = on ? "none" : "inline-flex";
       leaveChatBtn.style.display = on ? "inline-flex" : "none";
       roomBar.style.display = on ? "flex" : "none";
@@ -278,8 +283,8 @@
       roomSelect.innerHTML = "";
       ROOMS.forEach(r=>{
         const opt = document.createElement("option");
-        opt.value = r; opt.textContent = r;
-        if (r === currentRoom) opt.selected = true;
+        opt.value = r.id; opt.textContent = r.label;
+        if (r.id === currentRoom) opt.selected = true;
         roomSelect.appendChild(opt);
       });
     }
@@ -303,26 +308,28 @@
           renderMessage({ from: m.from || "anon", text: m.text || "" });
         });
         chatFeed.scrollTop = chatFeed.scrollHeight;
+      }, (err)=>{
+        console.error(err);
+        meTag.textContent = "Chat error. Check rules/permissions.";
       });
     }
 
     async function sendMessage(){
       const text = chatInput.value.trim();
-      if (!text || !myDisplayName) return;
+      if (!text) return;
+      if (!me) { alert("Please log in to chat."); return; }
+      if (!myDisplayName) { alert("Pick a name first."); return; }
       const col = collection(db, "rooms", currentRoom, "messages");
-      await addDoc(col, { from: myDisplayName, text, createdAt: serverTimestamp() });
+      await addDoc(col, { from: myDisplayName, text, createdAt: serverTimestamp(), uid: me.uid });
       chatInput.value = "";
     }
 
-    function bestVisibleName(u){
-      // Prefer @username if present
-      const userDocUsername = u?.username || "";
-      const disp = u?.displayName || "";
-      if (userDocUsername) {
-        const at = userDocUsername.startsWith("@") ? userDocUsername : "@"+userDocUsername;
-        return at;
-      }
-      return disp || "";
+    function bestVisibleNameFromDoc(docData){
+      const uname = (docData?.username || "").trim();
+      const disp  = (docData?.displayName || "").trim();
+      if (uname) return uname.startsWith("@") ? uname : "@"+uname;
+      if (disp)  return disp;
+      return "";
     }
 
     /* ===== Boards (client-only demo list with examples) ===== */
@@ -338,7 +345,7 @@
         listEl.appendChild(d);
         return;
       }
-      items.forEach((it, idx)=>{
+      items.forEach((it)=>{
         const card = document.createElement("div");
         card.className = "item";
         card.innerHTML = `
@@ -356,7 +363,7 @@
     }
     function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-    // Seed one example each (non-anonymous, shows author/about)
+    // Seed examples (non-anonymous)
     function seedExamples(){
       if (!chaosItems.length){
         chaosItems.push({
@@ -378,8 +385,7 @@
       renderBoard(reviewList, reviewItems);
     }
 
-    /* ===== Wire up modals ===== */
-    // Enter Chat
+    /* ===== Modals & Events ===== */
     function openEnter(){
       usernameInput.value = localStorage.getItem("uh_chat_fallback") || "";
       open(enterModal);
@@ -388,13 +394,10 @@
     function closeEnter(){ close(enterModal); }
     cancelEnter.addEventListener("click", closeEnter);
     confirmEnter.addEventListener("click", async ()=>{
-      // If we already have a profile-based name, we ignore this entry unless it's needed
       const fallback = usernameInput.value.trim();
       if (fallback) localStorage.setItem("uh_chat_fallback", fallback);
-
-      // Determine visible name now
-      myDisplayName = myDisplayName || fallback;
-      if (!myDisplayName) return; // need something to show
+      if (!myDisplayName) myDisplayName = fallback;
+      if (!myDisplayName) return;
       closeEnter();
       setSigned(true);
       renderRooms();
@@ -404,7 +407,7 @@
     enterModal.addEventListener("click", (e)=>{ if(e.target===enterModal) closeEnter(); });
 
     enterChatBtn.addEventListener("click", ()=>{
-      // If we already have a visible name from profile, skip the prompt
+      if (!me) { alert("Please log in first."); return; }
       if (myDisplayName) {
         setSigned(true);
         renderRooms();
@@ -460,21 +463,26 @@
     detailClose.addEventListener("click", ()=> close(detailModal));
     detailModal.addEventListener("click", (e)=>{ if(e.target===detailModal) close(detailModal); });
 
-    /* ===== Auth to get profile name preference ===== */
+    /* ===== Auth: derive visible name from users/{uid} ===== */
     onAuthStateChanged(auth, async (user)=>{
       me = user || null;
-      // If you already load user profile elsewhere into window.__myUserDoc, prefer that.
-      // Here, we only use auth fields for quick naming.
+      myDisplayName = "";
       if (me) {
-        // Try to infer best visible name from auth fields we have access to.
-        // If your app populates Firestore user doc with username/displayName,
-        // you can fetch it here to improve accuracy (left out to avoid extra queries).
-        const fallback = localStorage.getItem("uh_chat_fallback") || "";
-        // Prefer email local-part as a last resort if nothing else:
-        const emailName = (me.email || "").split("@")[0];
-        myDisplayName = bestVisibleName(window.__myUserDoc || {}) || fallback || emailName || "Member";
-      } else {
-        myDisplayName = localStorage.getItem("uh_chat_fallback") || "";
+        try {
+          const uref = doc(db, "users", me.uid);
+          const snap = await getDoc(uref);
+          if (snap.exists()) {
+            myDisplayName = bestVisibleNameFromDoc(snap.data());
+          }
+          if (!myDisplayName) {
+            const fallback = localStorage.getItem("uh_chat_fallback") || "";
+            const emailName = (me.email || "").split("@")[0];
+            myDisplayName = fallback || emailName || "Member";
+          }
+        } catch (e) {
+          const fallback = localStorage.getItem("uh_chat_fallback") || "";
+          myDisplayName = fallback || (me.email||"").split("@")[0] || "Member";
+        }
       }
       setSigned(false);
     });
