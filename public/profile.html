@@ -106,6 +106,7 @@
   </style>
 </head>
 <body>
+  div>
 
   <!-- ===== SECTION: Top Bar ===== -->
   <div class="topbar">
@@ -118,6 +119,7 @@
       <button class="btn" id="editBtn">Edit Profile</button>
       <button class="btn secondary" id="logoutBtn">Logout</button>
       <button class="btn ghost" id="deleteBtn" title="Delete my account">Delete</button>
+      <button class="btn secondary" id="filterBtn">Filter</button>
     </div>
   </div>
 
@@ -254,6 +256,26 @@
       </div>
     </div>
   </div>
+  <!-- ===== FILTER MODAL ===== -->
+<div class="modal-backdrop" id="filterModal">
+  <div class="modal">
+    <h3>Filters</h3>
+
+    <label for="filterLocation">Location</label>
+    <input id="filterLocation" type="text" placeholder="City, State" />
+
+    <label>Age Range</label>
+    <div class="row">
+      <input id="filterAgeMin" type="number" min="18" max="99" placeholder="Min" />
+      <input id="filterAgeMax" type="number" min="18" max="99" placeholder="Max" />
+    </div>
+
+    <div style="margin-top:1rem;display:flex;gap:.5rem;justify-content:flex-end;">
+      <button class="btn secondary" id="cancelFilter">Cancel</button>
+      <button class="btn" id="applyFilter">Apply</button>
+    </div>
+  </div>
+</
 
   <!-- ===== SECTION: Scripts ===== -->
   <script type="module">
@@ -267,6 +289,34 @@
       collection, getDocs, doc, getDoc, setDoc, deleteDoc, serverTimestamp,
       query, where, orderBy, limit, addDoc, onSnapshot, updateDoc
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    /* ===== SECTION: Filter Modal Controls ===== */
+const filterBtn     = document.getElementById("filterBtn");
+const filterModal   = document.getElementById("filterModal");
+const cancelFilter  = document.getElementById("cancelFilter");
+const applyFilter   = document.getElementById("applyFilter");
+const filterLocEl   = document.getElementById("filterLocation");
+const filterAgeMin  = document.getElementById("filterAgeMin");
+const filterAgeMax  = document.getElementById("filterAgeMax");
+
+function openFilter(){ filterModal.style.display = "flex"; }
+function closeFilter(){ filterModal.style.display = "none"; }
+
+filterBtn?.addEventListener("click", openFilter);
+cancelFilter?.addEventListener("click", closeFilter);
+filterModal?.addEventListener("click", e=>{
+  if (e.target === filterModal) closeFilter();
+});
+
+applyFilter?.addEventListener("click", ()=>{
+  const loc = filterLocEl?.value.trim() || "";
+  const min = Number(filterAgeMin?.value) || null;
+  const max = Number(filterAgeMax?.value) || null;
+
+  // TODO: hook into your matches/allUsers arrays
+  console.log("Filter applied:", { location: loc, minAge: min, maxAge: max });
+
+  closeFilter();
+});
     import {
       ref as sRef, uploadBytes, getDownloadURL, listAll, deleteObject
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
