@@ -204,26 +204,124 @@
     const MEMBERSHIP = { requiredForViews: true, requiredForLikes: true }; // gate “likes/views” later
 
     /* ===== SECTION: DOM Refs ===== */
-    // Top bar
-    const topLine = document.getElementById("topLine");
-    const myProfileBtn = document.getElementById("myProfileBtn");
-    const editBtn = document.getElementById("editBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const upgradeBtn = document.getElementById("upgradeBtn");
+/* ===== SECTION: DOM Refs ===== */
+// Top bar
+const topLine = document.getElementById("topLine");
+const myProfileBtn = document.getElementById("myProfileBtn");
+const editBtn = document.getElementById("editBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const upgradeBtn = document.getElementById("upgradeBtn");
 
-    // Swipe card
-    const cardFrame = document.getElementById("cardFrame");
-    const mainPhoto = document.getElementById("main-photo");
-    const nameEl = document.getElementById("name");
-    const handleEl = document.getElementById("handle");
-    const subInfo = document.getElementById("sub-info");
-    const badgesEl = document.getElementById("badges");
-    const flagsEl = document.getElementById("flags");
-    const passBtn = document.getElementById("pass-btn");
-    const likeBtn = document.getElementById("like-btn");
-    const passIndicator = document.getElementById("pass-indicator");
-    const likeIndicator = document.getElementById("like-indicator");
-    const emptyEl = document.getElementById("empty");
+// Swipe card
+const cardFrame = document.getElementById("cardFrame");
+const mainPhoto = document.getElementById("main-photo");
+const nameEl = document.getElementById("name");
+const handleEl = document.getElementById("handle");
+const subInfo = document.getElementById("sub-info");
+const badgesEl = document.getElementById("badges");
+const flagsEl = document.getElementById("flags");
+const passBtn = document.getElementById("pass-btn");
+const likeBtn = document.getElementById("like-btn");
+const passIndicator = document.getElementById("pass-indicator");
+const likeIndicator = document.getElementById("like-indicator");
+const emptyEl = document.getElementById("empty");
+
+/* ===== SECTION: Swipe (Touch/Buttons) ===== */
+function nextProfile() {
+  currentIndex++;
+  renderProfile(matches[currentIndex] || null);
+}
+
+function showIndicator(t) {
+  passIndicator.style.opacity = t === "pass" ? 1 : 0;
+  likeIndicator.style.opacity = t === "like" ? 1 : 0;
+}
+
+let startX = 0, dx = 0, dragging = false;
+
+cardFrame.addEventListener("touchstart", e => {
+  startX = e.touches[0].clientX;
+  dragging = true;
+});
+
+cardFrame.addEventListener("touchmove", e => {
+  if (!dragging) return;
+  dx = e.touches[0].clientX - startX;
+  if (dx > 50) showIndicator("like");
+  else if (dx < -50) showIndicator("pass");
+  else showIndicator(null);
+});
+
+cardFrame.addEventListener("touchend", () => {
+  if (!dragging) return;
+  if (Math.abs(dx) > 100) nextProfile();
+  showIndicator(null);
+/* ===== SECTION: DOM Refs ===== */
+// Top bar
+const topLine = document.getElementById("topLine");
+const myProfileBtn = document.getElementById("myProfileBtn");
+const editBtn = document.getElementById("editBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const upgradeBtn = document.getElementById("upgradeBtn");
+
+// Swipe card
+const cardFrame = document.getElementById("cardFrame");
+const mainPhoto = document.getElementById("main-photo");
+const nameEl = document.getElementById("name");
+const handleEl = document.getElementById("handle");
+const subInfo = document.getElementById("sub-info");
+const badgesEl = document.getElementById("badges");
+const flagsEl = document.getElementById("flags");
+const passBtn = document.getElementById("pass-btn");
+const likeBtn = document.getElementById("like-btn");
+const passIndicator = document.getElementById("pass-indicator");
+const likeIndicator = document.getElementById("like-indicator");
+const emptyEl = document.getElementById("empty");
+
+/* ===== SECTION: Swipe (Touch/Buttons) ===== */
+function nextProfile() {
+  currentIndex++;
+  renderProfile(matches[currentIndex] || null);
+}
+
+function showIndicator(t) {
+  passIndicator.style.opacity = t === "pass" ? 1 : 0;
+  likeIndicator.style.opacity = t === "like" ? 1 : 0;
+}
+
+let startX = 0, dx = 0, dragging = false;
+
+cardFrame.addEventListener("touchstart", e => {
+  startX = e.touches[0].clientX;
+  dragging = true;
+});
+
+cardFrame.addEventListener("touchmove", e => {
+  if (!dragging) return;
+  dx = e.touches[0].clientX - startX;
+  if (dx > 50) showIndicator("like");
+  else if (dx < -50) showIndicator("pass");
+  else showIndicator(null);
+});
+
+cardFrame.addEventListener("touchend", () => {
+  if (!dragging) return;
+  if (Math.abs(dx) > 100) nextProfile();
+  showIndicator(null);
+  dragging = false;
+  dx = 0;
+});
+
+passBtn.addEventListener("click", nextProfile);
+likeBtn.addEventListener("click", nextProfile);
+
+// --- NEW: Open public profile when you click the photo ---
+mainPhoto.style.cursor = "pointer";
+mainPhoto.addEventListener("click", () => {
+  const p = matches[currentIndex];
+  if (!p || !p.uid) return; // requires uid field in match object
+  location.href = `./user.html?uid=${encodeURIComponent(p.uid)}`;
+});
 
     // Edit modal
     const editModal = document.getElementById("editModal");
