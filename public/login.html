@@ -1,133 +1,136 @@
-<!--
-  Login page for Unhinged.
-
-  This version fixes the original file by properly handling login instead of
-  sign‑up. It signs an existing user in using Firebase Auth and redirects
-  them to their profile page.  Invalid credentials and common errors are
-  mapped to friendly messages.  If the user is already signed in, they are
-  automatically redirected to their profile.
--->
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- ===== SECTION: Head / Meta ===== -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Unhinged — Log In</title>
+
+  <!-- ===== SECTION: Styles (Design System) ===== -->
   <style>
-    /* Simple styling consistent with the rest of the Unhinged app */
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 640px;
-      margin: 0 auto;
-      padding: 2rem;
-      background: #0e0e12;
-      color: #fff;
+    :root { --bg:#0e0e12; --panel:#15161b; --muted:#cfd0de; --red:#E11D2A; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center}
+    a{color:#9ecbff;text-decoration:none}
+    .wrap{width:100%;max-width:480px;padding:16px}
+    .card{background:var(--panel);border:1px solid #2a2a2a;border-radius:14px;padding:18px}
+    .brand{font-weight:800;margin-bottom:6px}
+    .muted{color:var(--muted);font-size:.95rem;margin-bottom:12px}
+    label{display:block;margin:.35rem 0 .25rem}
+    input[type="email"],input[type="password"]{
+      width:100%;padding:12px;border-radius:10px;border:1px solid #2a2a2a;background:#12131a;color:#fff
     }
-    form {
-      margin-top: 1rem;
-      padding: 1rem;
-      border: 1px solid #2a2a2a;
-      border-radius: 8px;
-      background: #15161b;
-    }
-    label {
-      display: block;
-      margin: .25rem 0;
-    }
-    input {
-      width: 100%;
-      padding: .6rem;
-      margin-bottom: .8rem;
-      border: 1px solid #2a2a2a;
-      border-radius: 6px;
-      background: #12131a;
-      color: #fff;
-    }
-    button {
-      padding: .6rem 1rem;
-      border: none;
-      background: #E11D2A;
-      color: #fff;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .sub {
-      color: #cfd0de;
-      min-height: 1.2em;
-      margin-top: .5rem;
-    }
-    .muted {
-      color: #9ecbff;
-      font-size: .9rem;
-      margin-top: 1rem;
-    }
+    .row{display:flex;gap:8px;align-items:center;justify-content:space-between}
+    .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+    .btn{border:none;background:var(--red);color:#fff;border-radius:10px;padding:.6rem 1.1rem;cursor:pointer}
+    .btn.secondary{background:#2a2a2a}
+    .status{margin-top:10px;font-size:.95rem}
+    .ok{color:#9ae6b4}.err{color:#ff8e8e}.prog{color:#ffd27f}
+    .foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
   </style>
 </head>
 <body>
-  <h1>Welcome back</h1>
-  <p class="muted">Sign in to continue.</p>
-  <form id="login-form">
-    <label for="email">Email</label>
-    <input id="email" type="email" autocomplete="username" required />
+  <div class="wrap">
+    <div class="card">
+      <div class="brand">Welcome back</div>
+      <div class="muted">Sign in to continue.</div>
 
-    <label for="password">Password</label>
-    <!-- `autocomplete="current-password"` hints browsers to autofill the user's saved password -->
-    <input id="password" type="password" autocomplete="current-password" required />
+      <!-- ===== SECTION: Form ===== -->
+      <form id="loginForm">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="email" required />
 
-    <button type="submit" id="login">Sign In</button>
-    <div class="sub" id="status"></div>
-  </form>
-  <p class="muted">No account? <a href="./signup.html" style="color:#9ecbff;text-decoration:underline;">Create one</a></p>
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" required />
 
+        <div class="row" style="margin-top:6px">
+          <a id="forgot" href="#" title="Reset password">Forgot password?</a>
+          <div></div>
+        </div>
+
+        <div class="actions">
+          <button class="btn secondary" type="button" onclick="location.href='./index.html'">Cancel</button>
+          <button class="btn" id="loginBtn" type="submit">Sign In</button>
+        </div>
+      </form>
+
+      <div class="status" id="status"></div>
+
+      <div class="foot">
+        <span class="muted">No account?</span>
+        <a href="./signup.html">Create one</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION: Scripts ===== -->
   <script type="module">
-    import { auth, ensureUserDoc } from "./js/firebase.js";
+    /* ===== SECTION: Imports ===== */
+    import { auth } from "./js/firebase.js";
     import {
       onAuthStateChanged,
-      signInWithEmailAndPassword
+      signInWithEmailAndPassword,
+      sendPasswordResetEmail
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    // Helpers to access DOM elements
-    const $ = id => document.getElementById(id);
-    const form   = $("login-form");
-    const email  = $("email");
-    const pass   = $("password");
-    const status = $("status");
+    /* ===== SECTION: DOM Refs ===== */
+    const form = document.getElementById("loginForm");
+    const emailEl = document.getElementById("email");
+    const pwdEl = document.getElementById("password");
+    const statusEl = document.getElementById("status");
+    const forgot = document.getElementById("forgot");
+    const loginBtn = document.getElementById("loginBtn");
 
-    function goProfile(uid) {
-      location.replace(`./profile.html?uid=${encodeURIComponent(uid)}`);
-    }
+    /* ===== SECTION: Helper (UI) ===== */
+    const show = (cls, msg) => statusEl.innerHTML = `<span class='${cls}'>${msg}</span>`;
+    const errMap = (code) => ({
+      "auth/invalid-email": "That email address looks invalid.",
+      "auth/user-disabled": "This account has been disabled.",
+      "auth/user-not-found": "No account found with that email.",
+      "auth/wrong-password": "Incorrect password.",
+      "auth/too-many-requests": "Too many attempts. Try again shortly.",
+    }[code] || "Could not sign in. Please try again.");
 
-    // If already signed in, go straight to profile
-    onAuthStateChanged(auth, user => {
-      if (user) {
-        goProfile(user.uid);
+    /* ===== SECTION: Auth — Auto-redirect if already signed in ===== */
+    onAuthStateChanged(auth, (u) => {
+      if (u) {
+        // already signed in, go straight to profile
+        location.replace("./profile.html");
       }
     });
 
-    // Translate common Firebase Auth error codes into human‑readable messages
-    function mapErr(code, fallback = "Login failed") {
-      const m = {
-        "auth/user-not-found":    "No user found with that email.",
-        "auth/wrong-password":    "Incorrect password.",
-        "auth/invalid-email":     "Invalid email address.",
-        "auth/too-many-requests": "Too many failed attempts. Please try again later.",
-        "auth/network-request-failed": "Network error. Please check your connection."
-      };
-      return m[code] || fallback;
-    }
-
-    // Handle the submit event to sign the user in
-    form.addEventListener("submit", async e => {
+    /* ===== SECTION: Handlers ===== */
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      status.textContent = "Signing in…";
+      const email = emailEl.value.trim();
+      const password = pwdEl.value;
+      if (!email || !password) {
+        show("err", "Email and password are required.");
+        return;
+      }
+      loginBtn.disabled = true;
+      show("prog", "Signing you in…");
       try {
-        const cred = await signInWithEmailAndPassword(auth, (email.value || "").trim(), pass.value);
-        // Ensure the user has a Firestore document; if not, seed it
-        await ensureUserDoc(cred.user);
-        goProfile(cred.user.uid);
-      } catch (err) {
-        console.error(err);
-        status.textContent = mapErr(err.code, err.message);
+        await signInWithEmailAndPassword(auth, email, password);
+        show("ok", "Success. Redirecting…");
+        location.replace("./profile.html");
+      } catch (e) {
+        show("err", errMap(e?.code));
+      } finally {
+        loginBtn.disabled = false;
+      }
+    });
+
+    forgot.addEventListener("click", async (e) => {
+      e.preventDefault();
+      const email = emailEl.value.trim();
+      if (!email) { show("err", "Enter your email first, then click ‘Forgot password?’"); return; }
+      show("prog", "Sending reset email…");
+      try {
+        await sendPasswordResetEmail(auth, email);
+        show("ok", "Password reset sent. Check your inbox.");
+      } catch (e) {
+        show("err", errMap(e?.code));
       }
     });
   </script>
