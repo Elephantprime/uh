@@ -1,106 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>UNHINGED — Date like a game</title>
-  <meta name="theme-color" content="#E11D2A">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UNHINGED — Hub</title>
+  <meta name="theme-color" content="#E11D2A" />
   <style>
     :root{
-      --red:#E11D2A;--yellow:#F6C31C;--ink:#0F0F12;--charcoal:#141418;
-      --card:#161821;--muted:#b8b9c6;--radius:18px;--shadow:0 14px 36px rgba(0,0,0,.28)
+      --red:#E11D2A;--ink:#0F0F12;--charcoal:#141418;--card:#161821;--muted:#b8b9c6;
+      --radius:16px;--shadow:0 14px 36px rgba(0,0,0,.28)
     }
     *{box-sizing:border-box}
     html,body{margin:0;background:linear-gradient(180deg,#0e0e12,#141418);color:#fff;font:500 16px/1.5 Inter,system-ui,Segoe UI,Roboto,Arial}
     a{color:inherit;text-decoration:none}
     img{max-width:100%;display:block}
-    .wrap{max-width:1120px;margin:0 auto;padding:18px}
-    header{border-bottom:1px solid rgba(255,255,255,.06)}
+
+    /* Header */
+    header{border-bottom:1px solid rgba(255,255,255,.07)}
+    .wrap{max-width:1200px;margin:0 auto;padding:16px}
     .bar{display:flex;justify-content:space-between;align-items:center;gap:12px}
     .logo{display:flex;align-items:center;gap:10px}
-    .mark{width:28px;height:28px;background:conic-gradient(from 180deg at 50% 50%, var(--red) 0 75%, #8b0e16 75% 100%);border-radius:8px;box-shadow:0 6px 22px rgba(225,29,42,.35)}
+    .mark{width:26px;height:26px;background:conic-gradient(from 180deg at 50% 50%, var(--red) 0 75%, #8b0e16 75% 100%);border-radius:8px;box-shadow:0 6px 22px rgba(225,29,42,.35)}
     .word{font-weight:1000;letter-spacing:.02em}
     nav{display:flex;gap:10px;flex-wrap:wrap}
-    .btn{display:inline-flex;gap:8px;align-items:center;border:1px solid rgba(255,255,255,.12);padding:10px 14px;border-radius:12px;font-weight:800}
+    .btn{display:inline-flex;gap:8px;align-items:center;border:1px solid rgba(255,255,255,.12);padding:10px 14px;border-radius:12px;font-weight:800;background:transparent}
     .btn.primary{background:var(--red);border-color:var(--red)}
-    .btn.ghost{background:transparent}
 
-    /* hero */
-    .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;align-items:center;padding:26px 0}
-    .eyebrow{display:inline-block;font-size:12px;letter-spacing:.16em;color:var(--yellow);font-weight:800;border:1px solid rgba(246,195,28,.3);padding:6px 10px;border-radius:999px;background:rgba(246,195,28,.1)}
-    .hero h1{font-size:48px;line-height:1.05;margin:10px 0 8px}
-    .lede{color:#e4e5f0;opacity:.93}
-    .cta{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
-    .card{background:linear-gradient(180deg,var(--card),#141620);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
-    .card-body{padding:14px}
+    /* 2x2 grid */
+    .grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:minmax(320px,1fr) minmax(320px,1fr);gap:16px}
+    .pane{background:linear-gradient(180deg,var(--card),#141620);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;display:flex;flex-direction:column;min-height:300px}
+    .pane-header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .h2{margin:0;font-size:1.1rem;letter-spacing:.02em}
+    .action{padding:8px 12px;border-radius:10px;border:1px solid #2a2a2a;background:#222;color:#fff;font-weight:800;cursor:pointer}
+    .action.primary{background:var(--red);border-color:var(--red)}
 
-    /* HERO profile carousel */
-    .carousel{display:flex;gap:12px;overflow:auto;padding:8px}
-    .carousel::-webkit-scrollbar{height:8px}
-    .carousel::-webkit-scrollbar-thumb{background:#2a2b36;border-radius:999px}
-    .pcard{min-width:220px;max-width:220px;background:#16171d;border:1px solid rgba(255,255,255,.08);border-radius:14px;overflow:hidden}
-    .pcard .imgwrap{position:relative;height:180px}
-    .pcard img{width:100%;height:100%;object-fit:cover}
-    .chiprow{position:absolute;left:8px;bottom:8px;display:flex;gap:6px;flex-wrap:wrap}
-    .chip{background:#E11D2A;color:#fff;font-size:11px;padding:4px 8px;border-radius:999px}
-    .pcard .body{padding:10px}
-    .meta{font-size:12px;color:#cfd0de}
+    /* Cards / lists */
+    .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:10px}
+    .card{border:1px solid #2a2a2a;border-radius:12px;background:#1a1b22;padding:10px}
+    .cardBtn{border:1px solid #2a2a2a;border-radius:12px;background:#1a1b22;padding:10px;text-align:left;color:#fff;cursor:pointer}
 
-    /* Feature grid */
-    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-    .tile h3{margin:8px 0 6px}
-    .sub{color:var(--muted)}
-    .tilt{transform:rotate(-1.2deg)}
-    .tilt.r{transform:rotate(1.8deg)}
+    /* Modal base */
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:1000;padding:12px}
+    .sheet{width:100%;max-width:720px;background:#141418;border:1px solid #2a2a2a;border-radius:12px;padding:14px}
+    .row{display:flex;gap:8px;align-items:center;justify-content:space-between}
+    label{display:block;margin:8px 0 4px}
+    input[type="text"],textarea{width:100%;padding:10px;border-radius:10px;background:#12131a;border:1px solid #2a2a2a;color:#fff}
+    .gridThumb{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+    .thumb{border:1px solid #2a2a2a;border-radius:8px;overflow:hidden}
+    .thumb img{width:100%;height:120px;object-fit:cover}
+    .muted{color:var(--muted);font-size:.9rem}
 
-    /* Faux widgets */
-    .mock-chat{background:#0f1016;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:10px;min-height:200px}
-    .bubble{display:inline-block;padding:8px 10px;border-radius:14px;margin:6px 0;max-width:78%}
-    .left{background:#1f2130}
-    .right{background:#E11D2A;color:#fff;margin-left:auto}
-    .chat-typing{display:flex;gap:4px;align-items:center;margin-top:8px}
-    .dot{width:6px;height:6px;border-radius:50%;background:#cfd0de;opacity:.6;animation:blink 1.4s infinite}
-    .dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
-    @keyframes blink{50%{opacity:.2}}
-    .mock-bingo{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-    .sq{background:#212332;border:1px solid #2b2d3c;border-radius:6px;padding:12px;text-align:center;font-size:12px}
-    .sq.hot{background:#8f171e;border-color:#9b1b22}
-
-    /* Review cards */
-    .note{position:relative;background:#1a1b22;border:1px dashed #2e2f3a;border-radius:12px;padding:12px}
-    .tack{position:absolute;top:-8px;left:12px;width:16px;height:16px;border-radius:50%;background:var(--red);box-shadow:0 3px 0 #0008}
-    .review{background:#15161b;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px}
-    .rhead{display:flex;justify-content:space-between;align-items:center}
-    .flames{color:#ff5b40;font-weight:900}
-
-    /* inline icons for badges/flags */
-    .ico{width:22px;height:22px;flex:0 0 22px}
-    .badge-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-    .badge-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;background:#23242e;border:1px solid rgba(255,255,255,.12);font-size:13px}
-    .flag-list{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}
-    .flag-item{display:flex;align-items:center;gap:8px;background:#1a1b22;border:1px dashed #2e2f3a;border-radius:10px;padding:10px}
-
-    /* Pricing */
-    .pricing{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:10px}
-    .price{padding:16px;text-align:center}
-    .price h4{margin:6px 0 6px}
-    .tag{display:inline-block;font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16)}
-    .best{background:rgba(246,195,28,.1);border-color:rgba(246,195,28,.4);color:#ffd66b}
-
-    /* Footer */
-    footer{padding:24px 0;border-top:1px solid rgba(255,255,255,.06);opacity:.9;margin-top:24px}
-    @media (max-width:1180px){ .pricing{grid-template-columns:1fr 1fr} }
-    @media (max-width:1020px){ .grid{grid-template-columns:1fr 1fr} .hero{grid-template-columns:1fr} }
-    @media (max-width:680px){ .grid,.pricing{grid-template-columns:1fr} }
+    @media (max-width:900px){ .grid{grid-template-columns:1fr} }
   </style>
 </head>
 <body>
   <header>
     <div class="wrap bar">
-      <div class="logo">
-        <div class="mark"></div>
-        <div class="word">UNHINGED</div>
-      </div>
+      <div class="logo"><div class="mark"></div><div class="word">UNHINGED</div></div>
       <nav>
         <a class="btn" href="./login.html">Log in</a>
         <a class="btn primary" href="./signup.html">Join</a>
@@ -109,312 +65,373 @@
   </header>
 
   <main class="wrap">
-    <!-- HERO -->
-    <section aria-labelledby="heroTitle">
-      <div class="hero">
-        <div>
-          <span class="eyebrow">DATE LIKE A GAME</span>
-          <h1 id="heroTitle">Post your red flags first. See who still plays.</h1>
-          <p class="lede">Radically honest profiles, chaos‑forward features, and receipts‑only DMs. If they still want you after this… game on.</p>
-          <div class="cta">
-            <a class="btn primary" href="./signup.html">Get started</a>
-            <a class="btn ghost" href="./login.html">I already have an account</a>
-          </div>
+    <div class="grid">
+
+      <!-- START: Chaos Board -->
+      <section class="pane" id="chaosPane" aria-labelledby="chaosTitle">
+        <div class="pane-header">
+          <h2 class="h2" id="chaosTitle">Chaos Board</h2>
+          <button class="action primary" id="openChaosForm">Submit Chaos Story</button>
         </div>
+        <div id="chaosList" class="list" aria-live="polite"></div>
+      </section>
+      <!-- END: Chaos Board -->
 
-        <!-- profile carousel (replaces giant single image) -->
-        <div class="card tilt">
-          <div class="carousel" aria-label="Sample profiles">
-            <div class="pcard">
-              <div class="imgwrap">
-                <img alt="" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&auto=format&fit=crop">
-                <div class="chiprow">
-                  <span class="chip">Drama Magnet</span>
-                  <span class="chip">Receipts‑Only</span>
-                </div>
-              </div>
-              <div class="body">
-                <strong>Jamie, 27</strong>
-                <div class="meta">7/10 chaos</div>
-              </div>
-            </div>
-            <div class="pcard">
-              <div class="imgwrap">
-                <img alt="" src="https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=1200&auto=format&fit=crop">
-                <div class="chiprow">
-                  <span class="chip">Financial Chaos</span>
-                  <span class="chip">Gym @5am</span>
-                </div>
-              </div>
-              <div class="body">
-                <strong>Andre, 31</strong>
-                <div class="meta">6/10 chaos</div>
-              </div>
-            </div>
-            <div class="pcard">
-              <div class="imgwrap">
-                <img alt="" src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=1200&auto=format&fit=crop">
-                <div class="chiprow">
-                  <span class="chip">Most Ghosted</span>
-                  <span class="chip">Receipts‑Ready</span>
-                </div>
-              </div>
-              <div class="body">
-                <strong>Rae, 25</strong>
-                <div class="meta">8/10 chaos</div>
-              </div>
-            </div>
-          </div>
+      <!-- START: Reviews Board -->
+      <section class="pane" id="reviewsPane" aria-labelledby="reviewsTitle">
+        <div class="pane-header">
+          <h2 class="h2" id="reviewsTitle">Reviews</h2>
+          <button class="action primary" id="openReviewForm">Submit Review</button>
         </div>
-        <!-- /profile carousel -->
-      </div>
-    </section>
+        <div id="reviewsList" class="list" aria-live="polite"></div>
+      </section>
+      <!-- END: Reviews Board -->
 
-    <!-- FEATURE GRID -->
-    <section aria-labelledby="featuresTitle">
-      <h2 id="featuresTitle" style="margin:0 0 8px">What makes Unhinged… Unhinged</h2>
-      <div class="grid">
-
-        <!-- Badges -->
-        <article class="card tile tilt">
-          <div class="card-body">
-            <h3>Badges</h3>
-            <p class="sub">Earn flair for verified vibes, solid replies, and chaos you actually own.</p>
-            <div class="badge-list">
-              <span class="badge-chip">
-                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#79ffa9" stroke-width="2">
-                  <path d="M12 2l2.6 2.2 3.4-.6 1.1 3.3 3 1.8-1.8 3 .6 3.4-3.3 1.1-1.8 3-3.4-.6L12 22l-2.6-2.2-3.4.6-1.1-3.3-3-1.8 1.8-3L2 7.7l3.3-1.1L7.1 3.6l3.4.6L12 2z"/>
-                  <path d="M8.5 12.5l2.2 2.2 4.8-4.8" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Verified ✓
-              </span>
-              <span class="badge-chip">
-                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#ffd66b" stroke-width="2">
-                  <circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/>
-                </svg>
-                Chaos Coordinator
-              </span>
-              <span class="badge-chip">
-                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#9bb0ff" stroke-width="2">
-                  <path d="M4 4h12l4 4v12H4z"/><path d="M8 9h8M8 13h6M8 17h5"/>
-                </svg>
-                Receipts‑Only DMs
-              </span>
-              <span class="badge-chip">
-                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#7cff7c" stroke-width="2">
-                  <path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                “Green‑ish”
-              </span>
-            </div>
-          </div>
-        </article>
-
-        <!-- Red Flags -->
-        <article class="card tile tilt r">
-          <div class="card-body">
-            <h3>Red Flags (front‑loaded)</h3>
-            <p class="sub">Own your dealbreakers. If they still swipe… it’s fate (or chaos).</p>
-            <div class="flag-list">
-              <div class="flag-item">
-                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E11D2A" stroke-width="2">
-                  <path d="M4 3v18"/><path d="M4 4h9l-2 3 2 3H4z" fill="#E11D2A" stroke="none"/>
-                </svg> Will absolutely steal your fries.
-              </div>
-              <div class="flag-item">
-                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E11D2A" stroke-width="2">
-                  <path d="M4 3v18"/><path d="M4 4h9l-2 3 2 3H4z" fill="#E11D2A" stroke="none"/>
-                </svg> Hates small talk, loves 2am debates.
-              </div>
-              <div class="flag-item">
-                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E11D2A" stroke-width="2">
-                  <path d="M4 3v18"/><path d="M4 4h9l-2 3 2 3H4z" fill="#E11D2A" stroke="none"/>
-                </svg> Texts back fast until 9pm (then gone).
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <!-- Chaos Board (single tile with concrete image) -->
-        <article class="card tile tilt">
-          <img alt="Unhinged Chaos Board"
-               src="https://images.unsplash.com/photo-1582562124811-c09040d0fb0b?q=80&w=1200&auto=format&fit=crop">
-          <div class="card-body">
-            <h3>Chaos Board</h3>
-            <p class="sub">Your wildest flags and confessions, pinned publicly. See who still wants to play after the honesty.</p>
-          </div>
-        </article>
-
-        <!-- Anti‑Ghosting Suite (chat UI) -->
-        <article class="card tile tilt r">
-          <div class="card-body">
-            <h3>Anti‑Ghosting Suite</h3>
-            <p class="sub">Weekly verification, gentle nudge flows, and DM read receipts by default. Be respectful—or be benched.</p>
-            <div class="mock-chat" style="margin-top:10px">
-              <div class="bubble left">Hey, still on for Thursday?</div>
-              <div class="bubble right">Yep! 7pm works. 🙌</div>
-              <div class="bubble left">Perfect. See you then.</div>
-              <div class="chat-typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-              <div style="margin-top:6px;opacity:.7;font-size:12px">Read · 2m ago · Verified ✓</div>
-            </div>
-          </div>
-        </article>
-
-        <!-- Flag Bingo -->
-        <article class="card tile tilt">
-          <div class="card-body">
-            <h3>Flag Bingo</h3>
-            <p class="sub">Turn your red flags into a party game. If they hit bingo, you buy coffee.</p>
-            <div class="mock-bingo" style="margin-top:10px">
-              <div class="sq hot">Night Owl</div><div class="sq">Gym 5am</div><div class="sq hot">Steals Fries</div><div class="sq">Hates Brunch</div><div class="sq">Cat Person</div>
-              <div class="sq">Chaos Playlists</div><div class="sq">Receipts-Only</div><div class="sq hot">Double Texts</div><div class="sq">Ice Bath</div><div class="sq">Late…ish</div>
-              <div class="sq">Two Phones</div><div class="sq">DM Proof</div><div class="sq hot">Situationship</div><div class="sq">Sunday Scaries</div><div class="sq">Socks On</div>
-              <div class="sq">Bullet Journals</div><div class="sq">Hot Takes</div><div class="sq">Van Life</div><div class="sq hot">Debates @2am</div><div class="sq">Plant Parent</div>
-              <div class="sq">No Small Talk</div><div class="sq">Early Bird</div><div class="sq hot">Clout Allergy</div><div class="sq">Dogs = Yes</div><div class="sq">Nap Queen</div>
-            </div>
-          </div>
-        </article>
-
-        <!-- Live Chat Rooms -->
-        <article class="card tile tilt r">
-          <div class="card-body">
-            <h3>Live Chat Rooms</h3>
-            <p class="sub">Drop into themed rooms, meet people faster, keep it playful (and verified).</p>
-            <div class="mock-chat" style="margin-top:10px">
-              <div class="bubble left">#FirstDates: Best/worst openers?</div>
-              <div class="bubble right">“Admit your 🚩 first” works scary well 😂</div>
-              <div class="bubble left">#GymRats: Leg day or red flag?</div>
-              <div class="chat-typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-            </div>
-          </div>
-        </article>
-
-      </div>
-    </section>
-
-    <!-- REVIEWS PREVIEW -->
-    <section aria-labelledby="reviewsTitle" style="margin-top:22px">
-      <h2 id="reviewsTitle" style="margin:0 0 8px">Wall of Shame (reviews)</h2>
-      <div class="grid">
-        <div class="review tilt">
-          <div class="rhead"><strong>@Jamie27</strong><span class="flames">🔥🔥🔥</span></div>
-          <p class="sub" style="margin:8px 0 0">“Fun, chaotic, disappears for weeks. 7/10 would text again.”</p>
+      <!-- START: Live Stream (placeholder visual only) -->
+      <section class="pane" id="livePane" aria-labelledby="liveTitle">
+        <div class="pane-header">
+          <h2 class="h2" id="liveTitle">Live Stream</h2>
+          <button class="action" disabled>Connect (soon)</button>
         </div>
-        <div class="review tilt r">
-          <div class="rhead"><strong>@Andre31</strong><span class="flames">🔥🔥</span></div>
-          <p class="sub" style="margin:8px 0 0">“Nice but schedules dates like a crypto chart.”</p>
-        </div>
-        <div class="review tilt">
-          <div class="rhead"><strong>@Rae25</strong><span class="flames">🔥🔥🔥🔥</span></div>
-          <p class="sub" style="margin:8px 0 0">“Screenshots. For. Everything.”</p>
-        </div>
-      </div>
-    </section>
+        <div class="card muted">Video player placeholder for beta. We’ll wire this later.</div>
+      </section>
+      <!-- END: Live Stream (placeholder visual only) -->
 
-    <!-- CASUALTIES (text-only weekly spotlight) -->
-    <section aria-labelledby="casTitle" style="margin-top:22px">
-      <h2 id="casTitle" style="margin:0 0 8px">Casualties of Modern Dating</h2>
-      <div class="grid">
-        <article class="card tile tilt">
-          <div class="card-body">
-            <strong>Weekly Spotlight</strong>
-            <p class="sub" style="margin-top:6px">
-              Every week we highlight real dating stories from the community—short, raw, cathartic.
-            </p>
-            <ul class="sub" style="margin:10px 0 0 18px">
-              <li><em>“The Soft Launch That Never Launched”</em> — three months of hints, zero dates.</li>
-              <li><em>“Breadcrumb Diet”</em> — tiny crumbs, never a meal.</li>
-            </ul>
-          </div>
-        </article>
-        <article class="card tile tilt r">
-          <div class="card-body">
-            <strong>Got a tale?</strong>
-            <p class="sub" style="margin-top:6px">Submit your chaos. The best ones go on the board.</p>
-          </div>
-        </article>
-      </div>
-    </section>
+      <!-- START: Chat Room (placeholder visual only) -->
+      <section class="pane" id="chatPane" aria-labelledby="chatTitle">
+        <div class="pane-header">
+          <h2 class="h2" id="chatTitle">Chat Room</h2>
+          <button class="action" disabled>Join Room (soon)</button>
+        </div>
+        <div class="card muted">Room list / messages placeholder for beta. We’ll wire this later.</div>
+      </section>
+      <!-- END: Chat Room (placeholder visual only) -->
 
-    <!-- PRICING -->
-    <section aria-labelledby="pricingTitle" style="margin-top:28px">
-      <h2 id="pricingTitle" style="margin:0 0 8px">Pricing</h2>
-      <div class="pricing">
-        <div class="card price tilt">
-          <span class="tag best">Founder Offer</span>
-          <h4 style="margin-top:10px">$150 — Lifetime</h4>
-          <p class="sub">All features forever. Limited early‑supporter deal.</p>
-          <ul class="sub" style="margin:10px 0 0 18px">
-            <li>Anti‑Ghosting Suite</li>
-            <li>Receipts‑Only DMs</li>
-            <li>Weekly Verification</li>
-            <li>Chaos Board + Reviews</li>
-            <li>Chat Rooms</li>
-          </ul>
-          <div style="margin-top:12px"><a class="btn primary" href="./signup.html">Claim Founder</a></div>
-        </div>
-
-        <div class="card price tilt r">
-          <h4>$19 / month</h4>
-          <p class="sub">Everything you need to play (and win) the dating game.</p>
-          <ul class="sub" style="margin:10px 0 0 18px">
-            <li>All core features</li>
-            <li>Priority in feeds</li>
-            <li>Read receipts</li>
-            <li>Weekly Verification</li>
-            <li>Chat Rooms</li>
-          </ul>
-          <div style="margin-top:12px"><a class="btn primary" href="./signup.html">Start Monthly</a></div>
-        </div>
-
-        <div class="card price tilt">
-          <h4>$9 / month — Starter</h4>
-          <p class="sub">Dip your toes in the chaos.</p>
-          <ul class="sub" style="margin:10px 0 0 18px">
-            <li>Basic profile</li>
-            <li>Limited DM opens</li>
-            <li>Read receipts</li>
-          </ul>
-          <div style="margin-top:12px"><a class="btn" href="./signup.html">Try Starter</a></div>
-        </div>
-
-        <div class="card price tilt">
-          <h4>Free</h4>
-          <p class="sub">Get started with the basics.</p>
-          <ul class="sub" style="margin:10px 0 0 18px">
-            <li>Create profile</li>
-            <li>Browse Chaos Board</li>
-            <li>1 DM per week</li>
-          </ul>
-          <div style="margin-top:12px"><a class="btn" href="./signup.html">Join Free</a></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CTA -->
-    <section aria-labelledby="ctaTitle" style="margin-top:28px">
-      <div class="card" style="padding:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-        <div>
-          <h2 id="ctaTitle" style="margin:0 0 6px">Ready to play honestly?</h2>
-          <p class="sub" style="margin:0">Own your chaos. Meet your match.</p>
-        </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <a class="btn primary" href="./signup.html">Create account</a>
-          <a class="btn" href="./login.html">Log in</a>
-        </div>
-      </div>
-    </section>
+    </div>
   </main>
 
-  <footer>
-    <div class="wrap" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
-      <small>© <span id="y"></span> Unhinged</small>
-      <div class="sub">Made with poor decisions and great taste.</div>
-    </div>
-  </footer>
+  <!-- ===================== MODALS ===================== -->
 
+  <!-- START: Chaos – Create Modal -->
+  <div class="modal" id="chaosFormModal" aria-hidden="true">
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="chaosFormTitle">
+      <div class="row">
+        <h3 id="chaosFormTitle" style="margin:0">Submit Chaos Story</h3>
+        <button class="action" id="closeChaosForm">Close</button>
+      </div>
+
+      <label>Title <small class="muted" id="chaosTitleCounter"></small></label>
+      <input id="chaosTitleInput" type="text" placeholder="Walked Out on the Check" />
+
+      <label>Story</label>
+      <textarea id="chaosBodyInput" rows="6" placeholder="Tell us what happened…"></textarea>
+
+      <label>Photos (optional)</label>
+      <input id="chaosPhotosInput" type="file" accept="image/*" multiple />
+      <div id="chaosPhotoPreview" class="gridThumb" style="margin-top:8px"></div>
+
+      <div id="chaosFormStatus" class="muted" style="margin-top:6px"></div>
+
+      <div class="row" style="margin-top:10px; justify-content:flex-end;">
+        <button class="action primary" id="submitChaos">Post</button>
+      </div>
+    </div>
+  </div>
+  <!-- END: Chaos – Create Modal -->
+
+  <!-- START: Chaos – Full View Modal -->
+  <div class="modal" id="chaosViewModal" aria-hidden="true">
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="chaosViewTitle">
+      <div class="row">
+        <h3 id="chaosViewTitle" style="margin:0">Chaos Story</h3>
+        <button class="action" id="closeChaosView">Close</button>
+      </div>
+      <div id="chaosViewPhotos" class="gridThumb" style="margin-bottom:10px"></div>
+      <div id="chaosViewBody" style="white-space:pre-wrap; line-height:1.6;"></div>
+    </div>
+  </div>
+  <!-- END: Chaos – Full View Modal -->
+
+  <!-- START: Reviews – Create Modal -->
+  <div class="modal" id="reviewFormModal" aria-hidden="true">
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="reviewFormTitle">
+      <div class="row">
+        <h3 id="reviewFormTitle" style="margin:0">Submit Review</h3>
+        <button class="action" id="closeReviewForm">Close</button>
+      </div>
+
+      <label>Title <small class="muted" id="reviewTitleCounter"></small></label>
+      <input id="reviewTitleInput" type="text" placeholder="Walked Out on the Check" />
+
+      <label>Rating</label>
+      <div id="ratingRow" class="row" style="justify-content:flex-start;">
+        <button type="button" data-rate="1" class="action">🔥</button>
+        <button type="button" data-rate="2" class="action">🔥🔥</button>
+        <button type="button" data-rate="3" class="action">🔥🔥🔥</button>
+        <button type="button" data-rate="4" class="action">🔥🔥🔥🔥</button>
+        <button type="button" data-rate="5" class="action">🔥🔥🔥🔥🔥</button>
+        <input id="reviewRatingHidden" type="hidden" value="3" />
+      </div>
+
+      <label>Story</label>
+      <textarea id="reviewBodyInput" rows="6" placeholder="What happened?"></textarea>
+
+      <label>Photos (optional)</label>
+      <input id="reviewPhotosInput" type="file" accept="image/*" multiple />
+      <div id="reviewPhotoPreview" class="gridThumb" style="margin-top:8px"></div>
+
+      <div id="reviewFormStatus" class="muted" style="margin-top:6px"></div>
+
+      <div class="row" style="margin-top:10px; justify-content:flex-end;">
+        <button class="action primary" id="submitReview">Post</button>
+      </div>
+    </div>
+  </div>
+  <!-- END: Reviews – Create Modal -->
+
+  <!-- START: Reviews – Full View Modal -->
+  <div class="modal" id="reviewViewModal" aria-hidden="true">
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="reviewViewTitle">
+      <div class="row">
+        <h3 id="reviewViewTitle" style="margin:0">Review</h3>
+        <button class="action" id="closeReviewView">Close</button>
+      </div>
+      <div id="reviewViewRating" style="margin-bottom:8px; font-size:1.1rem"></div>
+      <div id="reviewViewPhotos" class="gridThumb" style="margin-bottom:10px"></div>
+      <div id="reviewViewBody" style="white-space:pre-wrap; line-height:1.6;"></div>
+    </div>
+  </div>
+  <!-- END: Reviews – Full View Modal -->
+
+  <!-- ===================== SCRIPTS ===================== -->
   <script>
-    document.getElementById('y').textContent = new Date().getFullYear();
+    /* ===== Config (limits) ===== */
+    const TITLE_MAX_CHARS = 60;
+    const TITLE_MAX_WORDS = 10;
+
+    /* ===== State (in-memory demo) ===== */
+    let CHAOS = [];   // {id,title,body,photos:[objectURL]}
+    let REVIEWS = []; // {id,title,rating,body,photos:[objectURL]}
+
+    let chaosPreviewURLs = [];
+    let reviewPreviewURLs = [];
+
+    /* ===== DOM: Chaos ===== */
+    const chaosList = document.getElementById('chaosList');
+    const openChaosForm = document.getElementById('openChaosForm');
+    const chaosFormModal = document.getElementById('chaosFormModal');
+    const closeChaosForm = document.getElementById('closeChaosForm');
+    const chaosTitleInput = document.getElementById('chaosTitleInput');
+    const chaosTitleCounter = document.getElementById('chaosTitleCounter');
+    const chaosBodyInput = document.getElementById('chaosBodyInput');
+    const chaosPhotosInput = document.getElementById('chaosPhotosInput');
+    const chaosPhotoPreview = document.getElementById('chaosPhotoPreview');
+    const chaosFormStatus = document.getElementById('chaosFormStatus');
+    const submitChaos = document.getElementById('submitChaos');
+
+    const chaosViewModal = document.getElementById('chaosViewModal');
+    const closeChaosView = document.getElementById('closeChaosView');
+    const chaosViewTitle = document.getElementById('chaosViewTitle');
+    const chaosViewBody = document.getElementById('chaosViewBody');
+    const chaosViewPhotos = document.getElementById('chaosViewPhotos');
+
+    /* ===== DOM: Reviews ===== */
+    const reviewsList = document.getElementById('reviewsList');
+    const openReviewForm = document.getElementById('openReviewForm');
+    const reviewFormModal = document.getElementById('reviewFormModal');
+    const closeReviewForm = document.getElementById('closeReviewForm');
+    const reviewTitleInput = document.getElementById('reviewTitleInput');
+    const reviewTitleCounter = document.getElementById('reviewTitleCounter');
+    const reviewBodyInput = document.getElementById('reviewBodyInput');
+    const reviewPhotosInput = document.getElementById('reviewPhotosInput');
+    const reviewPhotoPreview = document.getElementById('reviewPhotoPreview');
+    const submitReview = document.getElementById('submitReview');
+    const reviewFormStatus = document.getElementById('reviewFormStatus');
+    const ratingRow = document.getElementById('ratingRow');
+    const reviewRatingHidden = document.getElementById('reviewRatingHidden');
+
+    const reviewViewModal = document.getElementById('reviewViewModal');
+    const closeReviewView = document.getElementById('closeReviewView');
+    const reviewViewTitle = document.getElementById('reviewViewTitle');
+    const reviewViewBody = document.getElementById('reviewViewBody');
+    const reviewViewPhotos = document.getElementById('reviewViewPhotos');
+    const reviewViewRating = document.getElementById('reviewViewRating');
+
+    /* ===== Helpers ===== */
+    const clampTitle = (str) => {
+      if (!str) return '';
+      let s = str.slice(0, TITLE_MAX_CHARS);
+      const words = s.trim().split(/\s+/);
+      if (words.length > TITLE_MAX_WORDS) s = words.slice(0, TITLE_MAX_WORDS).join(' ');
+      return s.trim();
+    };
+    const updateCounter = (el, input) => {
+      el.textContent = `${(input.value || '').length}/${TITLE_MAX_CHARS}`;
+    };
+    const setStatus = (el, msg, ok=false) => {
+      el.textContent = msg || '';
+      el.style.color = ok ? '#6fdc8c' : '#ffb3b3';
+    };
+    const flames = (n) => '🔥'.repeat(Math.max(1, Math.min(5, Number(n) || 1)));
+
+    function clearPreviews(list, container){
+      list.forEach(u=>URL.revokeObjectURL(u));
+      list.length = 0;
+      container.innerHTML = '';
+    }
+    function renderPreviews(files, list, container){
+      clearPreviews(list, container);
+      [...(files||[])].forEach(f=>{
+        const url = URL.createObjectURL(f);
+        list.push(url);
+        const box = document.createElement('div');
+        box.className = 'thumb';
+        const img = document.createElement('img');
+        img.src = url; img.alt = '';
+        box.appendChild(img);
+        container.appendChild(box);
+      });
+    }
+
+    /* ===== Renderers ===== */
+    function renderChaosList(){
+      chaosList.innerHTML = '';
+      if(!CHAOS.length){
+        const empty = document.createElement('div');
+        empty.className = 'card muted';
+        empty.textContent = 'No chaos yet.';
+        empty.style.gridColumn = '1 / -1';
+        chaosList.appendChild(empty);
+        return;
+      }
+      CHAOS.forEach(c=>{
+        const btn = document.createElement('button');
+        btn.className = 'cardBtn';
+        btn.textContent = c.title;
+        btn.title = 'Open story';
+        btn.addEventListener('click', ()=> openChaosView(c.id));
+        chaosList.appendChild(btn);
+      });
+    }
+    function renderReviewsList(){
+      reviewsList.innerHTML = '';
+      if(!REVIEWS.length){
+        const empty = document.createElement('div');
+        empty.className = 'card muted';
+        empty.textContent = 'No reviews yet.';
+        empty.style.gridColumn = '1 / -1';
+        reviewsList.appendChild(empty);
+        return;
+      }
+      REVIEWS.forEach(r=>{
+        const btn = document.createElement('button');
+        btn.className = 'cardBtn';
+        btn.innerHTML = `<div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
+                           <strong>${r.title}</strong><span>${flames(r.rating)}</span></div>`;
+        btn.addEventListener('click', ()=> openReviewView(r.id));
+        reviewsList.appendChild(btn);
+      });
+    }
+
+    /* ===== Chaos – open/close ===== */
+    function openChaosFormModal(){ chaosFormModal.style.display = 'flex'; setStatus(chaosFormStatus,''); updateCounter(chaosTitleCounter, chaosTitleInput); }
+    function closeChaosFormModal(){
+      chaosFormModal.style.display = 'none';
+      chaosTitleInput.value = ''; chaosBodyInput.value = ''; chaosPhotosInput.value = '';
+      clearPreviews(chaosPreviewURLs, chaosPhotoPreview); setStatus(chaosFormStatus,''); updateCounter(chaosTitleCounter, chaosTitleInput);
+    }
+    function openChaosView(id){
+      const c = CHAOS.find(x=>x.id===id); if(!c) return;
+      chaosViewTitle.textContent = c.title;
+      chaosViewBody.textContent = c.body;
+      chaosViewPhotos.innerHTML = '';
+      (c.photos||[]).forEach(url=>{
+        const box = document.createElement('div'); box.className = 'thumb';
+        const img = document.createElement('img'); img.src = url; img.alt = '';
+        box.appendChild(img); chaosViewPhotos.appendChild(box);
+      });
+      chaosViewModal.style.display = 'flex';
+    }
+    function closeChaosViewModal(){ chaosViewModal.style.display = 'none'; chaosViewPhotos.innerHTML = ''; }
+
+    /* ===== Reviews – open/close ===== */
+    function openReviewFormModal(){ reviewFormModal.style.display = 'flex'; setStatus(reviewFormStatus,''); updateCounter(reviewTitleCounter, reviewTitleInput); }
+    function closeReviewFormModal(){
+      reviewFormModal.style.display = 'none';
+      reviewTitleInput.value = ''; reviewBodyInput.value = ''; reviewPhotosInput.value = '';
+      reviewRatingHidden.value = '3';
+      clearPreviews(reviewPreviewURLs, reviewPhotoPreview); setStatus(reviewFormStatus,''); updateCounter(reviewTitleCounter, reviewTitleInput);
+    }
+    function openReviewView(id){
+      const r = REVIEWS.find(x=>x.id===id); if(!r) return;
+      reviewViewTitle.textContent = r.title;
+      reviewViewBody.textContent = r.body;
+      reviewViewRating.textContent = flames(r.rating);
+      reviewViewPhotos.innerHTML = '';
+      (r.photos||[]).forEach(url=>{
+        const box = document.createElement('div'); box.className = 'thumb';
+        const img = document.createElement('img'); img.src = url; img.alt = '';
+        box.appendChild(img); reviewViewPhotos.appendChild(box);
+      });
+      reviewViewModal.style.display = 'flex';
+    }
+    function closeReviewViewModal(){ reviewViewModal.style.display = 'none'; reviewViewPhotos.innerHTML = ''; }
+
+    /* ===== Events: Chaos ===== */
+    openChaosForm?.addEventListener('click', openChaosFormModal);
+    closeChaosForm?.addEventListener('click', closeChaosFormModal);
+    chaosFormModal?.addEventListener('click', e=>{ if(e.target===chaosFormModal) closeChaosFormModal(); });
+    closeChaosView?.addEventListener('click', closeChaosViewModal);
+    chaosViewModal?.addEventListener('click', e=>{ if(e.target===chaosViewModal) closeChaosViewModal(); });
+
+    chaosPhotosInput?.addEventListener('change', e=> renderPreviews(e.target.files, chaosPreviewURLs, chaosPhotoPreview));
+    chaosTitleInput?.addEventListener('input', ()=>{
+      const clamped = clampTitle(chaosTitleInput.value); if (clamped !== chaosTitleInput.value) chaosTitleInput.value = clamped;
+      updateCounter(chaosTitleCounter, chaosTitleInput);
+    });
+    submitChaos?.addEventListener('click', ()=>{
+      const title = clampTitle((chaosTitleInput.value||'').trim());
+      const body  = (chaosBodyInput.value||'').trim();
+      if(!title){ setStatus(chaosFormStatus,'Please add a short title.'); return; }
+      if(!body){ setStatus(chaosFormStatus,'Please add the story.'); return; }
+      const photos = chaosPreviewURLs.slice();
+      CHAOS.unshift({ id:'c_'+Date.now()+Math.random().toString(36).slice(2,7), title, body, photos });
+      renderChaosList(); closeChaosFormModal();
+    });
+
+    /* ===== Events: Reviews ===== */
+    openReviewForm?.addEventListener('click', openReviewFormModal);
+    closeReviewForm?.addEventListener('click', closeReviewFormModal);
+    reviewFormModal?.addEventListener('click', e=>{ if(e.target===reviewFormModal) closeReviewFormModal(); });
+    closeReviewView?.addEventListener('click', closeReviewViewModal);
+    reviewViewModal?.addEventListener('click', e=>{ if(e.target===reviewViewModal) closeReviewViewModal(); });
+
+    reviewPhotosInput?.addEventListener('change', e=> renderPreviews(e.target.files, reviewPreviewURLs, reviewPhotoPreview));
+    reviewTitleInput?.addEventListener('input', ()=>{
+      const clamped = clampTitle(reviewTitleInput.value); if (clamped !== reviewTitleInput.value) reviewTitleInput.value = clamped;
+      updateCounter(reviewTitleCounter, reviewTitleInput);
+    });
+    ratingRow?.addEventListener('click', e=>{
+      const btn = e.target.closest('[data-rate]'); if(!btn) return;
+      const n = Number(btn.getAttribute('data-rate')) || 3;
+      reviewRatingHidden.value = n;
+      [...ratingRow.querySelectorAll('[data-rate]')].forEach(b=> b.style.borderColor = '#2a2a2a');
+      btn.style.borderColor = '#E11D2A';
+    });
+    submitReview?.addEventListener('click', ()=>{
+      const title = clampTitle((reviewTitleInput.value||'').trim());
+      const body  = (reviewBodyInput.value||'').trim();
+      const rating = Math.max(1, Math.min(5, Number(reviewRatingHidden.value)||3));
+      if(!title){ setStatus(reviewFormStatus,'Please add a short title.'); return; }
+      if(!body){ setStatus(reviewFormStatus,'Please add the review text.'); return; }
+      const photos = reviewPreviewURLs.slice();
+      REVIEWS.unshift({ id:'r_'+Date.now()+Math.random().toString(36).slice(2,7), title, rating, body, photos });
+      renderReviewsList(); closeReviewFormModal();
+    });
+
+    /* initial paint */
+    renderChaosList();
+    renderReviewsList();
   </script>
 </body>
 </html>
