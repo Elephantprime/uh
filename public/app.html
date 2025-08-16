@@ -24,16 +24,19 @@
     .card h2{margin:0;padding:14px 14px;border-bottom:1px solid rgba(255,255,255,.06);background:#12131a;position:relative}
     .card-body{padding:14px}
 
+    /* Big 2x2 layout */
     .gridTop{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
     .gridBottom{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
     .bigPane{min-height:68vh;display:flex;flex-direction:column}
     .smallPane{min-height:48vh;display:flex;flex-direction:column}
 
+    /* Live stream */
     .live-box{height:100%;min-height:52vh;background:#000;border-radius:14px;display:flex;align-items:center;justify-content:center}
     .live-pill{position:absolute;right:14px;top:12px;display:inline-flex;gap:6px;align-items:center;font-size:12px;border:1px solid rgba(255,255,255,.16);padding:4px 8px;border-radius:999px;background:#1a1b22}
     .dot{width:8px;height:8px;border-radius:50%;background:#ff4d5e;animation:blink 1.2s infinite}
     @keyframes blink{50%{opacity:.35}}
 
+    /* Chat */
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .muted{color:var(--muted)}
     input,select,textarea{padding:10px;border-radius:10px;border:1px solid #2a2c3a;background:#12131a;color:#fff}
@@ -44,11 +47,13 @@
     .chat-send{display:flex;gap:8px;margin-top:10px}
     .chat-send input{flex:1}
 
+    /* Boards list */
     .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
     .item{border:1px solid #2a2c39;background:#12131a;border-radius:12px;padding:10px;cursor:pointer}
     .title{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .meta{font-size:12px;color:var(--muted);margin-top:4px}
 
+    /* Modal */
     .modal-backdrop{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
     .modal{width:100%;max-width:520px;background:#171923;border:1px solid #2a2c39;border-radius:14px;padding:14px}
     .modal h3{margin:0 0 8px}
@@ -72,7 +77,9 @@
   </header>
 
   <main class="wrap">
+    <!-- TOP ROW -->
     <div class="gridTop">
+      <!-- Live Stream (big) -->
       <section class="card bigPane">
         <h2>Live Stream <span class="live-pill"><span class="dot"></span> LIVE</span></h2>
         <div class="card-body" style="flex:1;display:flex;">
@@ -80,9 +87,11 @@
         </div>
       </section>
 
+      <!-- Chat Room (big) -->
       <section class="card bigPane">
         <h2>Chat Room</h2>
         <div class="card-body" style="display:flex;flex-direction:column;gap:10px;flex:1">
+          <!-- Top controls -->
           <div class="row" style="justify-content:space-between">
             <div class="muted" id="meTag">(not in chat)</div>
             <div class="row">
@@ -90,11 +99,17 @@
               <button class="btn" id="leaveChatBtn" style="display:none">Leave</button>
             </div>
           </div>
+
+          <!-- Room selector -->
           <div class="row" id="roomBar" style="display:none">
             <label class="muted" for="roomSelect">Room</label>
             <select id="roomSelect"></select>
           </div>
+
+          <!-- Feed -->
           <div class="chat-feed" id="chatFeed" aria-live="polite"></div>
+
+          <!-- Send row -->
           <div class="chat-send" id="sendRow" style="display:none">
             <input id="chatInput" placeholder="Type a message…" />
             <button class="btn primary" id="chatSend">Send</button>
@@ -103,7 +118,9 @@
       </section>
     </div>
 
+    <!-- BOTTOM ROW -->
     <div class="gridBottom">
+      <!-- Chaos Board -->
       <section class="card smallPane">
         <h2>Chaos Board</h2>
         <div class="card-body" style="display:flex;flex-direction:column;gap:10px;flex:1">
@@ -115,6 +132,7 @@
         </div>
       </section>
 
+      <!-- Review Board -->
       <section class="card smallPane">
         <h2>Review Board</h2>
         <div class="card-body" style="display:flex;flex-direction:column;gap:10px;flex:1">
@@ -128,7 +146,7 @@
     </div>
   </main>
 
-  <!-- Modals for chaos, review, detail -->
+  <!-- Chaos Submit Modal -->
   <div class="modal-backdrop" id="chaosModal">
     <div class="modal">
       <h3>Submit Chaos Story</h3>
@@ -145,6 +163,7 @@
     </div>
   </div>
 
+  <!-- Review Submit Modal -->
   <div class="modal-backdrop" id="reviewModal">
     <div class="modal">
       <h3>Submit Review</h3>
@@ -161,6 +180,7 @@
     </div>
   </div>
 
+  <!-- Story/Review Detail Modal (shared) -->
   <div class="modal-backdrop" id="detailModal">
     <div class="modal">
       <h3 id="detailTitle">Title</h3>
@@ -173,17 +193,15 @@
   </div>
 
   <script type="module">
-    // ===== Firebase import =====
+    /* ==== Firebase ==== */
     import { auth, db } from "./js/firebase.js";
-    import {
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import {
       collection, addDoc, serverTimestamp, onSnapshot,
       query, orderBy, limit, getDoc, doc
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // ===== Chat configuration =====
+    /* ==== Chat config (Firestore) ==== */
     const ROOMS = [
       { id: "general",      label: "#general" },
       { id: "first-dates",  label: "#first-dates" },
@@ -192,11 +210,11 @@
     ];
 
     let me = null;
-    let myDisplayName = "";
+    let myDisplayName = ""; // from users/{uid} or fallback
     let currentRoom = ROOMS[0].id;
     let unsubFeed = null;
 
-    // DOM references
+    /* ==== DOM ==== */
     const meTag = document.getElementById("meTag");
     const enterChatBtn = document.getElementById("enterChatBtn");
     const leaveChatBtn = document.getElementById("leaveChatBtn");
@@ -221,19 +239,18 @@
     const rBody  = document.getElementById("rBody");
     const rCancel= document.getElementById("rCancel");
     const rSave  = document.getElementById("rSave");
+
     const detailModal = document.getElementById("detailModal");
     const detailTitle = document.getElementById("detailTitle");
     const detailMeta  = document.getElementById("detailMeta");
     const detailBody  = document.getElementById("detailBody");
     const detailClose = document.getElementById("detailClose");
-    const uploadChaos  = document.getElementById("uploadChaos");
-    const uploadReview = document.getElementById("uploadReview");
 
-    // UI helpers
-    function openModal(el){ el.style.display = "flex"; }
-    function closeModal(el){ el.style.display = "none"; }
+    /* ==== UI helpers ==== */
+    function open(el){ el.style.display = "flex"; }
+    function close(el){ el.style.display = "none"; }
     function setSigned(on){
-      const label = ROOMS.find(r=>r.id === currentRoom)?.label || "#general";
+      const label = ROOMS.find(r=>r.id===currentRoom)?.label || "#general";
       meTag.textContent = on ? `In ${label} as ${myDisplayName}` : "(not in chat)";
       enterChatBtn.style.display = on ? "none" : "inline-flex";
       leaveChatBtn.style.display = on ? "inline-flex" : "none";
@@ -250,10 +267,10 @@
       });
     }
     function renderMessage(m){
-      const div = document.createElement("div");
-      div.className = "bubble " + (m.from === myDisplayName ? "me" : "them");
-      div.textContent = `${m.from}: ${m.text}`;
-      chatFeed.appendChild(div);
+      const b = document.createElement("div");
+      b.className = "bubble " + (m.uid === (me?.uid || "_") ? "me" : "them");
+      b.textContent = `${m.from || "anon"}: ${m.text || ""}`;
+      chatFeed.appendChild(b);
     }
     function clearFeed(){ chatFeed.innerHTML = ""; }
 
@@ -261,13 +278,10 @@
       if (unsubFeed) { unsubFeed(); unsubFeed = null; }
       clearFeed();
       const col = collection(db, "rooms", currentRoom, "messages");
-      const qy  = query(col, orderBy("createdAt","asc"), limit(500));
+      const qy = query(col, orderBy("createdAt","asc"), limit(500));
       unsubFeed = onSnapshot(qy, (snap)=>{
         clearFeed();
-        snap.forEach(docSnap => {
-          const m = docSnap.data();
-          renderMessage({ from: m.from || "anon", text: m.text || "" });
-        });
+        snap.forEach(d => renderMessage(d.data()));
         chatFeed.scrollTop = chatFeed.scrollHeight;
       });
     }
@@ -277,20 +291,20 @@
       if (!text) return;
       if (!me){ location.href = "./login.html"; return; }
       if (!myDisplayName){ alert("Your profile needs a username/display name."); return; }
+
       const col = collection(db, "rooms", currentRoom, "messages");
-      await addDoc(col, { from: myDisplayName, text, createdAt: serverTimestamp(), uid: me.uid });
+      await addDoc(col, {
+        uid: me.uid,                // <— required by your rules
+        from: myDisplayName,
+        text,
+        createdAt: serverTimestamp()
+      });
       chatInput.value = "";
     }
 
-    function bestVisibleNameFromDoc(docData){
-      const uname = (docData?.username || "").trim();
-      const disp  = (docData?.displayName || "").trim();
-      if (uname) return uname.startsWith("@") ? uname : "@"+uname;
-      if (disp)  return disp;
-      return "";
-    }
+    function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-    // Boards (in-memory examples)
+    /* ==== Boards (simple in-memory with 1 example each) ==== */
     const chaosItems = [{
       title: "Walked Out on the Check",
       author: "@Rae25",
@@ -306,7 +320,14 @@
 
     function renderBoard(listEl, items){
       listEl.innerHTML = "";
-      items.forEach(it=>{
+      if (!items.length){
+        const d = document.createElement("div");
+        d.className = "muted";
+        d.textContent = "Nothing here yet.";
+        listEl.appendChild(d);
+        return;
+      }
+      items.forEach((it)=>{
         const card = document.createElement("div");
         card.className = "item";
         card.innerHTML = `
@@ -317,14 +338,13 @@
           detailTitle.textContent = it.title;
           detailMeta.textContent = `by ${it.author} about ${it.about}`;
           detailBody.textContent = it.body;
-          openModal(detailModal);
+          open(detailModal);
         });
         listEl.appendChild(card);
       });
     }
-    function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-    // Submit handlers for chaos and reviews
+    // Submit handlers (still in-memory for now)
     cSave.addEventListener("click", ()=>{
       const title = (cTitle.value||"").trim().slice(0,60);
       const about = (cAbout.value||"").trim();
@@ -334,7 +354,7 @@
       chaosItems.unshift({ title, author, about, body });
       renderBoard(chaosList, chaosItems);
       cTitle.value = ""; cAbout.value = ""; cBody.value = "";
-      closeModal(chaosModal);
+      close(chaosModal);
     });
     rSave.addEventListener("click", ()=>{
       const title = (rTitle.value||"").trim().slice(0,60);
@@ -345,20 +365,20 @@
       reviewItems.unshift({ title, author, about, body });
       renderBoard(reviewList, reviewItems);
       rTitle.value = ""; rAbout.value = ""; rBody.value = "";
-      closeModal(reviewModal);
+      close(reviewModal);
     });
 
     // Modal toggles
-    uploadChaos.addEventListener("click", ()=> openModal(chaosModal));
-    uploadReview.addEventListener("click", ()=> openModal(reviewModal));
-    cCancel.addEventListener("click", ()=> closeModal(chaosModal));
-    rCancel.addEventListener("click", ()=> closeModal(reviewModal));
-    chaosModal.addEventListener("click", (e)=>{ if(e.target===chaosModal) closeModal(chaosModal); });
-    reviewModal.addEventListener("click", (e)=>{ if(e.target===reviewModal) closeModal(reviewModal); });
-    detailClose.addEventListener("click", ()=> closeModal(detailModal));
-    detailModal.addEventListener("click", (e)=>{ if(e.target===detailModal) closeModal(detailModal); });
+    document.getElementById("uploadChaos").addEventListener("click", ()=> open(chaosModal));
+    document.getElementById("uploadReview").addEventListener("click", ()=> open(reviewModal));
+    document.getElementById("cCancel").addEventListener("click", ()=> close(chaosModal));
+    document.getElementById("rCancel").addEventListener("click", ()=> close(reviewModal));
+    document.getElementById("detailClose").addEventListener("click", ()=> close(detailModal));
+    [detailModal, chaosModal, reviewModal].forEach(m=>{
+      m.addEventListener("click", (e)=>{ if(e.target===m) close(m); });
+    });
 
-    // Chat controls (no anonymous posts)
+    /* ==== Chat controls (no anonymous) ==== */
     enterChatBtn.addEventListener("click", async ()=>{
       if (!me) { location.href = "./login.html"; return; }
       if (!myDisplayName){ alert("Your profile needs a username/display name."); return; }
@@ -376,9 +396,9 @@
       if (leaveChatBtn.style.display !== "none") await bindRoomFeed();
     });
     chatSend.addEventListener("click", sendMessage);
-    chatInput.addEventListener("keydown", (e)=>{ if(e.key === "Enter") sendMessage(); });
+    chatInput.addEventListener("keydown", (e)=>{ if(e.key==="Enter") sendMessage(); });
 
-    // Auth: derive display name from Firestore user doc
+    /* ==== Auth: derive visible name from users/{uid} ==== */
     onAuthStateChanged(auth, async (user)=>{
       me = user || null;
       myDisplayName = "";
@@ -386,20 +406,25 @@
         try {
           const uref = doc(db, "users", me.uid);
           const snap = await getDoc(uref);
-          if (snap.exists()) myDisplayName = bestVisibleNameFromDoc(snap.data());
+          if (snap.exists()) {
+            const d = snap.data() || {};
+            const uname = (d.username || "").trim();
+            const disp  = (d.displayName || "").trim();
+            myDisplayName = uname ? (uname.startsWith("@") ? uname : "@"+uname) : (disp || "");
+          }
           if (!myDisplayName) {
             const emailName = (me.email || "").split("@")[0];
             myDisplayName = emailName || "Member";
           }
         } catch (e) {
-          const emailName = (me.email || "").split("@")[0];
+          const emailName = (me?.email || "").split("@")[0];
           myDisplayName = emailName || "Member";
         }
       }
       setSigned(false);
     });
 
-    // Initialization
+    /* ==== Init ==== */
     (function init(){
       renderRooms();
       renderBoard(chaosList, chaosItems);
