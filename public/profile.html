@@ -965,6 +965,12 @@
 
       // Load/create my doc
       myDocCached = await loadOrCreateUserDoc(me.uid, me);
+      // ===== HARD PHOTO GATE =====
+if (!myDocCached?.photoURL && (!Array.isArray(myDocCached?.photos) || myDocCached.photos.length === 0)) {
+  alert("You must upload at least one photo before using the app.");
+  editModal.style.display = "flex";
+  return;
+}
 
       // Hydrate form
       displayNameInput.value = myDocCached.displayName || "";
