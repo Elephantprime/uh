@@ -10,7 +10,7 @@
   <style>
     :root { --bg:#0e0e12; --panel:#15161b; --muted:#cfd0de; --red:#E11D2A; --green:#4CAF50; }
     * { box-sizing: border-box; }
-    body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:#fff;min-height:100vh;display:flex;flex-direction:column}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:#fff;min-height:100vh;display:flex;flex-direction:column}
 
     /* Buttons */
     .btn{border:none;background:var(--red);color:#fff;padding:.5rem .9rem;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
@@ -40,7 +40,7 @@
     .sub{font-size:.9rem;color:#ddd;margin-top:2px}
     .badges,.flags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
     .badges img{width:28px;height:28px;border-radius:50%;border:1px solid #4cafef;background:#2a2a3a;padding:2px}
-    .flags img{width:24px;height:24px;border-radius:50%;border:1px solid var(--red);background:#3a2a2a;padding:2px}
+    .flags .flag-pill{font-size:.75rem;border:1px solid #3a3b44;border-radius:999px;padding:2px 8px;background:#14151a}
     .indicator{position:absolute;top:16px;font-size:1.4rem;font-weight:700;padding:6px 12px;border:3px solid;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .12s ease}
     .indicator.pass{left:14px;color:var(--red);border-color:var(--red);transform:rotate(-18deg)}
     .indicator.like{right:14px;color:var(--green);border-color:var(--green);transform:rotate(18deg)}
@@ -53,7 +53,7 @@
     .like-btn{background:#2a2a2a;color:var(--green)}
 
     /* ===== SECTION: Modal Base ===== */
-    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:1rem;z-index:50}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:1rem;z-index:60}
     .modal{width:100%;max-width:700px;background:var(--panel);border:1px solid #2a2a2a;border-radius:12px;padding:1rem}
     .modal h3{margin:0 0 .5rem}
     label{display:flex;align-items:center;gap:.35rem;margin:.5rem 0 .25rem}
@@ -71,6 +71,38 @@
     .label-pill{position:absolute;left:6px;top:6px;font-size:.7rem;background:#000000aa;padding:2px 6px;border-radius:999px;border:1px solid #2a2a2a}
     .thumb.primary{border-color:var(--red)}
     .hint{font-size:.85rem;color:#cfd0de;margin-top:.25rem}
+
+    /* ===== INBOX / GATING ===== */
+    .inbox-btn { background:#2a2a2a;color:#fff;border:none;border-radius:10px;padding:.5rem .8rem;cursor:pointer }
+    .inbox-modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:12px;z-index:80}
+    .inbox-card{width:100%;max-width:900px;background:var(--panel);border:1px solid #2a2a2a;border-radius:12px;padding:12px}
+    .inbox-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+    .inbox-tab{border:1px solid #2a2a2a;background:#14151a;border-radius:999px;padding:.45rem .8rem;cursor:pointer}
+    .inbox-tab.active{border-color:var(--red);box-shadow:0 0 0 2px #E11D2A33 inset}
+    .inbox-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;min-height:160px}
+    .inbox-item{position:relative;border:1px solid #2a2a2a;border-radius:10px;overflow:hidden;background:#111}
+    .inbox-item img{width:100%;height:160px;object-fit:cover;display:block}
+    .inbox-meta{padding:8px}
+    .inbox-name{font-weight:700}
+    .inbox-sub{font-size:.9rem;color:#cfd0de}
+
+    .locked .blur { filter: blur(6px); }
+    .lock-badge{
+      position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(#0000,#0008);color:#fff;font-weight:700;letter-spacing:.3px;text-align:center;padding:8px
+    }
+    .lock-msg{background:#E11D2A;border:none;border-radius:999px;padding:.35rem .7rem;cursor:pointer;margin-top:.5rem}
+
+    /* ===== CHAT MODAL ===== */
+    .chat-modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:12px;z-index:90}
+    .chat-card{width:100%;max-width:700px;background:var(--panel);border:1px solid #2a2a2a;border-radius:12px;display:flex;flex-direction:column;height:75vh}
+    .chat-head{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #2a2a2a}
+    .chat-scroll{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+    .bubble{max-width:70%;padding:8px 10px;border-radius:12px}
+    .bubble.me{align-self:flex-end;background:#E11D2A;color:#fff}
+    .bubble.them{align-self:flex-start;background:#2a2a2a}
+    .chat-send{display:flex;gap:8px;padding:10px;border-top:1px solid #2a2a2a}
+    .chat-send input{flex:1;padding:10px;border-radius:10px;background:#12131a;border:1px solid #2a2a2a;color:#fff}
   </style>
 </head>
 <body>
@@ -80,10 +112,12 @@
     <div class="brand" id="topLine">Your Profile</div>
     <div class="nav-actions">
       <a class="chaos-btn" href="./app.html">Community Chaos</a>
+      <button class="btn secondary inbox-btn" id="inboxBtn">Inbox</button>
       <button class="btn secondary" id="myProfileBtn">My Profile</button>
       <button class="btn secondary" id="upgradeBtn">Go Paid</button>
       <button class="btn" id="editBtn">Edit Profile</button>
       <button class="btn secondary" id="logoutBtn">Logout</button>
+      <button class="btn ghost" id="deleteBtn" title="Delete my account">Delete</button>
     </div>
   </div>
 
@@ -189,25 +223,69 @@
     </div>
   </div>
 
+  <!-- ===== INBOX MODAL ===== -->
+  <div class="inbox-modal" id="inboxModal">
+    <div class="inbox-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <h3 style="margin:0">Inbox</h3>
+        <button class="btn secondary" id="closeInbox">Close</button>
+      </div>
+      <div class="inbox-tabs" id="inboxTabs">
+        <button class="inbox-tab active" data-tab="likes">Likes</button>
+        <button class="inbox-tab" data-tab="views">Views</button>
+        <button class="inbox-tab" data-tab="matches">Matches</button>
+        <button class="inbox-tab" data-tab="messages">Messages</button>
+      </div>
+      <div class="inbox-list" id="inboxList"></div>
+    </div>
+  </div>
+
+  <!-- ===== CHAT MODAL ===== -->
+  <div class="chat-modal" id="chatModal">
+    <div class="chat-card">
+      <div class="chat-head">
+        <div id="chatTitle">Chat</div>
+        <button class="btn secondary" id="closeChat">Close</button>
+      </div>
+      <div class="chat-scroll" id="chatScroll"></div>
+      <div class="chat-send">
+        <input id="chatInput" type="text" placeholder="Type a message…" />
+        <button class="btn" id="chatSend">Send</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== SECTION: Scripts ===== -->
   <script type="module">
     /* ===== SECTION: Imports ===== */
     import { auth, db, storage } from "./js/firebase.js";
-    import { onAuthStateChanged, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { collection, getDocs, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+    import {
+      onAuthStateChanged, updateProfile, signOut,
+      EmailAuthProvider, reauthenticateWithCredential, deleteUser
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      collection, getDocs, doc, getDoc, setDoc, deleteDoc, serverTimestamp,
+      query, where, orderBy, limit, addDoc, onSnapshot, updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      ref as sRef, uploadBytes, getDownloadURL, listAll, deleteObject
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
     /* ===== SECTION: Config (Requirements & Membership) ===== */
     const REQUIRED = { PHOTO: true, LOCATION: true, DISPLAY_NAME: false, AGE: false };
-    const MEMBERSHIP = { requiredForViews: true, requiredForLikes: true };
+    const MEMBERSHIP = { requiredForViews: true, requiredForLikes: true }; // gate Likes/Views
 
     /* ===== SECTION: DOM Refs ===== */
+    // Top bar
     const topLine = document.getElementById("topLine");
     const myProfileBtn = document.getElementById("myProfileBtn");
     const editBtn = document.getElementById("editBtn");
     const logoutBtn = document.getElementById("logoutBtn");
     const upgradeBtn = document.getElementById("upgradeBtn");
+    const inboxBtn = document.getElementById("inboxBtn");
+    const deleteBtn = document.getElementById("deleteBtn");
 
+    // Swipe card
     const cardFrame = document.getElementById("cardFrame");
     const mainPhoto = document.getElementById("main-photo");
     const nameEl = document.getElementById("name");
@@ -221,6 +299,7 @@
     const likeIndicator = document.getElementById("like-indicator");
     const emptyEl = document.getElementById("empty");
 
+    // Edit modal
     const editModal = document.getElementById("editModal");
     const saveEdit = document.getElementById("saveEdit");
     const cancelEdit = document.getElementById("cancelEdit");
@@ -243,14 +322,34 @@
     const reqLocation = document.getElementById("reqLocation");
     const reqPhoto = document.getElementById("reqPhoto");
 
+    // Inbox
+    const inboxModal  = document.getElementById("inboxModal");
+    const closeInbox  = document.getElementById("closeInbox");
+    const inboxTabs   = document.getElementById("inboxTabs");
+    const inboxList   = document.getElementById("inboxList");
+
+    // Chat
+    const chatModal = document.getElementById("chatModal");
+    const closeChat = document.getElementById("closeChat");
+    const chatTitle = document.getElementById("chatTitle");
+    const chatScroll = document.getElementById("chatScroll");
+    const chatInput = document.getElementById("chatInput");
+    const chatSend = document.getElementById("chatSend");
+
     /* ===== SECTION: State ===== */
     let me = null;
     let myDocCached = null;
-    let allUsers = [];
-    let matches = [];
+    let allUsers = [];     // other user docs
+    let matches = [];      // swipe list (others) or self fallback
     let currentIndex = 0;
     let previewURLs = [];
     let _profileNavGuard = false;
+    let activeChat = { chatId: null, partner: null, unsub: null };
+
+    /* Neutral placeholder (no stock faces) */
+    const NEUTRAL_PHOTO = "data:image/svg+xml;utf8," + encodeURIComponent(
+      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1200'><rect width='100%' height='100%' fill='#0b0b0f'/><circle cx='400' cy='420' r='160' fill='#20222b'/><rect x='210' y='650' width='380' height='260' rx='28' fill='#20222b'/></svg>`
+    );
 
     /* ===== SECTION: Required Markers ===== */
     reqDisplayName.hidden = !REQUIRED.DISPLAY_NAME;
@@ -258,42 +357,57 @@
     reqLocation.hidden = !REQUIRED.LOCATION;
     reqPhoto.hidden = !REQUIRED.PHOTO;
 
-    /* ===== SECTION: Helpers ===== */
+    /* ===== SECTION: Helper – UI Feedback ===== */
     function showError(msg){ uploadStatus.innerHTML = `<span class="err">${msg}</span>`; }
     function showOK(msg){ uploadStatus.innerHTML = `<span class="ok">${msg}</span>`; }
 
-    const NEUTRAL_PHOTO = "data:image/svg+xml;utf8," + encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1200'><rect width='100%' height='100%' fill='#0b0b0f'/><circle cx='400' cy='420' r='160' fill='#20222b'/><rect x='210' y='650' width='380' height='260' rx='28' fill='#20222b'/></svg>`
-    );
+    /* ===== SECTION: Helper – Renderers ===== */
+    function isMember(userDoc){ return (userDoc?.membership?.tier || "free") !== "free"; }
+
     function safePrimaryPhoto(p){
       const cand = p?.photoURL || (Array.isArray(p?.photos) && p.photos[0]) || "";
       return (typeof cand === "string" && /^https?:\/\//i.test(cand)) ? cand : "";
     }
 
-    /* ===== SECTION: Renderers ===== */
     function renderBadges(badges=[]) {
       badgesEl.innerHTML = "";
       (badges||[]).forEach(url => {
         const img = document.createElement("img");
-        img.src = url; img.alt = "badge";
+        img.src=url; img.alt="badge";
         badgesEl.appendChild(img);
       });
     }
-    function renderFlags(flags=[]) {
+
+    function renderFlagsList(flags=[]) {
       flagsEl.innerHTML = "";
-      const count = Array.isArray(flags) ? flags.length : 0;
-      for(let i=0;i<count;i++){
-        const img=document.createElement("img");
-        img.src="https://upload.wikimedia.org/wikipedia/commons/f/f7/Flag_icon_red.svg";
-        img.alt="red flag";
-        flagsEl.appendChild(img);
-      }
+      const list = Array.isArray(flags) ? flags : [];
+      list.forEach(code => {
+        const pill = document.createElement("span");
+        pill.className = "flag-pill";
+        pill.textContent = flagLabel(code);
+        flagsEl.appendChild(pill);
+      });
     }
+
+    function flagLabel(code){
+      const map = {
+        anger_control: "Anger",
+        controlling_behavior: "Control",
+        financial_instability: "Financial",
+        substance_risk: "Substance",
+        accountability_low: "Accountability",
+        harassment_persistence: "Persistence",
+        attention_fail: "Attention",
+        inconsistency: "Inconsistent"
+      };
+      return map[code] || code;
+    }
+
     function renderProfile(p) {
       if (!p) {
         mainPhoto.src = NEUTRAL_PHOTO;
         nameEl.textContent = ""; handleEl.textContent = ""; subInfo.textContent = "";
-        renderBadges([]); renderFlags([]);
+        renderBadges([]); renderFlagsList([]);
         emptyEl.style.display="flex"; return;
       }
       emptyEl.style.display="none";
@@ -305,15 +419,18 @@
       nameEl.textContent = `${name}${age}`;
       handleEl.textContent = p.username ? `@${p.username}` : "";
 
-      const hobby = (p.hobbies||"").trim();
-      const interests = (p.interests||"").trim();
-      const hHint = hobby ? ` • ${hobby.slice(0,20)}${hobby.length>20?'…':''}` : "";
-      const iHint = interests ? ` • ${interests.slice(0,20)}${interests.length>20?'…':''}` : "";
-      subInfo.textContent = (p.location || "") + hHint + iHint;
+      const hobbyRaw = (p.hobbies || "").trim();
+      const interestRaw = (p.interests || "").trim();
+      const hobbyHint = hobbyRaw ? ` • ${hobbyRaw.slice(0,20)}${hobbyRaw.length>20?'…':''}` : "";
+      const interestHint = interestRaw ? ` • ${interestRaw.slice(0,20)}${interestRaw.length>20?'…':''}` : "";
+      subInfo.textContent = (p.location || "") + hobbyHint + interestHint;
 
       renderBadges(p.badges||[]);
-      renderFlags(p.flags||[]);
+      // flags could be stored at top-level or quiz.flags
+      const flags = Array.isArray(p.flags) ? p.flags : (Array.isArray(p.quiz?.flags) ? p.quiz.flags.map(f=>f.code) : []);
+      renderFlagsList(flags);
     }
+
     function renderGallery(photos=[]) {
       galleryEl.innerHTML = "";
       (photos||[]).forEach((url,i)=>{
@@ -338,13 +455,13 @@
         galleryEl.appendChild(box);
       });
     }
+
     function clearPreviews(){
-      previewURLs.forEach(u=>URL.revokeObjectURL(u)); previewURLs=[];
-      previewGallery.innerHTML=""; previewTitle.hidden=true; previewGallery.hidden=true;
+      previewURLs.forEach(u=>URL.revokeObjectURL(u));
+      previewURLs=[]; previewGallery.innerHTML=""; previewTitle.hidden=true; previewGallery.hidden=true;
     }
     function renderPreviews(files){
-      clearPreviews(); if(!files?.length) return;
-      previewTitle.hidden=false; previewGallery.hidden=false;
+      clearPreviews(); if(!files?.length) return; previewTitle.hidden=false; previewGallery.hidden=false;
       [...files].forEach((f,i)=>{ const url=URL.createObjectURL(f); previewURLs.push(url);
         const box=document.createElement("div"); box.className="thumb";
         const img=document.createElement("img"); img.src=url;
@@ -383,22 +500,8 @@
     interestsInput?.addEventListener("input",()=>refreshSaveButtonState(myDocCached));
     avatarInput.addEventListener("change",(e)=>{ renderPreviews(e.target.files); refreshSaveButtonState(myDocCached); });
 
-    /* ===== SECTION: Modal Controls ===== */
-    function openEdit(){ editModal.style.display="flex"; }
-    function closeEdit(){ editModal.style.display="none"; }
-    editBtn.addEventListener("click", (e)=>{ e.preventDefault(); openEdit(); });
-    cancelEdit.addEventListener("click", closeEdit);
-    editModal.addEventListener("click", (e)=>{ if(e.target===editModal) closeEdit(); });
-
     /* ===== SECTION: Swipe (Touch/Buttons) ===== */
-    function currentMatch(){
-      return (Array.isArray(matches) && matches.length && matches[currentIndex]) ? matches[currentIndex] : null;
-    }
-    function nextProfile(){
-      if (!Array.isArray(matches) || !matches.length) return;
-      currentIndex = Math.min(currentIndex + 1, matches.length - 1);
-      renderProfile(matches[currentIndex] || null);
-    }
+    function nextProfile(){ currentIndex++; renderProfile(matches[currentIndex]||null); }
     function showIndicator(t){ passIndicator.style.opacity = t==="pass"?1:0; likeIndicator.style.opacity = t==="like"?1:0; }
     let startX=0, dx=0, dragging=false;
     cardFrame.addEventListener("touchstart", e=>{ startX=e.touches[0].clientX; dragging=true; });
@@ -410,14 +513,14 @@
     passBtn.addEventListener("click", nextProfile);
     likeBtn.addEventListener("click", nextProfile);
 
-    // Click main photo -> open user's public page (if uid exists)
+    // --- Open public profile when you click the photo ---
     mainPhoto.addEventListener("click", () => {
-      const p = currentMatch();
-      if (!p || !p.uid) return;
+      const p = matches[currentIndex];
+      if (!p || !p.uid) return; // requires uid
       location.href = `./user.html?uid=${encodeURIComponent(p.uid)}`;
     });
 
-    /* ===== SECTION: Data Layer ===== */
+    /* ===== SECTION: Data Layer (Load/Create/Save) ===== */
     async function loadOrCreateUserDoc(uid, userObj){
       const uref = doc(db,"users",uid);
       const snap = await getDoc(uref);
@@ -457,9 +560,7 @@
         for(const f of files){
           const safeName = (f.name||"photo").replace(/[^\w.\-]+/g,"_");
           const path=`avatars/${me.uid}/${Date.now()}_${safeName}`;
-          const r=sRef(storage,path);
-          await uploadBytes(r,f);
-          const url=await getDownloadURL(r);
+          const r=sRef(storage,path); await uploadBytes(r,f); const url=await getDownloadURL(r);
           photos.push(url);
         }
 
@@ -483,31 +584,322 @@
         topLine.textContent = myDocCached.username ? `@${myDocCached.username}` : `UID: ${me.uid}`;
         handleEl.textContent = myDocCached.username ? `@${myDocCached.username}` : "";
 
-        renderGallery(photos);
-        if(!matches.length) renderProfile(myDocCached);
+        renderGallery(photos); if(!matches.length) renderProfile(myDocCached);
 
         avatarInput.value=""; clearPreviews();
         showOK("Profile saved."); setTimeout(()=>{ editModal.style.display="none"; }, 400);
-      }catch(e){
-        showError(`Save failed: ${e?.message||'error'}`);
-      }finally{
-        saveEdit.disabled=false;
-      }
+      }catch(e){ showError(`Save failed: ${e?.message||'error'}`); }
+      finally{ saveEdit.disabled=false; }
     }
     saveEdit.addEventListener("click", saveEdits);
 
-    /* ===== SECTION: Membership Gating (stubs) ===== */
-    function isMember(userDoc){ return (userDoc?.membership?.tier || "free") !== "free"; }
-    async function openLikesList(){
-      if (MEMBERSHIP.requiredForLikes && !isMember(myDocCached)) { alert("Upgrade to a member to see who liked you."); return; }
-    }
-    async function openViewsList(){
-      if (MEMBERSHIP.requiredForViews && !isMember(myDocCached)) { alert("Upgrade to a member to see who viewed your profile."); return; }
+    /* ===== SECTION: Membership Gating ===== */
+    function gateLikesViewsLocked(tab){ return (!isMember(myDocCached)) && (tab==="likes" || tab==="views"); }
+
+    /* ===== SECTION: Inbox Data ===== */
+    async function fetchUsersByIds(ids){
+      if (!ids?.length) return [];
+      const out = [];
+      for (const uid of ids){
+        const snap = await getDoc(doc(db,"users",uid));
+        if (snap.exists()) out.push({ uid, ...snap.data() });
+      }
+      return out;
     }
 
-    /* ===== SECTION: Auth / Init ===== */
+    async function getLikesForMe(uid){
+      const qy = query(collection(db,"likes"), where("toUid","==",uid), orderBy("createdAt","desc"), limit(50));
+      const snap = await getDocs(qy);
+      const ids = []; snap.forEach(d=>ids.push(d.data().fromUid));
+      return fetchUsersByIds(ids);
+    }
+
+    async function getViewsForMe(uid){
+      const qy = query(collection(db,"views"), where("viewedUid","==",uid), orderBy("createdAt","desc"), limit(50));
+      const snap = await getDocs(qy);
+      const ids = []; snap.forEach(d=>ids.push(d.data().viewerUid));
+      return fetchUsersByIds(ids);
+    }
+
+    async function getMatchesForMe(uid){
+      const qy = query(collection(db,"matches"), where("uids","array-contains",uid), orderBy("createdAt","desc"), limit(50));
+      const snap = await getDocs(qy);
+      const partnerIds = [];
+      snap.forEach(d=>{
+        const arr = d.data().uids||[];
+        const other = arr.find(x=>x!==uid);
+        if (other) partnerIds.push(other);
+      });
+      return fetchUsersByIds(partnerIds);
+    }
+
+    async function getThreads(uid){
+      const qy = query(collection(db,"chats"), where("uids","array-contains",uid), orderBy("lastMessageAt","desc"), limit(50));
+      const snap = await getDocs(qy);
+      const map = new Map();
+      snap.forEach(d=>{
+        const data = d.data(); const other = (data.uids||[]).find(x=>x!==uid);
+        if (other) map.set(other, { chatId:d.id, ...data });
+      });
+      const users = await fetchUsersByIds([...map.keys()]);
+      return users.map(u => ({ ...u, chatId: map.get(u.uid)?.chatId || null }));
+    }
+
+    /* ===== SECTION: Inbox UI ===== */
+    function userCard(u, { locked=false, trailing=null } = {}){
+      const primary = safePrimaryPhoto(u);
+      const img = primary || NEUTRAL_PHOTO;
+      const name = u.displayName || "Member";
+      const age = (typeof u.age === "number") ? `, ${u.age}` : "";
+      const loc = u.location || "";
+
+      const item = document.createElement("div");
+      item.className = "inbox-item" + (locked ? " locked" : "");
+      item.innerHTML = `
+        <div class="thumb">
+          <img class="${locked?'blur':''}" src="${img}" alt="">
+        </div>
+        <div class="inbox-meta">
+          <div class="inbox-name">${name}${age}</div>
+          <div class="inbox-sub">${loc}</div>
+          ${trailing || ""}
+        </div>
+      `;
+      if (locked){
+        const overlay = document.createElement("div");
+        overlay.className = "lock-badge";
+        overlay.innerHTML = `
+          <div>
+            <div>Members Only</div>
+            <button class="lock-msg" data-upg>Unlock</button>
+          </div>`;
+        item.appendChild(overlay);
+        overlay.querySelector("[data-upg]").addEventListener("click", ()=> upgradeBtn?.click());
+      }
+      return item;
+    }
+
+    const TAB_FUNCS = {
+      likes:   getLikesForMe,
+      views:   getViewsForMe,
+      matches: getMatchesForMe,
+      messages:getThreads
+    };
+
+    function openInbox(){ inboxModal.style.display = "flex"; }
+    function closeInboxModal(){ inboxModal.style.display = "none"; }
+    inboxBtn?.addEventListener("click", ()=>{ openInbox(); renderInbox("likes"); });
+    closeInbox?.addEventListener("click", closeInboxModal);
+    inboxModal?.addEventListener("click", (e)=>{ if(e.target===inboxModal) closeInboxModal(); });
+
+    async function renderInbox(tab){
+      if (!me || !myDocCached) return;
+      [...inboxTabs.querySelectorAll(".inbox-tab")].forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
+      inboxList.innerHTML = "<div class='muted'>Loading…</div>";
+
+      let items = [];
+      try{
+        items = await TAB_FUNCS[tab](me.uid);
+      }catch(e){
+        console.error(e);
+        inboxList.innerHTML = "<div class='muted'>Could not load. Try again.</div>";
+        return;
+      }
+
+      const locked = gateLikesViewsLocked(tab);
+      inboxList.innerHTML = "";
+      if (!items.length){
+        inboxList.innerHTML = "<div class='muted'>Nothing here yet.</div>";
+        return;
+      }
+
+      for (const u of items){
+        let trailing = "";
+        if (tab==="matches" || tab==="messages"){
+          trailing = `<div style="margin-top:6px;display:flex;gap:6px">
+                        <button class="btn small" data-chat="${u.uid}">Message</button>
+                        <button class="btn secondary small" data-open="${u.uid}">View</button>
+                      </div>`;
+        }
+        const card = userCard(u, { locked, trailing });
+        if (!locked){
+          // click on image to open profile
+          card.querySelector("img")?.addEventListener("click", ()=> location.href = `./user.html?uid=${encodeURIComponent(u.uid)}`);
+          // buttons
+          card.querySelector(`[data-open="${u.uid}"]`)?.addEventListener("click", ()=> location.href = `./user.html?uid=${encodeURIComponent(u.uid)}`);
+          card.querySelector(`[data-chat="${u.uid}"]`)?.addEventListener("click", ()=> openChatWith(u));
+        }
+        inboxList.appendChild(card);
+      }
+    }
+
+    inboxTabs?.addEventListener("click", (e)=>{
+      const btn = e.target.closest(".inbox-tab");
+      if (!btn) return;
+      renderInbox(btn.dataset.tab);
+    });
+
+    /* ===== SECTION: Chat ===== */
+    function openChatModal(){ chatModal.style.display = "flex"; }
+    function closeChatModal(){
+      chatModal.style.display = "none";
+      chatTitle.textContent = "Chat";
+      chatScroll.innerHTML = "";
+      chatInput.value = "";
+      if (activeChat.unsub){ activeChat.unsub(); activeChat.unsub = null; }
+      activeChat = { chatId:null, partner:null, unsub:null };
+    }
+    closeChat?.addEventListener("click", closeChatModal);
+    chatModal?.addEventListener("click", e=>{ if(e.target===chatModal) closeChatModal(); });
+
+    async function findOrCreateChat(uidA, uidB){
+      // try to find existing chat
+      const qy = query(collection(db,"chats"), where("uids","array-contains", uidA), orderBy("createdAt","desc"), limit(50));
+      const snap = await getDocs(qy);
+      let existing = null;
+      snap.forEach(d=>{
+        const arr = d.data().uids||[];
+        if (arr.includes(uidB)) existing = { id:d.id, ...d.data() };
+      });
+      if (existing) return existing.id;
+      // create new
+      const ref = await addDoc(collection(db,"chats"), {
+        uids:[uidA, uidB],
+        createdAt: serverTimestamp(),
+        lastMessage: "",
+        lastMessageAt: serverTimestamp()
+      });
+      return ref.id;
+    }
+
+    async function openChatWith(user){
+      if (!me) return;
+      const chatId = await findOrCreateChat(me.uid, user.uid);
+      activeChat.chatId = chatId;
+      activeChat.partner = user;
+      chatTitle.textContent = user.displayName ? `Chat with ${user.displayName}` : "Chat";
+      openChatModal();
+
+      // subscribe messages
+      const msgCol = collection(db,"chats",chatId,"messages");
+      activeChat.unsub = onSnapshot(query(msgCol, orderBy("createdAt","asc"), limit(200)), (snap)=>{
+        chatScroll.innerHTML = "";
+        snap.forEach(d=>{
+          const m = d.data();
+          const div = document.createElement("div");
+          div.className = "bubble " + (m.from===me.uid ? "me" : "them");
+          div.textContent = m.text || "";
+          chatScroll.appendChild(div);
+        });
+        chatScroll.scrollTop = chatScroll.scrollHeight;
+      });
+    }
+
+    chatSend?.addEventListener("click", async ()=>{
+      const text = chatInput.value.trim();
+      if (!text || !activeChat.chatId || !me) return;
+      const msgCol = collection(db,"chats",activeChat.chatId,"messages");
+      await addDoc(msgCol, { from: me.uid, text, createdAt: serverTimestamp() });
+      await updateDoc(doc(db,"chats",activeChat.chatId), { lastMessage:text, lastMessageAt: serverTimestamp() });
+      chatInput.value = "";
+    });
+
+    /* ===== SECTION: Delete Account ===== */
+    async function deleteStorageFolder(prefix){
+      try{
+        const folderRef = sRef(storage, prefix);
+        const list = await listAll(folderRef);
+        for (const f of list.items){ await deleteObject(f); }
+        for (const dir of list.prefixes){ await deleteStorageFolder(dir.fullPath); }
+      }catch(e){ console.warn("Storage cleanup warning:", e.message); }
+    }
+
+    async function deleteRelatedDocs(uid){
+      const collectionsToClean = [
+        { name:"likes", field:"fromUid" },
+        { name:"likes", field:"toUid" },
+        { name:"views", field:"viewerUid" },
+        { name:"views", field:"viewedUid" },
+        { name:"matches", field:"uids", array:true },
+        { name:"chats", field:"uids", array:true },
+      ];
+      for (const cfg of collectionsToClean){
+        try{
+          let qy;
+          if (cfg.array){
+            qy = query(collection(db, cfg.name), where(cfg.field, "array-contains", uid), limit(100));
+          } else {
+            qy = query(collection(db, cfg.name), where(cfg.field, "==", uid), limit(100));
+          }
+          let snap = await getDocs(qy);
+          const toDelete = [];
+          snap.forEach(d=> toDelete.push(d.ref));
+          for (const ref of toDelete){ await deleteDoc(ref); }
+        }catch(e){ console.warn(`Cleanup ${cfg.name} skip:`, e.message); }
+      }
+    }
+
+    async function handleDeleteAccount(){
+      if (!me) return;
+      const confirmText = prompt("Type DELETE to permanently remove your account (this cannot be undone).");
+      if (confirmText !== "DELETE") return;
+
+      // Re-auth if needed
+      try{
+        const lastSignIn = me.metadata?.lastSignInTime ? new Date(me.metadata.lastSignInTime).getTime() : 0;
+        const needsReauth = (Date.now() - lastSignIn) > (5*60*1000);
+        if (needsReauth && me.providerData.some(p=>p.providerId==="password")){
+          const email = me.email;
+          const pwd = prompt("Re-enter your password to confirm delete:");
+          if (!pwd) return alert("Deletion cancelled.");
+          const cred = EmailAuthProvider.credential(email, pwd);
+          await reauthenticateWithCredential(me, cred);
+        }
+      }catch(e){
+        alert("Re-auth failed. Cannot delete account.");
+        return;
+      }
+
+      try{
+        // delete Firestore user doc
+        await deleteDoc(doc(db,"users", me.uid));
+      }catch(e){ console.warn("User doc delete:", e.message); }
+
+      try{
+        // storage folder
+        await deleteStorageFolder(`avatars/${me.uid}`);
+      }catch(e){ console.warn("Storage delete:", e.message); }
+
+      try{
+        // related collections (best-effort)
+        await deleteRelatedDocs(me.uid);
+      }catch(e){ console.warn("Related cleanup:", e.message); }
+
+      try{
+        // delete auth user (last)
+        await deleteUser(me);
+      }catch(e){
+        alert("Could not delete the auth account. You may need to sign in again and retry.");
+        return;
+      }
+
+      alert("Your account has been deleted.");
+      location.replace("./signup.html");
+    }
+    deleteBtn?.addEventListener("click", handleDeleteAccount);
+
+    /* ===== SECTION: Modal Controls ===== */
+    function openEdit(){ editModal.style.display="flex"; }
+    function closeEdit(){ editModal.style.display="none"; }
+    editBtn.addEventListener("click", (e)=>{ e.preventDefault(); openEdit(); });
+    cancelEdit.addEventListener("click", closeEdit);
+    editModal.addEventListener("click", (e)=>{ if(e.target===editModal) closeEdit(); });
+
+    /* ===== SECTION: Auth / Init (No Loops) ===== */
     myProfileBtn.addEventListener("click", ()=>{ if(me){ location.replace(`./profile.html?uid=${encodeURIComponent(me.uid)}`); } });
     logoutBtn.addEventListener("click", async ()=>{ try{ await signOut(auth); location.replace("./login.html"); }catch(e){ console.error("Logout error:", e); } });
+
+    // Go Paid (Square/checkout stub) — uses your existing backend endpoint
     upgradeBtn.addEventListener("click", async () => {
       if (!me) return;
       try {
@@ -519,9 +911,7 @@
         const data = await resp.json();
         if (data.checkoutUrl) location.href = data.checkoutUrl;
         else alert("Could not start checkout.");
-      } catch (e) {
-        console.error(e); alert("Checkout error");
-      }
+      } catch (e) { console.error(e); alert("Checkout error"); }
     });
 
     onAuthStateChanged(auth, async (user)=>{
@@ -533,6 +923,8 @@
 
       // Load/create my doc
       myDocCached = await loadOrCreateUserDoc(me.uid, me);
+
+      // Hydrate form
       displayNameInput.value = myDocCached.displayName || "";
       usernameInput.value   = myDocCached.username || "";
       genderInput.value     = myDocCached.gender || "";
@@ -546,11 +938,11 @@
       uidLine.textContent   = topLine.textContent;
 
       // Load others (exclude me)
-      try {
+      try{
         const snap = await getDocs(collection(db,"users"));
         allUsers = [];
         snap.forEach(d=>{ if(d.id!==me.uid) allUsers.push({ uid: d.id, ...d.data() }); });
-      } catch(e) { allUsers = []; }
+      }catch{ allUsers = []; }
 
       // Build swipe list (fallback to me if no one else yet)
       matches = allUsers.length ? allUsers : [myDocCached];
