@@ -24,16 +24,24 @@
     .card h2{margin:0;padding:14px 14px;border-bottom:1px solid rgba(255,255,255,.06);background:#12131a;position:relative}
     .card-body{padding:14px}
 
-    /* NEW: preTop row (three boxes stacked into the width of one big pane) */
-    .preTop{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
-    .stack{display:grid;grid-template-rows:1fr 1fr;gap:18px;min-height:68vh}
-    .tallBox{min-height:68vh;display:flex;flex-direction:column}
-
-    /* Big 2x2 layout (unchanged) */
+    /* Existing layout */
     .gridTop{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
     .gridBottom{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
     .bigPane{min-height:68vh;display:flex;flex-direction:column}
     .smallPane{min-height:48vh;display:flex;flex-direction:column}
+
+    /* NEW: Promo row (above Live Stream row) */
+    .promoRow{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+    .promoLeft{display:flex;flex-direction:column;gap:18px;min-height:68vh}
+    .promoLeft .card{flex:1;display:flex;flex-direction:column}
+    .promoRight{min-height:68vh;display:flex;flex-direction:column}
+
+    /* Make the whole card body clickable for Badges / Red Flags */
+    .block-link{display:block;width:100%;height:100%;text-decoration:none}
+    .block-link .centered{
+      height:100%;display:flex;align-items:center;justify-content:center;
+      font-weight:1000;letter-spacing:.04em
+    }
 
     /* Live stream */
     .live-box{height:100%;min-height:52vh;background:#000;border-radius:14px;display:flex;align-items:center;justify-content:center}
@@ -65,10 +73,9 @@
     .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 
     @media (max-width:960px){
-      .preTop{grid-template-columns:1fr}
-      .stack{min-height:unset}
-      .tallBox{min-height:unset}
-      .gridTop,.gridBottom{grid-template-columns:1fr}
+      .promoRow,.gridTop,.gridBottom{grid-template-columns:1fr}
+      .promoLeft{min-height:auto}
+      .promoRight{min-height:auto}
     }
   </style>
 </head>
@@ -85,33 +92,57 @@
   </header>
 
   <main class="wrap">
-    <!-- NEW ROW ABOVE LIVE STREAM: three boxes -->
-    <div class="preTop">
-      <!-- Left column (two stacked boxes) -->
-      <div class="stack">
+
+    <!-- ===== NEW PROMO ROW (above Live Stream row) ===== -->
+    <div class="promoRow">
+      <!-- Left: two stacked cards (Badges, Red Flags) -->
+      <div class="promoLeft">
+        <!-- Badges (big single badge, full-card link) -->
         <section class="card">
           <h2>Badges</h2>
-          <div class="card-body" id="badgesBox">
-            <!-- populate later -->
-          </div>
+          <a class="block-link" href="./badges.html" aria-label="View all badges">
+            <div class="card-body centered">
+              <div style="text-align:center">
+                <div style="font-size:44px;line-height:1">🏅</div>
+                <div style="margin-top:6px;opacity:.9">Tap to view all badges</div>
+              </div>
+            </div>
+          </a>
         </section>
+
+        <!-- Red Flags (big single flag, full-card link) -->
         <section class="card">
           <h2>Red Flags</h2>
-          <div class="card-body" id="flagsBox">
-            <!-- populate later -->
-          </div>
+          <a class="block-link" href="./redflags.html" aria-label="View all red flags">
+            <div class="card-body centered">
+              <div style="text-align:center">
+                <div style="font-size:44px;line-height:1">🚩</div>
+                <div style="margin-top:6px;opacity:.9">Tap to view all red flags</div>
+              </div>
+            </div>
+          </a>
         </section>
       </div>
 
-      <!-- Right column (one tall box) -->
-      <section class="card tallBox">
-        <h2>Command</h2>
-        <div class="card-body" id="cmdBox" style="flex:1">
-          <!-- populate later -->
+      <!-- Right: one tall card (Casualties of Modern Dating) -->
+      <section class="card promoRight">
+        <h2>Casualties of Modern Dating</h2>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:12px;flex:1">
+          <div class="muted">Share a short video story. (Upload spot placeholder)</div>
+          <div style="flex:1;border:1px dashed #2a2c39;border-radius:12px;display:flex;align-items:center;justify-content:center;opacity:.8">
+            <div style="text-align:center">
+              <div style="font-size:28px;margin-bottom:6px">⬆️</div>
+              <div>Upload your video</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button class="btn">Choose File</button>
+            <button class="btn primary">Upload</button>
+          </div>
         </div>
       </section>
     </div>
-    <!-- /NEW ROW -->
+    <!-- ===== /NEW PROMO ROW ===== -->
 
     <!-- TOP ROW (unchanged) -->
     <div class="gridTop">
@@ -131,7 +162,6 @@
           <div class="row" style="justify-content:space-between">
             <div class="muted" id="meTag">(not in chat)</div>
             <div class="row">
-              <!-- RED ENTER, VISIBLE -->
               <button class="btn primary" id="enterChatBtn">Enter Chat</button>
               <button class="btn" id="leaveChatBtn" style="display:none">Leave</button>
             </div>
@@ -251,7 +281,7 @@
     let currentRoom = ROOMS[0].id;
     let unsubFeed = null;
 
-    /* ==== DOM ==== */
+    /* ==== DOM (chat) ==== */
     const meTag = document.getElementById("meTag");
     const enterChatBtn = document.getElementById("enterChatBtn");
     const leaveChatBtn = document.getElementById("leaveChatBtn");
@@ -262,6 +292,7 @@
     const chatInput = document.getElementById("chatInput");
     const chatSend = document.getElementById("chatSend");
 
+    /* ==== Boards DOM ==== */
     const chaosList = document.getElementById("chaosList");
     const reviewList = document.getElementById("reviewList");
     const chaosModal = document.getElementById("chaosModal");
@@ -378,17 +409,15 @@
     }
     function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-    // Submit handlers (in-memory)
+    // Submit handlers (still in-memory for now)
     document.getElementById("uploadChaos").addEventListener("click", ()=> open(chaosModal));
     document.getElementById("uploadReview").addEventListener("click", ()=> open(reviewModal));
     cCancel.addEventListener("click", ()=> close(chaosModal));
     rCancel.addEventListener("click", ()=> close(reviewModal));
     chaosModal.addEventListener("click", (e)=>{ if(e.target===chaosModal) close(chaosModal); });
     reviewModal.addEventListener("click", (e)=>{ if(e.target===reviewModal) close(reviewModal); });
-    document.getElementById("detailClose").addEventListener("click", ()=> close(detailModal));
-    detailModal.addEventListener("click", (e)=>{ if(e.target===detailModal) close(detailModal); });
 
-    cSave.addEventListener("click", ()=>{
+    document.getElementById("cSave").addEventListener("click", ()=>{
       const title = (cTitle.value||"").trim().slice(0,60);
       const about = (cAbout.value||"").trim();
       const body  = (cBody.value||"").trim();
@@ -399,7 +428,7 @@
       cTitle.value = ""; cAbout.value = ""; cBody.value = "";
       close(chaosModal);
     });
-    rSave.addEventListener("click", ()=>{
+    document.getElementById("rSave").addEventListener("click", ()=>{
       const title = (rTitle.value||"").trim().slice(0,60);
       const about = (rAbout.value||"").trim();
       const body  = (rBody.value||"").trim();
@@ -411,7 +440,11 @@
       close(reviewModal);
     });
 
-    /* ==== Chat controls ==== */
+    // Detail modal
+    detailClose.addEventListener("click", ()=> close(detailModal));
+    detailModal.addEventListener("click", (e)=>{ if(e.target===detailModal) close(detailModal); });
+
+    /* ==== Chat controls (no anonymous) ==== */
     enterChatBtn.addEventListener("click", async ()=>{
       if (!me) { location.href = "./login.html"; return; }
       if (!myDisplayName){ alert("Your profile needs a username/display name."); return; }
@@ -431,7 +464,7 @@
     chatSend.addEventListener("click", sendMessage);
     chatInput.addEventListener("keydown", (e)=>{ if(e.key==="Enter") sendMessage(); });
 
-    /* ==== Auth: derive visible name from users/{uid} ==== */
+    /* ==== Auth: get visible name from users/{uid} ==== */
     onAuthStateChanged(auth, async (user)=>{
       me = user || null;
       myDisplayName = "";
@@ -450,8 +483,6 @@
         }
       }
       setSigned(false);
-      renderBoard(chaosList, chaosItems);
-      renderBoard(reviewList, reviewItems);
     });
 
     /* ==== Init ==== */
@@ -463,3 +494,4 @@
   </script>
 </body>
 </html>
+```0
