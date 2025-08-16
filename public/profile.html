@@ -965,6 +965,23 @@
 
       // Load/create my doc
       myDocCached = await loadOrCreateUserDoc(me.uid, me);
+      // ===== HARD PHOTO GATE (must add at least one photo) =====
+const _hasPhoto =
+  !!myDocCached.photoURL ||
+  (Array.isArray(myDocCached.photos) && myDocCached.photos.length > 0);
+
+if (!_hasPhoto) {
+  // Open the edit modal and block the feed until they add at least one photo.
+  try { editModal.style.display = "flex"; } catch {}
+  alert("You must upload at least one photo before using the app.");
+
+  // Show only your own profile until a photo exists
+  matches = [myDocCached];
+  currentIndex = 0;
+  renderProfile(myDocCached);
+  refreshSaveButtonState(myDocCached);
+  return; // Skip loading others until a photo is added
+}
 
       // Hydrate form
       displayNameInput.value = myDocCached.displayName || "";
