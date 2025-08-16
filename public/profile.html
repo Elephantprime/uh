@@ -199,17 +199,15 @@
 
     /* ===== SECTION: Config (Requirements & Membership) ===== */
     const REQUIRED = { PHOTO: true, LOCATION: true, DISPLAY_NAME: false, AGE: false };
-    const MEMBERSHIP = { requiredForViews: true, requiredForLikes: true }; // gate “likes/views” later
+    const MEMBERSHIP = { requiredForViews: true, requiredForLikes: true };
 
     /* ===== SECTION: DOM Refs ===== */
-    // Top bar
     const topLine = document.getElementById("topLine");
     const myProfileBtn = document.getElementById("myProfileBtn");
     const editBtn = document.getElementById("editBtn");
     const logoutBtn = document.getElementById("logoutBtn");
     const upgradeBtn = document.getElementById("upgradeBtn");
 
-    // Swipe card
     const cardFrame = document.getElementById("cardFrame");
     const mainPhoto = document.getElementById("main-photo");
     const nameEl = document.getElementById("name");
@@ -223,7 +221,6 @@
     const likeIndicator = document.getElementById("like-indicator");
     const emptyEl = document.getElementById("empty");
 
-    // Edit modal
     const editModal = document.getElementById("editModal");
     const saveEdit = document.getElementById("saveEdit");
     const cancelEdit = document.getElementById("cancelEdit");
@@ -249,8 +246,8 @@
     /* ===== SECTION: State ===== */
     let me = null;
     let myDocCached = null;
-    let allUsers = [];     // other user docs
-    let matches = [];      // swipe list (others) or self fallback
+    let allUsers = [];
+    let matches = [];
     let currentIndex = 0;
     let previewURLs = [];
     let _profileNavGuard = false;
@@ -261,18 +258,30 @@
     reqLocation.hidden = !REQUIRED.LOCATION;
     reqPhoto.hidden = !REQUIRED.PHOTO;
 
-    /* ===== SECTION: Helper – UI Feedback ===== */
+    /* ===== SECTION: Helpers ===== */
     function showError(msg){ uploadStatus.innerHTML = `<span class="err">${msg}</span>`; }
     function showOK(msg){ uploadStatus.innerHTML = `<span class="ok">${msg}</span>`; }
 
-    /* ===== SECTION: Helper – Renderers ===== */
+    const NEUTRAL_PHOTO = "data:image/svg+xml;utf8," + encodeURIComponent(
+      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1200'><rect width='100%' height='100%' fill='#0b0b0f'/><circle cx='400' cy='420' r='160' fill='#20222b'/><rect x='210' y='650' width='380' height='260' rx='28' fill='#20222b'/></svg>`
+    );
+    function safePrimaryPhoto(p){
+      const cand = p?.photoURL || (Array.isArray(p?.photos) && p.photos[0]) || "";
+      return (typeof cand === "string" && /^https?:\/\//i.test(cand)) ? cand : "";
+    }
+
+    /* ===== SECTION: Renderers ===== */
     function renderBadges(badges=[]) {
       badgesEl.innerHTML = "";
-      (badges||[]).forEach(url => { const img = document.createElement("img"); img.src=url; img.alt="badge"; badgesEl.appendChild(img); });
+      (badges||[]).forEach(url => {
+        const img = document.createElement("img");
+        img.src = url; img.alt = "badge";
+        badgesEl.appendChild(img);
+      });
     }
     function renderFlags(flags=[]) {
       flagsEl.innerHTML = "";
-      const count = Array.isArray(flags)?flags.length:0;
+      const count = Array.isArray(flags) ? flags.length : 0;
       for(let i=0;i<count;i++){
         const img=document.createElement("img");
         img.src="https://upload.wikimedia.org/wikipedia/commons/f/f7/Flag_icon_red.svg";
@@ -282,19 +291,26 @@
     }
     function renderProfile(p) {
       if (!p) {
-        mainPhoto.src=""; nameEl.textContent=""; handleEl.textContent=""; subInfo.textContent="";
-        renderBadges([]); renderFlags([]); emptyEl.style.display="flex"; return;
+        mainPhoto.src = NEUTRAL_PHOTO;
+        nameEl.textContent = ""; handleEl.textContent = ""; subInfo.textContent = "";
+        renderBadges([]); renderFlags([]);
+        emptyEl.style.display="flex"; return;
       }
       emptyEl.style.display="none";
-      const primary = p.photoURL || (Array.isArray(p.photos)&&p.photos[0]) || "https://via.placeholder.com/800x1200";
+      const primary = safePrimaryPhoto(p) || NEUTRAL_PHOTO;
       mainPhoto.src = primary;
+
       const name = p.displayName || "Member";
-      const age  = p.age ? `, ${p.age}` : "";
+      const age  = (typeof p.age === "number" && p.age >= 0) ? `, ${p.age}` : "";
       nameEl.textContent = `${name}${age}`;
       handleEl.textContent = p.username ? `@${p.username}` : "";
-      const hobbyHint = (p.hobbies && p.hobbies.trim()) ? ` • ${p.hobbies.trim().slice(0,20)}${p.hobbies.trim().length>20?'…':''}` : "";
-      const interestHint = (p.interests && p.interests.trim()) ? ` • ${p.interests.trim().slice(0,20)}${p.interests.trim().length>20?'…':''}` : "";
-      subInfo.textContent = (p.location || "") + hobbyHint + interestHint;
+
+      const hobby = (p.hobbies||"").trim();
+      const interests = (p.interests||"").trim();
+      const hHint = hobby ? ` • ${hobby.slice(0,20)}${hobby.length>20?'…':''}` : "";
+      const iHint = interests ? ` • ${interests.slice(0,20)}${interests.length>20?'…':''}` : "";
+      subInfo.textContent = (p.location || "") + hHint + iHint;
+
       renderBadges(p.badges||[]);
       renderFlags(p.flags||[]);
     }
@@ -322,8 +338,13 @@
         galleryEl.appendChild(box);
       });
     }
-    function clearPreviews(){ previewURLs.forEach(u=>URL.revokeObjectURL(u)); previewURLs=[]; previewGallery.innerHTML=""; previewTitle.hidden=true; previewGallery.hidden=true; }
-    function renderPreviews(files){ clearPreviews(); if(!files?.length) return; previewTitle.hidden=false; previewGallery.hidden=false;
+    function clearPreviews(){
+      previewURLs.forEach(u=>URL.revokeObjectURL(u)); previewURLs=[];
+      previewGallery.innerHTML=""; previewTitle.hidden=true; previewGallery.hidden=true;
+    }
+    function renderPreviews(files){
+      clearPreviews(); if(!files?.length) return;
+      previewTitle.hidden=false; previewGallery.hidden=false;
       [...files].forEach((f,i)=>{ const url=URL.createObjectURL(f); previewURLs.push(url);
         const box=document.createElement("div"); box.className="thumb";
         const img=document.createElement("img"); img.src=url;
@@ -362,8 +383,22 @@
     interestsInput?.addEventListener("input",()=>refreshSaveButtonState(myDocCached));
     avatarInput.addEventListener("change",(e)=>{ renderPreviews(e.target.files); refreshSaveButtonState(myDocCached); });
 
+    /* ===== SECTION: Modal Controls ===== */
+    function openEdit(){ editModal.style.display="flex"; }
+    function closeEdit(){ editModal.style.display="none"; }
+    editBtn.addEventListener("click", (e)=>{ e.preventDefault(); openEdit(); });
+    cancelEdit.addEventListener("click", closeEdit);
+    editModal.addEventListener("click", (e)=>{ if(e.target===editModal) closeEdit(); });
+
     /* ===== SECTION: Swipe (Touch/Buttons) ===== */
-    function nextProfile(){ currentIndex++; renderProfile(matches[currentIndex]||null); }
+    function currentMatch(){
+      return (Array.isArray(matches) && matches.length && matches[currentIndex]) ? matches[currentIndex] : null;
+    }
+    function nextProfile(){
+      if (!Array.isArray(matches) || !matches.length) return;
+      currentIndex = Math.min(currentIndex + 1, matches.length - 1);
+      renderProfile(matches[currentIndex] || null);
+    }
     function showIndicator(t){ passIndicator.style.opacity = t==="pass"?1:0; likeIndicator.style.opacity = t==="like"?1:0; }
     let startX=0, dx=0, dragging=false;
     cardFrame.addEventListener("touchstart", e=>{ startX=e.touches[0].clientX; dragging=true; });
@@ -375,14 +410,14 @@
     passBtn.addEventListener("click", nextProfile);
     likeBtn.addEventListener("click", nextProfile);
 
-    // --- Open public profile when you click the photo ---
+    // Click main photo -> open user's public page (if uid exists)
     mainPhoto.addEventListener("click", () => {
-      const p = matches[currentIndex];
-      if (!p || !p.uid) return; // requires uid
+      const p = currentMatch();
+      if (!p || !p.uid) return;
       location.href = `./user.html?uid=${encodeURIComponent(p.uid)}`;
     });
 
-    /* ===== SECTION: Data Layer (Load/Create/Save) ===== */
+    /* ===== SECTION: Data Layer ===== */
     async function loadOrCreateUserDoc(uid, userObj){
       const uref = doc(db,"users",uid);
       const snap = await getDoc(uref);
@@ -402,255 +437,11 @@
           createdAt:serverTimestamp(), updatedAt:serverTimestamp()
         };
         await setDoc(uref, seed);
-/* ===== SECTION: State ===== */
-let me = null;
-let myDocCached = null;
-let allUsers = [];     // other user docs
-let matches = [];      // swipe list (others) or self fallback
-let currentIndex = 0;
-let previewURLs = [];
-let _profileNavGuard = false;
-
-/* Neutral placeholder (no stock faces) */
-const NEUTRAL_PHOTO = "data:image/svg+xml;utf8," + encodeURIComponent(
-  `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1200'><rect width='100%' height='100%' fill='#0b0b0f'/><circle cx='400' cy='420' r='160' fill='#20222b'/><rect x='210' y='650' width='380' height='260' rx='28' fill='#20222b'/></svg>`
-);
-
-/* ===== SECTION: Required Markers ===== */
-reqDisplayName.hidden = !REQUIRED.DISPLAY_NAME;
-reqAge.hidden = !REQUIRED.AGE;
-reqLocation.hidden = !REQUIRED.LOCATION;
-reqPhoto.hidden = !REQUIRED.PHOTO;
-
-/* ===== SECTION: Helper – UI Feedback ===== */
-function showError(msg){ uploadStatus.innerHTML = `<span class="err">${msg}</span>`; }
-function showOK(msg){ uploadStatus.innerHTML = `<span class="ok">${msg}</span>`; }
-
-/* ===== SECTION: Helper – Renderers ===== */
-function renderBadges(badges = []) {
-  badgesEl.innerHTML = "";
-  (badges || []).forEach(url => {
-    const img = document.createElement("img");
-    img.src = url;
-    img.alt = "badge";
-    badgesEl.appendChild(img);
-  });
-}
-function renderFlags(flags = []) {
-  flagsEl.innerHTML = "";
-  const count = Array.isArray(flags) ? flags.length : 0;
-  for (let i = 0; i < count; i++){
-    const img = document.createElement("img");
-    img.src = "https://upload.wikimedia.org/wikipedia/commons/f/f7/Flag_icon_red.svg";
-    img.alt = "red flag";
-    flagsEl.appendChild(img);
-  }
-}
-function safePrimaryPhoto(p){
-  const cand = p?.photoURL || (Array.isArray(p?.photos) && p.photos[0]) || "";
-  // Only use http/https URLs; otherwise use neutral placeholder (prevents “random person” fallbacks)
-  if (typeof cand === "string" && /^https?:\/\//i.test(cand)) return cand;
-  return "";
-}
-function renderProfile(p) {
-  if (!p) {
-    mainPhoto.src = NEUTRAL_PHOTO;
-    nameEl.textContent = "";
-    handleEl.textContent = "";
-    subInfo.textContent = "";
-    renderBadges([]);
-    renderFlags([]);
-    emptyEl.style.display = "flex";
-    return;
-  }
-  emptyEl.style.display = "none";
-  const primary = safePrimaryPhoto(p) || NEUTRAL_PHOTO;
-  mainPhoto.src = primary;
-
-  const name = p.displayName || "Member";
-  const age  = (typeof p.age === "number" && p.age >= 0) ? `, ${p.age}` : "";
-  nameEl.textContent = `${name}${age}`;
-  handleEl.textContent = p.username ? `@${p.username}` : "";
-
-  const hobbyRaw = (p.hobbies || "").trim();
-  const interestRaw = (p.interests || "").trim();
-  const hobbyHint = hobbyRaw ? ` • ${hobbyRaw.slice(0,20)}${hobbyRaw.length>20?'…':''}` : "";
-  const interestHint = interestRaw ? ` • ${interestRaw.slice(0,20)}${interestRaw.length>20?'…':''}` : "";
-  subInfo.textContent = (p.location || "") + hobbyHint + interestHint;
-
-  renderBadges(p.badges || []);
-  renderFlags(p.flags || []);
-}
-function renderGallery(photos = []) {
-  galleryEl.innerHTML = "";
-  (photos || []).forEach((url, i) => {
-    const box = document.createElement("div");
-    box.className = "thumb" + (i === 0 ? " primary" : "");
-    const img = document.createElement("img");
-    img.src = url;
-    const lbl = document.createElement("div");
-    lbl.className = "label-pill";
-    lbl.textContent = i === 0 ? "Primary" : `Photo ${i + 1}`;
-    box.appendChild(img);
-    box.appendChild(lbl);
-    box.addEventListener("click", async () => {
-      try {
-        if (!me) return;
-        const uref = doc(db, "users", me.uid);
-        const snap = await getDoc(uref);
-        const current = snap.data() || {};
-        let photosNow = Array.isArray(current.photos) ? [...current.photos] : [];
-        const idx = photosNow.indexOf(url);
-        if (idx > 0) { photosNow.splice(idx, 1); photosNow.unshift(url); }
-        await updateProfile(me, { photoURL: url });
-        await setDoc(
-          uref,
-          { photoURL: url, photos: photosNow, updatedAt: serverTimestamp() },
-          { merge: true }
-        );
-        myDocCached = { ...(myDocCached || {}), photoURL: url, photos: photosNow };
-        renderGallery(photosNow);
-        if (!matches.length) renderProfile(myDocCached);
-        showOK("Primary photo updated.");
-      } catch (e) {
-        showError(`Could not set primary: ${e?.message || "error"}`);
+        return seed;
       }
-    });
-    galleryEl.appendChild(box);
-  });
-}
-function clearPreviews(){
-  previewURLs.forEach(u => URL.revokeObjectURL(u));
-  previewURLs = [];
-  previewGallery.innerHTML = "";
-  previewTitle.hidden = true;
-  previewGallery.hidden = true;
-}
-function renderPreviews(files){
-  clearPreviews();
-  if (!files?.length) return;
-  previewTitle.hidden = false;
-  previewGallery.hidden = true; // show after we add at least one
-  [...files].forEach((f, i) => {
-    const url = URL.createObjectURL(f);
-    previewURLs.push(url);
-    const box = document.createElement("div");
-    box.className = "thumb";
-    const img = document.createElement("img");
-    img.src = url;
-    const lbl = document.createElement("div");
-    lbl.className = "label-pill";
-    lbl.textContent = `New ${i + 1}`;
-    box.appendChild(img);
-    box.appendChild(lbl);
-    previewGallery.appendChild(box);
-  });
-  previewGallery.hidden = false;
-}
+      return snap.data();
+    }
 
-/* ===== SECTION: Validation ===== */
-function validateBeforeSave(currentDoc, filesPending){
-  const pending = (filesPending && filesPending.length) || 0;
-  const saved = Array.isArray(currentDoc?.photos) ? currentDoc.photos : [];
-  const hasPhoto = saved.length > 0 || pending > 0 || !!currentDoc?.photoURL;
-  if (REQUIRED.PHOTO && !hasPhoto) return { ok:false, message:"Add at least one photo before saving.", focus:"photo" };
-
-  const loc = (locationInput.value || "").trim();
-  if (REQUIRED.LOCATION && !loc) return { ok:false, message:"Please enter your location before saving.", focus:"location" };
-
-  const dn = (displayNameInput.value || "").trim();
-  if (REQUIRED.DISPLAY_NAME && !dn) return { ok:false, message:"Please enter your display name before saving.", focus:"displayName" };
-
-  if (REQUIRED.AGE){
-    const a = Number(ageInput.value);
-    if (!Number.isFinite(a) || a < 18 || a > 100) return { ok:false, message:"Please enter a valid age (18–100).", focus:"age" };
-  }
-  return { ok:true };
-}
-function refreshSaveButtonState(currentDoc){
-  const res = validateBeforeSave(currentDoc, avatarInput?.files);
-  saveEdit.disabled = !res.ok;
-  if (!res.ok) uploadStatus.innerHTML = `<span class="prog">${res.message}</span>`;
-  else uploadStatus.textContent = "";
-}
-function focusInvalid(key){
-  if (key === "location"){ locationInput.classList.add("invalid"); locationInput.scrollIntoView({behavior:"smooth",block:"center"}); locationInput.focus(); }
-  if (key === "displayName"){ displayNameInput.classList.add("invalid"); displayNameInput.scrollIntoView({behavior:"smooth",block:"center"}); displayNameInput.focus(); }
-  if (key === "age"){ ageInput.classList.add("invalid"); ageInput.scrollIntoView({behavior:"smooth",block:"center"}); ageInput.focus(); }
-  if (key === "photo"){ avatarInput.scrollIntoView({behavior:"smooth",block:"center"}); }
-}
-
-// Live validation & previews
-[displayNameInput, usernameInput, ageInput, locationInput, bioInput]
-  .filter(Boolean)
-  .forEach(el => el.addEventListener("input", () => refreshSaveButtonState(myDocCached)));
-[genderInput, hobbiesInput, interestsInput]
-  .filter(Boolean)
-  .forEach(el => el.addEventListener("input", () => refreshSaveButtonState(myDocCached)));
-avatarInput.addEventListener("change", (e) => { renderPreviews(e.target.files); refreshSaveButtonState(myDocCached); });
-
-/* ===== SECTION: Swipe (Touch/Buttons) ===== */
-function nextProfile(){
-  currentIndex++;
-  renderProfile(matches[currentIndex] || null);
-}
-function showIndicator(t){
-  passIndicator.style.opacity = t === "pass" ? 1 : 0;
-  likeIndicator.style.opacity = t === "like" ? 1 : 0;
-}
-let startX = 0, dx = 0, dragging = false;
-cardFrame.addEventListener("touchstart", e => { startX = e.touches[0].clientX; dragging = true; });
-cardFrame.addEventListener("touchmove", e => {
-  if (!dragging) return;
-  dx = e.touches[0].clientX - startX;
-  if (dx > 50) showIndicator("like");
-  else if (dx < -50) showIndicator("pass");
-  else showIndicator(null);
-});
-cardFrame.addEventListener("touchend", () => {
-  if (!dragging) return;
-  if (Math.abs(dx) > 100) nextProfile();
-  showIndicator(null);
-  dragging = false; dx = 0;
-});
-passBtn.addEventListener("click", nextProfile);
-likeBtn.addEventListener("click", nextProfile);
-
-// --- Open public profile when you click the photo ---
-mainPhoto.addEventListener("click", () => {
-  const p = matches[currentIndex];
-  if (!p || !p.uid) return; // requires uid
-  location.href = `./user.html?uid=${encodeURIComponent(p.uid)}`;
-});
-
-/* ===== SECTION: Data Layer (Load/Create/Save) ===== */
-async function loadOrCreateUserDoc(uid, userObj){
-  const uref = doc(db, "users", uid);
-  const snap = await getDoc(uref);
-  if (!snap.exists()){
-    const seed = {
-      uid,
-      displayName: userObj.displayName || "Member",
-      username: "",
-      gender: "",
-      hobbies: "",
-      interests: "",
-      photoURL: userObj.photoURL || "",
-      photos: userObj.photoURL ? [userObj.photoURL] : [],
-      bio: "",
-      age: null,
-      location: "",
-      badges: [],
-      flags: [],
-      membership: { tier: "free" },
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    };
-    await setDoc(uref, seed);
-    return seed;
-  }
-  return snap.data();
-}
     async function saveEdits(){
       if(!me) return;
       saveEdit.disabled = true; uploadStatus.innerHTML = `<span class="prog">Saving…</span>`;
@@ -663,10 +454,17 @@ async function loadOrCreateUserDoc(uid, userObj){
 
         let photos = Array.isArray(currentDoc.photos)?[...currentDoc.photos]:[];
         if(files.length){ uploadStatus.innerHTML = `<span class="prog">Uploading ${files.length} photo(s)…</span>`; }
-        for(const f of files){ const path=`avatars/${me.uid}/${Date.now()}_${f.name}`; const r=sRef(storage,path); await uploadBytes(r,f); const url=await getDownloadURL(r); photos.push(url); }
+        for(const f of files){
+          const safeName = (f.name||"photo").replace(/[^\w.\-]+/g,"_");
+          const path=`avatars/${me.uid}/${Date.now()}_${safeName}`;
+          const r=sRef(storage,path);
+          await uploadBytes(r,f);
+          const url=await getDownloadURL(r);
+          photos.push(url);
+        }
 
         let photoURL = currentDoc.photoURL || photos[0] || "";
-        if(!currentDoc.photoURL && photos[0]){ await updateProfile(me,{ photoURL:photos[0] }); photoURL = photos[0]; }
+        if(!currentDoc.photoURL && photos[0]){ try{ await updateProfile(me,{ photoURL:photos[0] }); }catch{} photoURL = photos[0]; }
 
         const payload = {
           displayName: (displayNameInput.value||"").trim(),
@@ -685,36 +483,31 @@ async function loadOrCreateUserDoc(uid, userObj){
         topLine.textContent = myDocCached.username ? `@${myDocCached.username}` : `UID: ${me.uid}`;
         handleEl.textContent = myDocCached.username ? `@${myDocCached.username}` : "";
 
-        renderGallery(photos); if(!matches.length) renderProfile(myDocCached);
+        renderGallery(photos);
+        if(!matches.length) renderProfile(myDocCached);
 
         avatarInput.value=""; clearPreviews();
-        showOK("Profile saved."); setTimeout(()=>{ editModal.style.display="none"; }, 500);
-
-        rebuildMatches(); // re-apply if you add filters later
-      }catch(e){ showError(`Save failed: ${e?.message||'error'}`); }
-      finally{ saveEdit.disabled=false; }
+        showOK("Profile saved."); setTimeout(()=>{ editModal.style.display="none"; }, 400);
+      }catch(e){
+        showError(`Save failed: ${e?.message||'error'}`);
+      }finally{
+        saveEdit.disabled=false;
+      }
     }
     saveEdit.addEventListener("click", saveEdits);
 
     /* ===== SECTION: Membership Gating (stubs) ===== */
-    function isMember(userDoc){
-      const tier = userDoc?.membership?.tier || "free";
-      return tier !== "free";
-    }
+    function isMember(userDoc){ return (userDoc?.membership?.tier || "free") !== "free"; }
     async function openLikesList(){
       if (MEMBERSHIP.requiredForLikes && !isMember(myDocCached)) { alert("Upgrade to a member to see who liked you."); return; }
-      // TODO
     }
     async function openViewsList(){
       if (MEMBERSHIP.requiredForViews && !isMember(myDocCached)) { alert("Upgrade to a member to see who viewed your profile."); return; }
-      // TODO
     }
 
-    /* ===== SECTION: Auth / Init (No Loops) ===== */
+    /* ===== SECTION: Auth / Init ===== */
     myProfileBtn.addEventListener("click", ()=>{ if(me){ location.replace(`./profile.html?uid=${encodeURIComponent(me.uid)}`); } });
     logoutBtn.addEventListener("click", async ()=>{ try{ await signOut(auth); location.replace("./login.html"); }catch(e){ console.error("Logout error:", e); } });
-
-    // ---- Go Paid (Square checkout) ----
     upgradeBtn.addEventListener("click", async () => {
       if (!me) return;
       try {
@@ -724,18 +517,13 @@ async function loadOrCreateUserDoc(uid, userObj){
           body: JSON.stringify({ uid: me.uid, email: me.email }),
         });
         const data = await resp.json();
-        if (data.checkoutUrl) {
-          location.href = data.checkoutUrl;
-        } else {
-          alert("Could not start checkout.");
-        }
+        if (data.checkoutUrl) location.href = data.checkoutUrl;
+        else alert("Could not start checkout.");
       } catch (e) {
-        console.error(e);
-        alert("Checkout error");
+        console.error(e); alert("Checkout error");
       }
     });
 
-    // ---- Load & hydrate ----
     onAuthStateChanged(auth, async (user)=>{
       if(!user){
         if(!_profileNavGuard){ _profileNavGuard=true; location.replace("./login.html"); }
@@ -757,10 +545,12 @@ async function loadOrCreateUserDoc(uid, userObj){
       topLine.textContent   = myDocCached.username ? `@${myDocCached.username}` : `UID: ${me.uid}`;
       uidLine.textContent   = topLine.textContent;
 
-      // Load others (exclude me) and ENSURE uid is present
-      const snap = await getDocs(collection(db,"users"));
-      allUsers = [];
-      snap.forEach(d=>{ if(d.id!==me.uid) allUsers.push({ uid: d.id, ...d.data() }); });
+      // Load others (exclude me)
+      try {
+        const snap = await getDocs(collection(db,"users"));
+        allUsers = [];
+        snap.forEach(d=>{ if(d.id!==me.uid) allUsers.push({ uid: d.id, ...d.data() }); });
+      } catch(e) { allUsers = []; }
 
       // Build swipe list (fallback to me if no one else yet)
       matches = allUsers.length ? allUsers : [myDocCached];
