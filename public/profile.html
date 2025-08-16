@@ -227,6 +227,80 @@
         <button class="btn secondary" id="cancelEdit" type="button"
                 onclick="document.getElementById('editModal').style.display='none'">Cancel</button>
         <button class="btn" id="saveEdit" type="button">Save</button>
+<!-- ===== SECTION: Edit Profile Modal ===== -->
+  <div class="modal-backdrop" id="editModal">
+    <div class="modal">
+      <h3>Edit Profile</h3>
+      <div class="muted" id="uidLine"></div>
+
+      <!-- Subsection: Identity -->
+      <div class="row">
+        <div>
+          <label for="displayName">Display name <span class="req" id="reqDisplayName" hidden>*</span></label>
+          <input id="displayName" type="text" />
+        </div>
+        <div>
+          <label for="username">Username</label>
+          <input id="username" type="text" placeholder="yourhandle" />
+        </div>
+      </div>
+
+      <!-- Subsection: About -->
+      <div class="row">
+        <div>
+          <label for="age">Age <span class="req" id="reqAge" hidden>*</span></label>
+          <input id="age" type="number" min="18" max="100" />
+        </div>
+        <div>
+          <label for="location">Location <span class="req" id="reqLocation" hidden>*</span></label>
+          <input id="location" type="text" placeholder="City, State" />
+        </div>
+      </div>
+
+      <!-- Subsection: Extra (Gender/Hobbies/Interests) -->
+      <div class="row">
+        <div>
+          <label for="gender">Gender</label>
+          <select id="gender">
+            <option value="">Prefer not to say</option>
+            <option value="female">Female</option>
+            <option value="male">Male</option>
+          </select>
+        </div>
+        <div></div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="hobbies">Hobbies</label>
+          <input id="hobbies" type="text" placeholder="e.g., hiking, gaming" />
+        </div>
+        <div>
+          <label for="interests">Interests</label>
+          <input id="interests" type="text" placeholder="e.g., live music, travel" />
+        </div>
+      </div>
+
+      <label for="bio">Bio</label>
+      <textarea id="bio" rows="3" placeholder="Say something…"></textarea>
+
+      <!-- Subsection: Photos -->
+      <label for="avatar" style="margin-top:.5rem;">Add photos (you can select multiple) <span class="req" id="reqPhoto" hidden>*</span></label>
+      <input id="avatar" type="file" accept="image/*" multiple />
+      <div class="hint">Click a saved photo below to set it as your <b>Primary</b>. Selected files preview below before upload.</div>
+      <div class="status" id="uploadStatus"></div>
+
+      <!-- Previews (not yet uploaded) -->
+      <div class="muted" style="margin-top:.5rem;" id="previewTitle" hidden>Selected (not yet uploaded)</div>
+      <div class="gallery" id="previewGallery" hidden></div>
+
+      <!-- Saved photos -->
+      <div class="muted" style="margin-top:.75rem;">Saved Photos</div>
+      <div class="gallery" id="gallery"></div>
+
+      <div style="margin-top:.75rem;display:flex;gap:.5rem;justify-content:flex-end;">
+        <button class="btn secondary" id="cancelEdit" type="button"
+                onclick="document.getElementById('editModal').style.display='none'">Cancel</button>
+        <button class="btn" id="saveEdit" type="button">Save</button>
       </div>
     </div>
   </div>
@@ -285,6 +359,54 @@
       </div>
     </div>
   </div>
+
+  <!-- ===== SELF-DELETE HANDLER (place this right after your modals) ===== -->
+  <script type="module">
+    import { getAuth, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getStorage, ref as sRef, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+    // Reuse initialized app instances
+    const auth = getAuth();
+    const db = getFirestore();
+    const storage = getStorage();
+
+    async function deleteStorageFolder(prefix) {
+      try {
+        const folderRef = sRef(storage, prefix);
+        const list = await listAll(folderRef);
+        for (const f of list.items) await deleteObject(f);
+        for (const dir of list.prefixes) await deleteStorageFolder(dir.fullPath);
+      } catch (e) {
+        console.warn("storage cleanup:", e.message);
+      }
+    }
+
+    const deleteBtn = document.getElementById("deleteAccount");
+    if (deleteBtn) {
+      deleteBtn.addEventListener("click", async () => {
+        if (!confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
+
+        try {
+          const uid = auth.currentUser?.uid;
+          if (!uid) return;
+
+          // 1) Remove Firestore user doc
+          await deleteDoc(doc(db, "users", uid));
+
+          // 2) Remove avatar folder in Storage
+          await deleteStorageFolder(`avatars/${uid}`);
+
+          // 3) Delete Auth account
+          await deleteUser(auth.currentUser);
+
+          alert("Account deleted.");
+          window.location.href = "/login.html";
+        } catch (err) {
+          alert("Delete failed: " + (err.message || err));
+        }
+      });
+    }
 
   <!-- ===== SECTION: Scripts ===== -->
   <script type="module">
