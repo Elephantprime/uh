@@ -1,75 +1,178 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Sign up • UNHINGED</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Unhinged — Join Now</title>
   <style>
-    :root{--ink:#0b0b0f;--card:#12131a;--ui:#0c0c0c;--muted:#b8b9c6;--border:#2a2a2a;--brand:#E11D2A}
-    *{box-sizing:border-box} html,body{margin:0}
-    body{background:var(--ink);color:#fff;font:500 16px/1.5 Inter,system-ui,Segoe UI,Roboto,Arial}
-    .wrap{max-width:480px;margin:40px auto;padding:0 16px}
-    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:18px;box-shadow:0 10px 28px rgba(0,0,0,.35)}
-    h1{margin:0 0 12px;font-size:24px}
-    label{display:block;margin:12px 0 6px;color:#ddd;font-size:14px}
-    input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--ui);color:#fff}
-    button{background:var(--brand);color:#fff;border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer;margin-top:12px;width:100%}
-    #smsg{min-height:20px;margin-top:10px;color:var(--muted)}
-    #smsg.ok{color:#7CFF7C} #smsg.warn{color:#F6C31C}
-    a{color:#fff;text-decoration:underline}
+    :root { --bg:#0e0e12; --panel:#15161b; --muted:#cfd0de; --red:#E11D2A; --ok:#35d296; }
+    *{box-sizing:border-box}
+    body{font-family:Arial, sans-serif;max-width:720px;margin:0 auto;padding:2rem;background:var(--bg);color:#fff}
+    h1,h3{margin:.2rem 0}
+    .card{margin-top:1rem;padding:1rem;border:1px solid #2a2a2a;border-radius:12px;background:var(--panel)}
+    label{display:block;margin:.4rem 0 .25rem}
+    input{width:100%;padding:.6rem;margin-bottom:.8rem;border:1px solid #2a2a2a;border-radius:8px;background:#12131a;color:#fff}
+    .row{display:flex;gap:.6rem}
+    .row>*{flex:1}
+    .btn{padding:.65rem 1rem;border:none;background:var(--red);color:#fff;border-radius:8px;cursor:pointer}
+    .btn.ghost{background:transparent;border:1px solid #2a2a2a}
+    .btn.ok{background:var(--ok)}
+    .muted{color:var(--muted)}
+    .err{color:#ff8e8e}.ok{color:#89f0b7}.prog{color:#ffd27f}
+    .q{margin:.75rem 0}
+    .q strong{display:block;margin-bottom:.25rem}
+    .q label{display:flex;gap:.5rem;align-items:center;margin:.25rem 0}
+    .divider{height:1px;background:#2a2a2a;margin:12px 0;border:0}
+    .req{color:#ff6b6b;font-weight:700;margin-left:.25rem}
+    .invalid{outline:2px solid #ff6b6b;outline-offset:2px;border-color:#ff6b6b !important}
+    a{color:#9ecbff}
   </style>
 </head>
 <body>
-  <main class="wrap">
-    <div class="card">
-      <h1>Create account</h1>
-      <form id="signupForm" novalidate>
-        <label for="semail">Email</label>
-        <input id="semail" type="email" required autocomplete="email">
-        <label for="spass">Password</label>
-        <input id="spass" type="password" required minlength="6" autocomplete="new-password">
-        <button type="submit">Create account</button>
-        <p id="smsg"></p>
-      </form>
-      <p style="margin-top:8px">Already have an account? <a href="./login.html">Log in</a></p>
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <h1>Join Unhinged</h1>
+    <a href="./login.html">Already have an account?</a>
+  </div>
+
+  <!-- Step 1 -->
+  <div class="card" id="step1">
+    <h3>Create your account</h3>
+    <p class="muted" style="margin-top:0">Use your email and a strong password. You’ll take a quick quiz next.</p>
+    <label for="email">Email <span class="req">*</span></label>
+    <input id="email" type="email" autocomplete="username" required />
+    <label for="password">Password <span class="req">*</span></label>
+    <input id="password" type="password" autocomplete="new-password" required />
+    <div class="row">
+      <button class="btn" id="toQuiz">Continue to Quiz</button>
+      <button class="btn ghost" onclick="location.href='./login.html'">Cancel</button>
     </div>
-  </main>
+    <div class="muted" id="s1status"></div>
+  </div>
+
+  <!-- Step 2: Quiz -->
+  <div class="card" id="step2" style="display:none">
+    <h3>Quick Start Quiz</h3>
+    <p class="muted" style="margin-top:0">Complete this to personalize your matches. All questions are required.</p>
+
+    <!-- 8 sample questions (replace later as needed) -->
+    <div class="q"><strong>1) What are you looking for? <span class="req">*</span></strong>
+      <label><input type="radio" name="q1" value="serious"> Something serious</label>
+      <label><input type="radio" name="q1" value="casual"> Casual</label>
+      <label><input type="radio" name="q1" value="unsure"> Not sure yet</label>
+    </div>
+    <div class="q"><strong>2) Weekend vibe? <span class="req">*</span></strong>
+      <label><input type="radio" name="q2" value="outdoor"> Outdoorsy</label>
+      <label><input type="radio" name="q2" value="homebody"> Homebody</label>
+      <label><input type="radio" name="q2" value="nightlife"> Nightlife</label>
+    </div>
+    <div class="q"><strong>3) Biggest red flag for you? <span class="req">*</span></strong>
+      <label><input type="radio" name="q3" value="lateness"> Always late</label>
+      <label><input type="radio" name="q3" value="messy"> Messy</label>
+      <label><input type="radio" name="q3" value="none"> None of these</label>
+    </div>
+    <div class="q"><strong>4) Kids? <span class="req">*</span></strong>
+      <label><input type="radio" name="q4" value="want"> Want kids</label>
+      <label><input type="radio" name="q4" value="dontwant"> Don’t want kids</label>
+      <label><input type="radio" name="q4" value="open"> Open/Maybe</label>
+    </div>
+    <div class="q"><strong>5) Smoking? <span class="req">*</span></strong>
+      <label><input type="radio" name="q5" value="no"> No</label>
+      <label><input type="radio" name="q5" value="sometimes"> Sometimes</label>
+      <label><input type="radio" name="q5" value="yes"> Yes</label>
+    </div>
+    <div class="q"><strong>6) Pets at home? <span class="req">*</span></strong>
+      <label><input type="radio" name="q6" value="dog"> Dog(s)</label>
+      <label><input type="radio" name="q6" value="cat"> Cat(s)</label>
+      <label><input type="radio" name="q6" value="none"> None</label>
+    </div>
+    <div class="q"><strong>7) Political comfort zone? <span class="req">*</span></strong>
+      <label><input type="radio" name="q7" value="aligned"> Prefer aligned</label>
+      <label><input type="radio" name="q7" value="open"> Open to different</label>
+      <label><input type="radio" name="q7" value="avoid"> Avoid politics</label>
+    </div>
+    <div class="q"><strong>8) Night owl or early bird? <span class="req">*</span></strong>
+      <label><input type="radio" name="q8" value="owl"> Night owl</label>
+      <label><input type="radio" name="q8" value="bird"> Early bird</label>
+      <label><input type="radio" name="q8" value="both"> Both/depends</label>
+    </div>
+
+    <div class="divider"></div>
+    <div class="row">
+      <button class="btn ghost" id="back1">Back</button>
+      <button class="btn ok" id="create">Create Account</button>
+    </div>
+    <div id="s2status" class="muted" style="margin-top:.5rem"></div>
+  </div>
 
   <script type="module">
     import { auth, db } from "./js/firebase.js";
-    import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const $ = (id)=>document.getElementById(id);
-    const form = $("signupForm"), email = $("semail"), pass = $("spass"), msg = $("smsg");
+    const step1 = document.getElementById("step1");
+    const step2 = document.getElementById("step2");
+    const email = document.getElementById("email");
+    const pass  = document.getElementById("password");
+    const toQuiz = document.getElementById("toQuiz");
+    const back1  = document.getElementById("back1");
+    const createBtn = document.getElementById("create");
+    const s1status = document.getElementById("s1status");
+    const s2status = document.getElementById("s2status");
 
-    function show(t, ok=false){ msg.textContent=t||""; msg.className = ok ? "ok" : "warn"; }
-
-    form.addEventListener("submit", async (e)=>{
-      e.preventDefault();
-      show("Creating…");
-      try{
-        const em = (email.value||"").trim();
-        const pw = pass.value || "";
-        if(!em || !pw){ show("Enter email and password"); return; }
-
-        const cred = await createUserWithEmailAndPassword(auth, em, pw);
-        const user = cred.user;
-
-        // Minimal profile doc (users/{uid})
-        await setDoc(doc(db, "users", user.uid), {
-          uid: user.uid,
-          email: user.email || em,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        }, { merge:true });
-
-        show("Account created!", true);
-        // Redirect straight to this user's profile page
+    let _signupNav = false;
+    onAuthStateChanged(auth, (user)=>{
+      if (user && !_signupNav) {
+        _signupNav = true;
         location.replace(`./profile.html?uid=${encodeURIComponent(user.uid)}`);
+      }
+    });
+
+    function qAns(name){ return document.querySelector(`input[name="${name}"]:checked`)?.value || ""; }
+    const qNames = ["q1","q2","q3","q4","q5","q6","q7","q8"];
+    function getQuiz(){ const o={}; qNames.forEach(n=>o[n]=qAns(n)); return o; }
+    function quizValid(ans){ return qNames.every(n=>!!ans[n]); }
+
+    toQuiz.addEventListener("click", ()=>{
+      s1status.textContent = "";
+      email.classList.remove("invalid"); pass.classList.remove("invalid");
+      const em = (email.value||"").trim();
+      const pw = pass.value;
+      let ok = true;
+      if (!em) { email.classList.add("invalid"); ok=false; }
+      if (!pw || pw.length < 6) { pass.classList.add("invalid"); ok=false; s1status.innerHTML = '<span class="err">Password must be at least 6 characters.</span>'; }
+      if (!ok) return;
+      step1.style.display = "none";
+      step2.style.display = "block";
+    });
+
+    back1.addEventListener("click", ()=>{
+      step2.style.display = "none";
+      step1.style.display = "block";
+    });
+
+    createBtn.addEventListener("click", async ()=>{
+      s2status.textContent = "";
+      const answers = getQuiz();
+      if (!quizValid(answers)) { s2status.innerHTML = '<span class="err">Please answer all questions.</span>'; return; }
+      try{
+        s2status.innerHTML = '<span class="prog">Creating your account…</span>';
+        const cred = await createUserWithEmailAndPassword(auth, (email.value||"").trim(), pass.value);
+        const uid = cred.user.uid;
+        await setDoc(doc(db,"users",uid), {
+          uid, email:(email.value||"").trim(),
+          displayName: cred.user.displayName || "Member",
+          photoURL: cred.user.photoURL || "",
+          photos: cred.user.photoURL ? [cred.user.photoURL] : [],
+          bio:"", age:null, location:"", badges:[], flags:[],
+          quiz:{ completed:true, answers:answers, completedAt:serverTimestamp() },
+          createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+        }, { merge:true });
+        s2status.innerHTML = '<span class="ok">Account created!</span>';
+        location.replace(`./profile.html?uid=${encodeURIComponent(uid)}`);
       }catch(err){
         console.error(err);
-        show(err?.message || "Couldn’t create account");
+        const msg = {"auth/email-already-in-use":"That email is already in use.","auth/invalid-email":"Invalid email.","auth/weak-password":"Password too weak.","auth/operation-not-allowed":"Sign-up disabled in this project."}[err.code] || err.message;
+        s2status.innerHTML = `<span class="err">${msg}</span>`;
       }
     });
   </script>
