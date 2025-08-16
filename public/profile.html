@@ -1,4 +1,3 @@
-Last profile. 
 <!DOCTYPE html><html lang="en">
 <head>
   <!-- ===== SECTION: Head / Meta ===== -->
@@ -126,7 +125,6 @@ Last profile.
 
       <button class="btn secondary" id="logoutBtn" type="button">Logout</button>
       <button class="btn ghost" id="deleteBtn" type="button" title="Delete my account">Delete</button>
-      <button class="btn" id="browseBtn" type="button">Browse Matches</button>
     </div>
   </div>
 
@@ -322,7 +320,6 @@ Last profile.
     const inboxBtn = document.getElementById("inboxBtn");
     const deleteBtn = document.getElementById("deleteBtn");
     const filterBtn = document.getElementById("filterBtn");
-    const browseBtn = document.getElementById("browseBtn");
 
     // Swipe card
     const cardFrame = document.getElementById("cardFrame");
@@ -703,59 +700,27 @@ Last profile.
       return users.map(u => ({ ...u, chatId: map.get(u.uid)?.chatId || null }));
     }
 
-function userCard(u, { locked = false, trailing = null } = {}) {
-  // … build name, img, etc.
-  const item = document.createElement("div");
-  item.className = "inbox-item" + (locked ? " locked" : "");
-  item.innerHTML = `
-    <div class="thumb">
-      <img class="${locked ? 'blur' : ''}" src="${img}" alt="">
-    </div>
-    <div class="inbox-meta">
-      <div class="inbox-name">${name}${age}</div>
-      <div class="inbox-sub">${loc}</div>
-      ${trailing || ""}
-    </div>
-  `;
+    /* ===== SECTION: Inbox UI ===== */
+    function userCard(u, { locked=false, trailing=null } = {}){
+      const primary = safePrimaryPhoto(u);
+      const img = primary || NEUTRAL_PHOTO;
+      const name = u.displayName || "Member";
+      const age = (typeof u.age === "number") ? `, ${u.age}` : "";
+      const loc = u.location || "";
 
-  // make the whole card open their public profile
-  item.dataset.uid = u?.uid || "";
-  item.addEventListener("click", (ev) => {
-    // ignore clicks on the overlay or control buttons
-    if (ev.target.closest(".lock-badge, .pill, button")) return;
-    const uid = item.dataset.uid;
-    if (uid) {
-      location.href = `./user.html?uid=${encodeURIComponent(uid)}`;
-    }
-  });
-
-  // add a “Members Only” overlay if this card is locked
-  if (locked) {
-    const overlay = document.createElement("div");
-    overlay.className = "lock-badge";
-    overlay.innerHTML = `
-      <div>
-        <div>Members Only</div>
-        <button class="lock-msg" data-upg>Unlock</button>
-      </div>
-    `;
-    item.appendChild(overlay);
-    // clicking “Unlock” should trigger the upgrade button
-    overlay.querySelector("[data-upg]").addEventListener("click", () => {
-      upgradeBtn?.click();
-    });
-  }
-
-  return item;
-}
-      
-      //make the whole card open their public profile
-  item.dataset.uid = u?.uid || "";
-  item.addEventListener("click", (ev) => {
-    if (ev.target.closest(".lock-badge, .pill, button")) return;
-    const uid = item.dataset.uid;
-    if (uid) location.href = `./user.html?uid=${encodeURIComponent(uid)}`;
-  }); (locked){
+      const item = document.createElement("div");
+      item.className = "inbox-item" + (locked ? " locked" : "");
+      item.innerHTML = `
+        <div class="thumb">
+          <img class="${locked?'blur':''}" src="${img}" alt="">
+        </div>
+        <div class="inbox-meta">
+          <div class="inbox-name">${name}${age}</div>
+          <div class="inbox-sub">${loc}</div>
+          ${trailing || ""}
+        </div>
+      `;
+      if (locked){
         const overlay = document.createElement("div");
         overlay.className = "lock-badge";
         overlay.innerHTML = `
@@ -823,4 +788,234 @@ function userCard(u, { locked = false, trailing = null } = {}) {
       if (activeChat.unsub){ activeChat.unsub(); activeChat.unsub = null; }
       activeChat = { chatId:null, partner:null, unsub:null };
     }
-    closeChat?.addEventListener("click", closeCha
+    closeChat?.addEventListener("click", closeChatModal);
+    chatModal?.addEventListener("click", e=>{ if(e.target===chatModal) closeChatModal(); });
+
+    async function findOrCreateChat(uidA, uidB){
+      const qy = query(collection(db,"chats"), where("uids","array-contains", uidA), orderBy("createdAt","desc"), limit(50));
+      const snap = await getDocs(qy);
+      let existing = null;
+      snap.forEach(d=>{
+        const arr = d.data().uids||[];
+        if (arr.includes(uidB)) existing = { id:d.id, ...d.data() };
+      });
+      if (existing) return existing.id;
+      const ref = await addDoc(collection(db,"chats"), {
+        uids:[uidA, uidB],
+        createdAt: serverTimestamp(),
+        lastMessage: "",
+        lastMessageAt: serverTimestamp()
+      });
+      return ref.id;
+    }
+
+    async function openChatWith(user){
+      if (!me) return;
+      const chatId = await findOrCreateChat(me.uid, user.uid);
+      activeChat.chatId = chatId;
+      activeChat.partner = user;
+      chatTitle.textContent = user.displayName ? `Chat with ${user.displayName}` : "Chat";
+      openChatModal();
+
+      const msgCol = collection(db,"chats",chatId,"messages");
+      activeChat.unsub = onSnapshot(query(msgCol, orderBy("createdAt","asc"), limit(200)), (snap)=>{
+        chatScroll.innerHTML = "";
+        snap.forEach(d=>{
+          const m = d.data();
+          const div = document.createElement("div");
+          div.className = "bubble " + (m.from===me.uid ? "me" : "them");
+          div.textContent = m.text || "";
+          chatScroll.appendChild(div);
+        });
+        chatScroll.scrollTop = chatScroll.scrollHeight;
+      });
+    }
+
+    chatSend?.addEventListener("click", async ()=>{
+      const text = chatInput.value.trim();
+      if (!text || !activeChat.chatId || !me) return;
+      const msgCol = collection(db,"chats",activeChat.chatId,"messages");
+      await addDoc(msgCol, { from: me.uid, text, createdAt: serverTimestamp() });
+      await updateDoc(doc(db,"chats",activeChat.chatId), { lastMessage:text, lastMessageAt: serverTimestamp() });
+      chatInput.value = "";
+    });
+
+    /* ===== SECTION: Filter Modal Controls ===== */
+    function openFilter(){ filterModal.style.display = "flex"; }
+    function closeFilter(){ filterModal.style.display = "none"; }
+    filterBtn?.addEventListener("click", openFilter);
+    cancelFilter?.addEventListener("click", closeFilter);
+    filterModal?.addEventListener("click", e=>{ if(e.target===filterModal) closeFilter(); });
+
+    const _norm = s => (s || "").toLowerCase().trim();
+    function _ageOK(u, min, max){
+      const a = Number(u?.age);
+      if (min != null && (!Number.isFinite(a) || a < min)) return false;
+      if (max != null && (!Number.isFinite(a) || a > max)) return false;
+      return true;
+    }
+    function _locOK(u, loc){
+      if (!loc) return true;
+      return _norm(u?.location).includes(_norm(loc));
+    }
+    function rebuildMatchesWithFilters(){
+      let list = Array.isArray(allUsers) ? allUsers.slice() : [];
+      list = list.filter(u => _ageOK(u, currentFilters.min, currentFilters.max) && _locOK(u, currentFilters.location));
+      matches = list.length ? list : [myDocCached];
+      currentIndex = 0;
+      renderProfile(matches[currentIndex] || null);
+    }
+    applyFilter?.addEventListener("click", ()=>{
+      currentFilters.location = filterLocEl?.value.trim() || "";
+      currentFilters.min = filterAgeMin?.value ? Number(filterAgeMin.value) : null;
+      currentFilters.max = filterAgeMax?.value ? Number(filterAgeMax.value) : null;
+      rebuildMatchesWithFilters();
+      closeFilter();
+    });
+
+    /* ===== SECTION: Delete Account ===== */
+    async function deleteStorageFolder(prefix){
+      try{
+        const folderRef = sRef(storage, prefix);
+        const list = await listAll(folderRef);
+        for (const f of list.items){ await deleteObject(f); }
+        for (const dir of list.prefixes){ await deleteStorageFolder(dir.fullPath); }
+      }catch(e){ console.warn("Storage cleanup warning:", e.message); }
+    }
+    async function deleteRelatedDocs(uid){
+      const collectionsToClean = [
+        { name:"likes", field:"fromUid" },
+        { name:"likes", field:"toUid" },
+        { name:"views", field:"viewerUid" },
+        { name:"views", field:"viewedUid" },
+        { name:"matches", field:"uids", array:true },
+        { name:"chats", field:"uids", array:true },
+      ];
+      for (const cfg of collectionsToClean){
+        try{
+          let qy;
+          if (cfg.array){
+            qy = query(collection(db, cfg.name), where(cfg.field, "array-contains", uid), limit(100));
+          } else {
+            qy = query(collection(db, cfg.name), where(cfg.field, "==", uid), limit(100));
+          }
+          const snap = await getDocs(qy);
+          const toDelete = [];
+          snap.forEach(d=> toDelete.push(d.ref));
+          for (const ref of toDelete){ await deleteDoc(ref); }
+        }catch(e){ console.warn(`Cleanup ${cfg.name} skip:`, e.message); }
+      }
+    }
+    async function handleDeleteAccount(){
+      if (!me) return;
+      const confirmText = prompt("Type DELETE to permanently remove your account (this cannot be undone).");
+      if (confirmText !== "DELETE") return;
+      try{
+        const lastSignIn = me.metadata?.lastSignInTime ? new Date(me.metadata.lastSignInTime).getTime() : 0;
+        const needsReauth = (Date.now() - lastSignIn) > (5*60*1000);
+        if (needsReauth && me.providerData.some(p=>p.providerId==="password")){
+          const email = me.email;
+          const pwd = prompt("Re-enter your password to confirm delete:");
+          if (!pwd) return alert("Deletion cancelled.");
+          const cred = EmailAuthProvider.credential(email, pwd);
+          await reauthenticateWithCredential(me, cred);
+        }
+      }catch(e){ alert("Re-auth failed. Cannot delete account."); return; }
+
+      try{ await deleteDoc(doc(db,"users", me.uid)); }catch(e){ console.warn("User doc delete:", e.message); }
+      try{ await deleteStorageFolder(`avatars/${me.uid}`); }catch(e){ console.warn("Storage delete:", e.message); }
+      try{ await deleteRelatedDocs(me.uid); }catch(e){ console.warn("Related cleanup:", e.message); }
+      try{ await deleteUser(me); }catch(e){ alert("Could not delete the auth account. Sign in again and retry."); return; }
+
+      alert("Your account has been deleted."); location.replace("./signup.html");
+    }
+    deleteBtn?.addEventListener("click", handleDeleteAccount);
+
+    /* ===== SECTION: Modal Controls (Edit/Inbox/Chat) ===== */
+    function openEdit(){ editModal.style.display="flex"; }
+    function closeEdit(){ editModal.style.display="none"; }
+    editBtn.addEventListener("click", (e)=>{ e.preventDefault(); openEdit(); });
+    cancelEdit.addEventListener("click", closeEdit);
+    editModal.addEventListener("click", (e)=>{ if(e.target===editModal) closeEdit(); });
+
+    /* ===== SECTION: Auth / Init ===== */
+    myProfileBtn.addEventListener("click", ()=>{ if(me){ location.replace(`./profile.html?uid=${encodeURIComponent(me.uid)}`); } else { location.replace("./login.html"); } });
+    logoutBtn.addEventListener("click", async ()=>{ try{ await signOut(auth); location.replace("./login.html"); }catch(e){ console.error("Logout error:", e); } });
+
+    upgradeBtn.addEventListener("click", async () => {
+      if (!me) return;
+      try {
+        const resp = await fetch("/api/create-checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ uid: me.uid, email: me.email }),
+        });
+        const data = await resp.json();
+        if (data.checkoutUrl) location.href = data.checkoutUrl;
+        else alert("Could not start checkout.");
+      } catch (e) { console.error(e); alert("Checkout error"); }
+    });
+
+    onAuthStateChanged(auth, async (user)=>{
+      if(!user){
+        if(!_profileNavGuard){ _profileNavGuard=true; location.replace("./login.html"); }
+        return;
+      }
+      me = user;
+
+      // Load/create my doc
+      myDocCached = await loadOrCreateUserDoc(me.uid, me);
+
+      // Hydrate form
+      displayNameInput.value = myDocCached.displayName || "";
+      usernameInput.value   = myDocCached.username || "";
+      genderInput.value     = myDocCached.gender || "";
+      hobbiesInput.value    = myDocCached.hobbies || "";
+      interestsInput.value  = myDocCached.interests || "";
+      bioInput.value        = myDocCached.bio || "";
+      ageInput.value        = myDocCached.age || "";
+      locationInput.value   = myDocCached.location || "";
+      renderGallery(myDocCached.photos || []);
+      topLine.textContent   = myDocCached.username ? `@${myDocCached.username}` : `UID: ${me.uid}`;
+      uidLine.textContent   = topLine.textContent;
+
+      // If a ?uid= is provided in URL, show that profile only
+      if (viewUidParam){
+        try{
+          if (viewUidParam === me.uid){
+            matches = [myDocCached];
+            currentIndex = 0;
+            renderProfile(myDocCached);
+            refreshSaveButtonState(myDocCached);
+            return; // do not build swipe list
+          } else {
+            const otherSnap = await getDoc(doc(db, "users", viewUidParam));
+            if (otherSnap.exists()){
+              const other = { uid: viewUidParam, ...otherSnap.data() };
+              matches = [other];
+              currentIndex = 0;
+              renderProfile(other);
+              refreshSaveButtonState(myDocCached);
+              return; // do not build swipe list
+            }
+          }
+        }catch(e){ console.warn("viewUidParam load failed:", e?.message); }
+        // if not found, fall through to normal list
+      }
+
+      // Load others (exclude me)
+      try{
+        const snap = await getDocs(collection(db,"users"));
+        allUsers = [];
+        snap.forEach(d=>{ if(d.id!==me.uid) allUsers.push({ uid: d.id, ...d.data() }); });
+      }catch{ allUsers = []; }
+
+      // Build swipe list (fallback to me if no one else yet)
+      matches = allUsers.length ? allUsers : [myDocCached];
+      currentIndex = 0;
+      renderProfile(matches[currentIndex] || null);
+      refreshSaveButtonState(myDocCached);
+    });
+  </script>
+</body>
+</html>
