@@ -6,435 +6,405 @@
   <title>UNHINGED — App</title>
   <meta name="theme-color" content="#E11D2A" />
   <style>
-    :root{--bg:#0e0e12;--panel:#15161b;--panel2:#1a1b22;--muted:#cfd0de;--red:#E11D2A;--green:#4CAF50;--br:16px}
+    :root{ --red:#E11D2A; --panel:#171923; --muted:#b8b9c6; --radius:16px; }
     *{box-sizing:border-box}
-    html,body{margin:0;background:var(--bg);color:#fff;font:500 16px/1.5 system-ui,Segoe UI,Roboto,Arial}
+    html,body{margin:0;background:#0f0f12;color:#fff;font:500 16px/1.5 Inter,system-ui,Segoe UI,Roboto,Arial}
     a{color:inherit;text-decoration:none}
-    /* Top bar */
-    .top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#101117;border-bottom:1px solid #222}
-    .brand{display:flex;align-items:center;gap:10px}
-    .dot{width:14px;height:14px;border-radius:4px;background:var(--red);box-shadow:0 0 18px #e11d2a}
-    .word{font-weight:900;letter-spacing:.02em}
-    .nav{display:flex;gap:8px;flex-wrap:wrap}
-    .btn{border:1px solid #2a2a2a;background:#20222b;color:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
-    .btn.primary{background:var(--red);border-color:var(--red)}
+    .wrap{max-width:1280px;margin:0 auto;padding:16px}
+    header{border-bottom:1px solid rgba(255,255,255,.06)}
+    .bar{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .logo{display:flex;align-items:center;gap:10px}
+    .mark{width:28px;height:28px;background:var(--red);border-radius:8px}
+    .word{font-weight:1000}
+    nav{display:flex;gap:10px}
+    .btn{display:inline-flex;align-items:center;border:1px solid rgba(255,255,255,.12);padding:10px 14px;border-radius:12px;font-weight:800;background:transparent;cursor:pointer}
+    .btn.primary{background:var(--red);border-color:var(--red);color:#fff}
     .btn.ghost{background:transparent}
-    .btn.small{padding:6px 10px;font-size:.9rem}
-    /* Grid */
-    .wrap{max-width:1200px;margin:0 auto;padding:16px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:minmax(360px,auto);gap:16px}
-    .card{background:var(--panel);border:1px solid #25262f;border-radius:var(--br);overflow:hidden;display:flex;flex-direction:column}
-    .head{padding:14px 16px;border-bottom:1px solid #25262f;font-weight:900;font-size:1.25rem}
-    .body{padding:14px 16px;flex:1;min-height:0}
-    .subtle{color:var(--muted)}
-    /* Live */
-    .live-box{height:100%;border-radius:12px;background:linear-gradient(180deg,#0b0b10,#0f1016);border:1px dashed #2a2b36;display:flex;align-items:center;justify-content:center;position:relative}
-    .live-ind{position:absolute;top:8px;right:10px;display:flex;align-items:center;gap:6px;font-size:.88rem}
-    .led{width:8px;height:8px;border-radius:50%;background:#ff4d4d;box-shadow:0 0 10px #ff4d4d;animation:pulse 1.8s infinite}
-    @keyframes pulse{50%{opacity:.55}}
-    /* Chat */
-    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .chat-top{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px}
-    .room{display:flex;gap:8px;align-items:center}
-    select, input[type="text"], textarea{background:#12131a;color:#fff;border:1px solid #2a2a2a;border-radius:8px;padding:8px}
-    .enter-line{display:flex;gap:8px;align-items:center}
-    .chat-log{height:260px;background:var(--panel2);border:1px solid #25262f;border-radius:12px;padding:10px;overflow:auto}
-    .msg{margin:6px 0;max-width:78%}
-    .me{margin-left:auto;background:#e11d2a;color:#fff;padding:8px 10px;border-radius:12px 12px 4px 12px;display:inline-block}
-    .them{background:#2a2b36;color:#fff;padding:8px 10px;border-radius:12px 12px 12px 4px;display:inline-block}
-    .sendbar{display:flex;gap:8px;margin-top:8px}
-    .sendbar input{flex:1}
-    /* Lists (Chaos/Reviews) */
-    .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
-    .tile{border:1px solid #2a2a2a;border-radius:12px;padding:10px;background:#12131a;cursor:pointer}
-    .title{font-weight:800;margin-bottom:4px}
-    .meta{font-size:.85rem;color:var(--muted)}
-    .search{display:flex;gap:8px;margin-bottom:8px}
-    .hint{color:var(--muted);font-size:.9rem;margin-top:6px}
-    .modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
-    .modal-card{width:100%;max-width:720px;background:var(--panel);border:1px solid #2a2a2a;border-radius:12px}
-    .modal-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #2a2a2a}
-    .modal-body{padding:12px 14px}
-    .limit{font-size:.85rem;color:#9aa0b3}
-    .ghost{opacity:.75}
+    .card{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);overflow:hidden}
+    .card h2{margin:0;padding:14px 14px;border-bottom:1px solid rgba(255,255,255,.06);background:#12131a;position:relative}
+    .card-body{padding:14px}
+
+    .gridTop{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+    .gridBottom{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+    .bigPane{min-height:68vh;display:flex;flex-direction:column}
+    .smallPane{min-height:48vh;display:flex;flex-direction:column}
+
+    .live-box{height:100%;min-height:52vh;background:#000;border-radius:14px;display:flex;align-items:center;justify-content:center}
+    .live-pill{position:absolute;right:14px;top:12px;display:inline-flex;gap:6px;align-items:center;font-size:12px;border:1px solid rgba(255,255,255,.16);padding:4px 8px;border-radius:999px;background:#1a1b22}
+    .dot{width:8px;height:8px;border-radius:50%;background:#ff4d5e;animation:blink 1.2s infinite}
+    @keyframes blink{50%{opacity:.35}}
+
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .muted{color:var(--muted)}
+    input,select,textarea{padding:10px;border-radius:10px;border:1px solid #2a2c3a;background:#12131a;color:#fff}
+    .chat-feed{flex:1;min-height:0;height:100%;max-height:calc(68vh - 160px);overflow:auto;background:#0e0f14;border:1px solid #2a2c39;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px}
+    .bubble{max-width:78%;padding:10px 12px;border-radius:12px;word-wrap:break-word}
+    .me{align-self:flex-end;background:var(--red)}
+    .them{align-self:flex-start;background:#2a2a36}
+    .chat-send{display:flex;gap:8px;margin-top:10px}
+    .chat-send input{flex:1}
+
+    .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+    .item{border:1px solid #2a2c39;background:#12131a;border-radius:12px;padding:10px;cursor:pointer}
+    .title{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .meta{font-size:12px;color:var(--muted);margin-top:4px}
+
+    .modal-backdrop{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+    .modal{width:100%;max-width:520px;background:#171923;border:1px solid #2a2c39;border-radius:14px;padding:14px}
+    .modal h3{margin:0 0 8px}
+    .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+
+    @media (max-width:960px){
+      .gridTop,.gridBottom{grid-template-columns:1fr}
+    }
   </style>
 </head>
 <body>
-  <!-- Top bar -->
-  <div class="top">
-    <div class="brand"><div class="dot"></div><div class="word">UNHINGED</div></div>
-    <div class="nav">
-      <a class="btn ghost" href="./profile.html">Profile</a>
-      <a class="btn ghost" href="./login.html">Log in</a>
-      <a class="btn primary" href="./signup.html">Join</a>
+  <header>
+    <div class="wrap bar">
+      <div class="logo"><div class="mark"></div><div class="word">UNHINGED</div></div>
+      <nav>
+        <a class="btn" href="./profile.html">Profile</a>
+        <a class="btn" href="./login.html">Log in</a>
+        <a class="btn primary" href="./signup.html">Join</a>
+      </nav>
     </div>
-  </div>
+  </header>
 
-  <div class="wrap">
-    <div class="grid">
-      <!-- Live Stream -->
-      <section class="card" id="liveCard">
-        <div class="head">Live Stream</div>
-        <div class="body">
-          <div class="live-box">
-            <div class="live-ind"><span class="led"></span><span class="ghost">Live</span></div>
-            <div class="subtle">[ Embed live stream here ]</div>
-          </div>
+  <main class="wrap">
+    <div class="gridTop">
+      <section class="card bigPane">
+        <h2>Live Stream <span class="live-pill"><span class="dot"></span> LIVE</span></h2>
+        <div class="card-body" style="flex:1;display:flex;">
+          <div class="live-box" style="flex:1;"><span style="opacity:.65">[ Embed live stream here ]</span></div>
         </div>
       </section>
 
-      <!-- Chat Room -->
-      <section class="card" id="chatCard">
-        <div class="head">Chat Room</div>
-        <div class="body">
-          <div class="chat-top">
-            <div class="room">
-              <label class="ghost" for="roomSel">Room</label>
-              <select id="roomSel">
-                <option value="general">#general</option>
-                <option value="firstdates">#first-dates</option>
-                <option value="gymrats">#gym-rats</option>
-              </select>
-            </div>
-            <div class="enter-line">
-              <span id="whoLine" class="ghost">(not in chat)</span>
-              <button class="btn small" id="enterChatBtn">Enter Chat</button>
+      <section class="card bigPane">
+        <h2>Chat Room</h2>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:10px;flex:1">
+          <div class="row" style="justify-content:space-between">
+            <div class="muted" id="meTag">(not in chat)</div>
+            <div class="row">
+              <button class="btn primary" id="enterChatBtn">Enter Chat</button>
+              <button class="btn" id="leaveChatBtn" style="display:none">Leave</button>
             </div>
           </div>
-
-          <div class="chat-log" id="chatLog" aria-live="polite"></div>
-          <div class="sendbar">
-            <input id="chatInput" type="text" placeholder="Type a message…" disabled />
-            <button class="btn" id="sendBtn" disabled>Send</button>
+          <div class="row" id="roomBar" style="display:none">
+            <label class="muted" for="roomSelect">Room</label>
+            <select id="roomSelect"></select>
+          </div>
+          <div class="chat-feed" id="chatFeed" aria-live="polite"></div>
+          <div class="chat-send" id="sendRow" style="display:none">
+            <input id="chatInput" placeholder="Type a message…" />
+            <button class="btn primary" id="chatSend">Send</button>
           </div>
         </div>
       </section>
+    </div>
 
-      <!-- Chaos Board -->
-      <section class="card" id="chaosCard">
-        <div class="head">Chaos Board</div>
-        <div class="body">
-          <div class="search">
-            <input id="chaosSearch" type="text" placeholder="Search by name or @username" />
-            <button class="btn small" id="chaosSearchBtn">Search</button>
-            <button class="btn small ghost" id="chaosClearBtn">Clear</button>
-            <button class="btn small" id="newChaosBtn">Submit Chaos Story</button>
+    <div class="gridBottom">
+      <section class="card smallPane">
+        <h2>Chaos Board</h2>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:10px;flex:1">
+          <div class="row" style="justify-content:space-between">
+            <div></div>
+            <button class="btn primary" id="uploadChaos">Submit Chaos Story</button>
           </div>
           <div class="list" id="chaosList"></div>
-          <div class="hint">Click a title to read the full story.</div>
         </div>
       </section>
 
-      <!-- Review Board -->
-      <section class="card" id="reviewCard">
-        <div class="head">Review Board</div>
-        <div class="body">
-          <div class="search">
-            <input id="reviewSearch" type="text" placeholder="Search by name or @username" />
-            <button class="btn small" id="reviewSearchBtn">Search</button>
-            <button class="btn small ghost" id="reviewClearBtn">Clear</button>
-            <button class="btn small" id="newReviewBtn">Submit Review</button>
+      <section class="card smallPane">
+        <h2>Review Board</h2>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:10px;flex:1">
+          <div class="row" style="justify-content:space-between">
+            <div></div>
+            <button class="btn primary" id="uploadReview">Submit Review</button>
           </div>
           <div class="list" id="reviewList"></div>
-          <div class="hint">Click a title to read the full review.</div>
         </div>
       </section>
     </div>
-  </div>
+  </main>
 
-  <!-- Story Modal (shared) -->
-  <div class="modal" id="storyModal">
-    <div class="modal-card">
-      <div class="modal-head">
-        <div id="storyModalTitle">Title</div>
-        <button class="btn small ghost" id="closeStory">Close</button>
-      </div>
-      <div class="modal-body">
-        <div class="meta" id="storyMeta"></div>
-        <p id="storyText" style="white-space:pre-wrap;margin-top:8px"></p>
-        <div id="storyImages" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
+  <!-- Modals for chaos, review, detail -->
+  <div class="modal-backdrop" id="chaosModal">
+    <div class="modal">
+      <h3>Submit Chaos Story</h3>
+      <label class="muted" for="cTitle">Title (max 60 chars)</label>
+      <input id="cTitle" maxlength="60" placeholder="Walked Out on the Check" />
+      <label class="muted" for="cAbout" style="margin-top:8px">About (name or @username)</label>
+      <input id="cAbout" placeholder="@TheirHandle or Name" />
+      <label class="muted" for="cBody" style="margin-top:8px">Story</label>
+      <textarea id="cBody" rows="5" placeholder="Tell us what happened…"></textarea>
+      <div class="actions">
+        <button class="btn" id="cCancel">Cancel</button>
+        <button class="btn primary" id="cSave">Submit</button>
       </div>
     </div>
   </div>
 
-  <!-- New Chaos -->
-  <div class="modal" id="newChaosModal">
-    <div class="modal-card">
-      <div class="modal-head">
-        <div>Submit Chaos Story</div>
-        <button class="btn small ghost" id="closeNewChaos">Close</button>
-      </div>
-      <div class="modal-body">
-        <label>Title <span class="limit">(max 60 chars)</span></label>
-        <input id="chaosTitle" type="text" maxlength="60" placeholder="Walked Out on the Check" />
-        <label>Story</label>
-        <textarea id="chaosBody" rows="6" placeholder="Tell us the chaos…" ></textarea>
-        <label>Optional image(s)</label>
-        <input id="chaosFiles" type="file" accept="image/*" multiple />
-        <div style="margin-top:10px"><button class="btn" id="saveChaos">Submit</button></div>
+  <div class="modal-backdrop" id="reviewModal">
+    <div class="modal">
+      <h3>Submit Review</h3>
+      <label class="muted" for="rTitle">Title (max 60 chars)</label>
+      <input id="rTitle" maxlength="60" placeholder="Good Chat, No Show" />
+      <label class="muted" for="rAbout" style="margin-top:8px">About (name or @username)</label>
+      <input id="rAbout" placeholder="@TheirHandle or Name" />
+      <label class="muted" for="rBody" style="margin-top:8px">Review</label>
+      <textarea id="rBody" rows="5" placeholder="Keep receipts, keep it real…"></textarea>
+      <div class="actions">
+        <button class="btn" id="rCancel">Cancel</button>
+        <button class="btn primary" id="rSave">Submit</button>
       </div>
     </div>
   </div>
 
-  <!-- New Review -->
-  <div class="modal" id="newReviewModal">
-    <div class="modal-card">
-      <div class="modal-head">
-        <div>Submit Review</div>
-        <button class="btn small ghost" id="closeNewReview">Close</button>
-      </div>
-      <div class="modal-body">
-        <label>Title <span class="limit">(max 60 chars)</span></label>
-        <input id="reviewTitle" type="text" maxlength="60" placeholder="Would Text Again (Maybe)" />
-        <label>Review</label>
-        <textarea id="reviewBody" rows="6" placeholder="Spill (respectfully) the tea…" ></textarea>
-        <label>Optional image(s)</label>
-        <input id="reviewFiles" type="file" accept="image/*" multiple />
-        <div style="margin-top:10px"><button class="btn" id="saveReview">Submit</button></div>
+  <div class="modal-backdrop" id="detailModal">
+    <div class="modal">
+      <h3 id="detailTitle">Title</h3>
+      <div class="muted" id="detailMeta" style="margin-bottom:8px"></div>
+      <div id="detailBody" style="white-space:pre-wrap"></div>
+      <div class="actions">
+        <button class="btn" id="detailClose">Close</button>
       </div>
     </div>
   </div>
 
   <script type="module">
-    /* ===== Imports ===== */
-    import { auth, db, storage } from "./js/firebase.js";
+    // ===== Firebase import =====
+    import { auth, db } from "./js/firebase.js";
     import {
       onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import {
-      collection, doc, getDoc, setDoc, addDoc, getDocs, query, where,
-      orderBy, limit, serverTimestamp, onSnapshot
+      collection, addDoc, serverTimestamp, onSnapshot,
+      query, orderBy, limit, getDoc, doc
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import {
-      ref as sRef, uploadBytes, getDownloadURL
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-    /* ===== DOM ===== */
+    // ===== Chat configuration =====
+    const ROOMS = [
+      { id: "general",      label: "#general" },
+      { id: "first-dates",  label: "#first-dates" },
+      { id: "gym-rats",     label: "#gym-rats" },
+      { id: "chaos-lounge", label: "#chaos-lounge" },
+    ];
+
+    let me = null;
+    let myDisplayName = "";
+    let currentRoom = ROOMS[0].id;
+    let unsubFeed = null;
+
+    // DOM references
+    const meTag = document.getElementById("meTag");
     const enterChatBtn = document.getElementById("enterChatBtn");
-    const whoLine      = document.getElementById("whoLine");
-    const roomSel      = document.getElementById("roomSel");
-    const chatLog      = document.getElementById("chatLog");
-    const chatInput    = document.getElementById("chatInput");
-    const sendBtn      = document.getElementById("sendBtn");
-
-    const storyModal   = document.getElementById("storyModal");
-    const closeStory   = document.getElementById("closeStory");
-    const storyModalTitle = document.getElementById("storyModalTitle");
-    const storyMeta    = document.getElementById("storyMeta");
-    const storyText    = document.getElementById("storyText");
-    const storyImages  = document.getElementById("storyImages");
+    const leaveChatBtn = document.getElementById("leaveChatBtn");
+    const roomBar = document.getElementById("roomBar");
+    const roomSelect = document.getElementById("roomSelect");
+    const chatFeed = document.getElementById("chatFeed");
+    const sendRow = document.getElementById("sendRow");
+    const chatInput = document.getElementById("chatInput");
+    const chatSend = document.getElementById("chatSend");
 
     const chaosList = document.getElementById("chaosList");
-    const chaosSearch = document.getElementById("chaosSearch");
-    document.getElementById("chaosSearchBtn").onclick = ()=> loadChaos(chaosSearch.value.trim());
-    document.getElementById("chaosClearBtn").onclick  = ()=> { chaosSearch.value=""; loadChaos(""); };
-    const newChaosModal = document.getElementById("newChaosModal");
-    document.getElementById("newChaosBtn").onclick = ()=> openModal(newChaosModal);
-    document.getElementById("closeNewChaos").onclick = ()=> closeModal(newChaosModal);
-    const chaosTitle = document.getElementById("chaosTitle");
-    const chaosBody  = document.getElementById("chaosBody");
-    const chaosFiles = document.getElementById("chaosFiles");
-    document.getElementById("saveChaos").onclick = saveChaos;
-
     const reviewList = document.getElementById("reviewList");
-    const reviewSearch = document.getElementById("reviewSearch");
-    document.getElementById("reviewSearchBtn").onclick = ()=> loadReviews(reviewSearch.value.trim());
-    document.getElementById("reviewClearBtn").onclick  = ()=> { reviewSearch.value=""; loadReviews(""); };
-    const newReviewModal = document.getElementById("newReviewModal");
-    document.getElementById("newReviewBtn").onclick = ()=> openModal(newReviewModal);
-    document.getElementById("closeNewReview").onclick = ()=> closeModal(newReviewModal);
-    const reviewTitle = document.getElementById("reviewTitle");
-    const reviewBody  = document.getElementById("reviewBody");
-    const reviewFiles = document.getElementById("reviewFiles");
-    document.getElementById("saveReview").onclick = saveReview;
+    const chaosModal = document.getElementById("chaosModal");
+    const cTitle = document.getElementById("cTitle");
+    const cAbout = document.getElementById("cAbout");
+    const cBody  = document.getElementById("cBody");
+    const cCancel= document.getElementById("cCancel");
+    const cSave  = document.getElementById("cSave");
+    const reviewModal = document.getElementById("reviewModal");
+    const rTitle = document.getElementById("rTitle");
+    const rAbout = document.getElementById("rAbout");
+    const rBody  = document.getElementById("rBody");
+    const rCancel= document.getElementById("rCancel");
+    const rSave  = document.getElementById("rSave");
+    const detailModal = document.getElementById("detailModal");
+    const detailTitle = document.getElementById("detailTitle");
+    const detailMeta  = document.getElementById("detailMeta");
+    const detailBody  = document.getElementById("detailBody");
+    const detailClose = document.getElementById("detailClose");
+    const uploadChaos  = document.getElementById("uploadChaos");
+    const uploadReview = document.getElementById("uploadReview");
 
-    closeStory.onclick = ()=> closeModal(storyModal);
-    storyModal.addEventListener("click",(e)=>{ if(e.target===storyModal) closeModal(storyModal); });
-    newChaosModal.addEventListener("click",(e)=>{ if(e.target===newChaosModal) closeModal(newChaosModal); });
-    newReviewModal.addEventListener("click",(e)=>{ if(e.target===newReviewModal) closeModal(newReviewModal); });
-
-    function openModal(m){ m.style.display="flex"; }
-    function closeModal(m){ m.style.display="none"; }
-
-    /* ===== State ===== */
-    let me=null, myDoc=null;
-    let chatUnsub=null;
-
-    function displayNameFromProfile(){
-      const u = myDoc || {};
-      return (u.username && u.username.trim())
-        ? `@${u.username.trim()}`
-        : (u.displayName?.trim() || auth.currentUser?.displayName?.trim() || "Member");
+    // UI helpers
+    function openModal(el){ el.style.display = "flex"; }
+    function closeModal(el){ el.style.display = "none"; }
+    function setSigned(on){
+      const label = ROOMS.find(r=>r.id === currentRoom)?.label || "#general";
+      meTag.textContent = on ? `In ${label} as ${myDisplayName}` : "(not in chat)";
+      enterChatBtn.style.display = on ? "none" : "inline-flex";
+      leaveChatBtn.style.display = on ? "inline-flex" : "none";
+      roomBar.style.display = on ? "flex" : "none";
+      sendRow.style.display = on ? "flex" : "none";
     }
-
-    /* ===== Chat ===== */
-    enterChatBtn.onclick = () => {
-      if (!me) { alert("Please log in first."); return; }
-      whoLine.textContent = displayNameFromProfile() + " in " + roomLabel(roomSel.value);
-      chatInput.disabled = false; sendBtn.disabled = false;
-      chatInput.focus();
-      subscribeRoom(roomSel.value);
-    };
-    roomSel.onchange = () => {
-      if (!me || chatInput.disabled) return; // not entered yet
-      subscribeRoom(roomSel.value);
-      whoLine.textContent = displayNameFromProfile() + " in " + roomLabel(roomSel.value);
-    };
-    sendBtn.onclick = async () => {
-      const text = chatInput.value.trim();
-      if (!text || !me) return;
-      const room = roomSel.value;
-      await addDoc(collection(db,"rooms",room,"messages"), {
-        uid: me.uid,
-        name: displayNameFromProfile(),
-        text,
-        createdAt: serverTimestamp()
+    function renderRooms(){
+      roomSelect.innerHTML = "";
+      ROOMS.forEach(r=>{
+        const opt = document.createElement("option");
+        opt.value = r.id; opt.textContent = r.label;
+        if (r.id === currentRoom) opt.selected = true;
+        roomSelect.appendChild(opt);
       });
-      chatInput.value="";
-    };
-    function roomLabel(v){
-      if (v==="firstdates") return "#first-dates";
-      if (v==="gymrats")   return "#gym-rats";
-      return "#general";
     }
-    function subscribeRoom(room){
-      if (chatUnsub) { chatUnsub(); chatUnsub=null; }
-      chatLog.innerHTML = "<div class='ghost'>Loading…</div>";
-      const qy = query(collection(db,"rooms",room,"messages"), orderBy("createdAt","asc"), limit(300));
-      chatUnsub = onSnapshot(qy, snap => {
-        chatLog.innerHTML = "";
-        snap.forEach(d=>{
-          const m = d.data();
-          const mine = (m.uid===me?.uid);
-          const div = document.createElement("div");
-          div.className = "msg";
-          div.innerHTML = `<div class="${mine?'me':'them'}"><strong style="opacity:.85">${m.name||'Member'}:</strong> ${escapeHtml(m.text||'')}</div>`;
-          chatLog.appendChild(div);
+    function renderMessage(m){
+      const div = document.createElement("div");
+      div.className = "bubble " + (m.from === myDisplayName ? "me" : "them");
+      div.textContent = `${m.from}: ${m.text}`;
+      chatFeed.appendChild(div);
+    }
+    function clearFeed(){ chatFeed.innerHTML = ""; }
+
+    async function bindRoomFeed(){
+      if (unsubFeed) { unsubFeed(); unsubFeed = null; }
+      clearFeed();
+      const col = collection(db, "rooms", currentRoom, "messages");
+      const qy  = query(col, orderBy("createdAt","asc"), limit(500));
+      unsubFeed = onSnapshot(qy, (snap)=>{
+        clearFeed();
+        snap.forEach(docSnap => {
+          const m = docSnap.data();
+          renderMessage({ from: m.from || "anon", text: m.text || "" });
         });
-        chatLog.scrollTop = chatLog.scrollHeight;
+        chatFeed.scrollTop = chatFeed.scrollHeight;
       });
     }
 
-    /* ===== Chaos & Reviews ===== */
-    function tile(item, kind){
-      const el = document.createElement("div");
-      el.className = "tile";
-      const who = (item.authorUsername ? "@"+item.authorUsername : (item.authorName||"Member"));
-      el.innerHTML = `
-        <div class="title">${escapeHtml(item.title||"(untitled)")}</div>
-        <div class="meta">${who} · ${new Date(item.createdAt?.seconds?item.createdAt.seconds*1000:Date.now()).toLocaleString()}</div>
-      `;
-      el.onclick = ()=> openStory(item, kind);
-      return el;
-    }
-    function openStory(item, kind){
-      storyModalTitle.textContent = item.title || "(untitled)";
-      const who = (item.authorUsername ? "@"+item.authorUsername : (item.authorName||"Member"));
-      storyMeta.textContent = `${kind} • ${who} • ${new Date(item.createdAt?.seconds?item.createdAt.seconds*1000:Date.now()).toLocaleString()}`;
-      storyText.textContent = item.body || "";
-      storyImages.innerHTML = "";
-      (item.images||[]).forEach(url=>{
-        const img = document.createElement("img");
-        img.src = url; img.alt=""; img.style.maxWidth="160px"; img.style.borderRadius="8px";
-        storyImages.appendChild(img);
-      });
-      openModal(storyModal);
-    }
-    async function saveChaos(){ await saveStory("chaos", chaosTitle.value, chaosBody.value, chaosFiles.files); closeModal(newChaosModal); chaosTitle.value=""; chaosBody.value=""; chaosFiles.value=""; loadChaos(chaosSearch.value.trim()); }
-    async function saveReview(){ await saveStory("reviews", reviewTitle.value, reviewBody.value, reviewFiles.files); closeModal(newReviewModal); reviewTitle.value=""; reviewBody.value=""; reviewFiles.value=""; loadReviews(reviewSearch.value.trim()); }
-    async function saveStory(kind, title, body, files){
-      if (!me) { alert("Please log in first."); return; }
-      title = (title||"").slice(0,60);
-      const images = [];
-      if (files && files.length){
-        for (const f of files){
-          const safe = (f.name||"img").replace(/[^\w.\-]+/g,"_");
-          const path = `${kind}/${me.uid}/${Date.now()}_${safe}`;
-          const r = sRef(storage, path);
-          await uploadBytes(r, f);
-          const url = await getDownloadURL(r);
-          images.push(url);
-        }
-      }
-      await addDoc(collection(db, kind), {
-        uid: me.uid,
-        authorName: myDoc?.displayName || auth.currentUser?.displayName || "Member",
-        authorUsername: myDoc?.username || "",
-        title, body, images,
-        createdAt: serverTimestamp(),
-      });
-    }
-    async function loadChaos(qstr=""){
-      const out=[]; // Firestore can't OR two fields easily; fetch latest and filter client-side for now
-      const snap = await getDocs(query(collection(db,"chaos"), orderBy("createdAt","desc"), limit(60)));
-      snap.forEach(d=> out.push({ id:d.id, ...d.data() }));
-      const filtered = qstr ? out.filter(x => matchSearch(x,qstr)) : out;
-      chaosList.innerHTML = ""; filtered.forEach(x => chaosList.appendChild(tile(x,"Chaos")));
-    }
-    async function loadReviews(qstr=""){
-      const out=[];
-      const snap = await getDocs(query(collection(db,"reviews"), orderBy("createdAt","desc"), limit(60)));
-      snap.forEach(d=> out.push({ id:d.id, ...d.data() }));
-      const filtered = qstr ? out.filter(x => matchSearch(x,qstr)) : out;
-      reviewList.innerHTML = ""; filtered.forEach(x => reviewList.appendChild(tile(x,"Review")));
-    }
-    function matchSearch(x, q){
-      const s = q.toLowerCase();
-      return (x.authorUsername && ("@"+x.authorUsername).toLowerCase().includes(s))
-          || (x.authorName && x.authorName.toLowerCase().includes(s));
+    async function sendMessage(){
+      const text = chatInput.value.trim();
+      if (!text) return;
+      if (!me){ location.href = "./login.html"; return; }
+      if (!myDisplayName){ alert("Your profile needs a username/display name."); return; }
+      const col = collection(db, "rooms", currentRoom, "messages");
+      await addDoc(col, { from: myDisplayName, text, createdAt: serverTimestamp(), uid: me.uid });
+      chatInput.value = "";
     }
 
-    /* ===== Utils ===== */
-    function escapeHtml(str){
-      return String(str||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    function bestVisibleNameFromDoc(docData){
+      const uname = (docData?.username || "").trim();
+      const disp  = (docData?.displayName || "").trim();
+      if (uname) return uname.startsWith("@") ? uname : "@"+uname;
+      if (disp)  return disp;
+      return "";
     }
 
-    /* ===== Seed example entries (once per user) ===== */
-    async function seedExamplesOnce(){
-      if (!me) return;
-      const flagDoc = await getDoc(doc(db,"users",me.uid,"_flags","seedExamples"));
-      if (flagDoc.exists()) return;
-      // chaos
-      await addDoc(collection(db,"chaos"), {
-        uid: me.uid,
-        authorName: myDoc?.displayName || "Member",
-        authorUsername: myDoc?.username || "",
-        title: "Walked Out on the Check",
-        body: "First date. Great banter. When the bill landed, they said they were going to the restroom and… vanished. Waiter was cool; I tipped extra. Lesson learned.",
-        images: [],
-        createdAt: serverTimestamp()
-      });
-      // review
-      await addDoc(collection(db,"reviews"), {
-        uid: me.uid,
-        authorName: myDoc?.displayName || "Member",
-        authorUsername: myDoc?.username || "",
-        title: "Would Text Again (Maybe)",
-        body: "Fun, chaotic, disappears for weeks. 7/10 would text again after coffee and a clear plan.",
-        images: [],
-        createdAt: serverTimestamp()
-      });
-      await setDoc(doc(db,"users",me.uid,"_flags","seedExamples"), { at: serverTimestamp() });
-    }
+    // Boards (in-memory examples)
+    const chaosItems = [{
+      title: "Walked Out on the Check",
+      author: "@Rae25",
+      about: "@Jamie27",
+      body: "We agreed to split. They ‘forgot’ their wallet. I left a bigger tip for the server and a smaller chance for a second date."
+    }];
+    const reviewItems = [{
+      title: "Great Banter, Late Arrival",
+      author: "@Andre31",
+      about: "@Rae25",
+      body: "Funny, sharp, showed with coffee… 18 minutes late. Would try again—with a buffer."
+    }];
 
-    /* ===== Auth / Init ===== */
-    async function loadMyDoc(uid){
-      const s = await getDoc(doc(db,"users",uid));
-      return s.exists() ? s.data() : null;
+    function renderBoard(listEl, items){
+      listEl.innerHTML = "";
+      items.forEach(it=>{
+        const card = document.createElement("div");
+        card.className = "item";
+        card.innerHTML = `
+          <div class="title" title="${escapeHtml(it.title)}">${escapeHtml(it.title)}</div>
+          <div class="meta">by ${escapeHtml(it.author)} about ${escapeHtml(it.about)}</div>
+        `;
+        card.addEventListener("click", ()=>{
+          detailTitle.textContent = it.title;
+          detailMeta.textContent = `by ${it.author} about ${it.about}`;
+          detailBody.textContent = it.body;
+          openModal(detailModal);
+        });
+        listEl.appendChild(card);
+      });
     }
+    function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    // Submit handlers for chaos and reviews
+    cSave.addEventListener("click", ()=>{
+      const title = (cTitle.value||"").trim().slice(0,60);
+      const about = (cAbout.value||"").trim();
+      const body  = (cBody.value||"").trim();
+      if (!title || !about || !body) return;
+      const author = myDisplayName || "Member";
+      chaosItems.unshift({ title, author, about, body });
+      renderBoard(chaosList, chaosItems);
+      cTitle.value = ""; cAbout.value = ""; cBody.value = "";
+      closeModal(chaosModal);
+    });
+    rSave.addEventListener("click", ()=>{
+      const title = (rTitle.value||"").trim().slice(0,60);
+      const about = (rAbout.value||"").trim();
+      const body  = (rBody.value||"").trim();
+      if (!title || !about || !body) return;
+      const author = myDisplayName || "Member";
+      reviewItems.unshift({ title, author, about, body });
+      renderBoard(reviewList, reviewItems);
+      rTitle.value = ""; rAbout.value = ""; rBody.value = "";
+      closeModal(reviewModal);
+    });
+
+    // Modal toggles
+    uploadChaos.addEventListener("click", ()=> openModal(chaosModal));
+    uploadReview.addEventListener("click", ()=> openModal(reviewModal));
+    cCancel.addEventListener("click", ()=> closeModal(chaosModal));
+    rCancel.addEventListener("click", ()=> closeModal(reviewModal));
+    chaosModal.addEventListener("click", (e)=>{ if(e.target===chaosModal) closeModal(chaosModal); });
+    reviewModal.addEventListener("click", (e)=>{ if(e.target===reviewModal) closeModal(reviewModal); });
+    detailClose.addEventListener("click", ()=> closeModal(detailModal));
+    detailModal.addEventListener("click", (e)=>{ if(e.target===detailModal) closeModal(detailModal); });
+
+    // Chat controls (no anonymous posts)
+    enterChatBtn.addEventListener("click", async ()=>{
+      if (!me) { location.href = "./login.html"; return; }
+      if (!myDisplayName){ alert("Your profile needs a username/display name."); return; }
+      setSigned(true);
+      renderRooms();
+      await bindRoomFeed();
+      chatInput.focus();
+    });
+    leaveChatBtn.addEventListener("click", ()=>{
+      if (unsubFeed) { unsubFeed(); unsubFeed = null; }
+      setSigned(false);
+    });
+    roomSelect.addEventListener("change", async (e)=>{
+      currentRoom = e.target.value;
+      if (leaveChatBtn.style.display !== "none") await bindRoomFeed();
+    });
+    chatSend.addEventListener("click", sendMessage);
+    chatInput.addEventListener("keydown", (e)=>{ if(e.key === "Enter") sendMessage(); });
+
+    // Auth: derive display name from Firestore user doc
     onAuthStateChanged(auth, async (user)=>{
       me = user || null;
-      if (me){
-        myDoc = await loadMyDoc(me.uid);
-        whoLine.textContent = "(click Enter Chat)";
-        await seedExamplesOnce();
-      }else{
-        whoLine.textContent = "(not in chat)";
+      myDisplayName = "";
+      if (me) {
+        try {
+          const uref = doc(db, "users", me.uid);
+          const snap = await getDoc(uref);
+          if (snap.exists()) myDisplayName = bestVisibleNameFromDoc(snap.data());
+          if (!myDisplayName) {
+            const emailName = (me.email || "").split("@")[0];
+            myDisplayName = emailName || "Member";
+          }
+        } catch (e) {
+          const emailName = (me.email || "").split("@")[0];
+          myDisplayName = emailName || "Member";
+        }
       }
-      // initial loads
-      loadChaos("");
-      loadReviews("");
+      setSigned(false);
     });
+
+    // Initialization
+    (function init(){
+      renderRooms();
+      renderBoard(chaosList, chaosItems);
+      renderBoard(reviewList, reviewItems);
+    })();
   </script>
 </body>
 </html>
