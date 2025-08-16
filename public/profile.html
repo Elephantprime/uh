@@ -703,26 +703,51 @@ Last profile.
       return users.map(u => ({ ...u, chatId: map.get(u.uid)?.chatId || null }));
     }
 
-    /* ===== SECTION: Inbox UI ===== */
-    function userCard(u, { locked=false, trailing=null } = {}){
-      const primary = safePrimaryPhoto(u);
-      const img = primary || NEUTRAL_PHOTO;
-      const name = u.displayName || "Member";
-      const age = (typeof u.age === "number") ? `, ${u.age}` : "";
-      const loc = u.location || "";
+function userCard(u, { locked = false, trailing = null } = {}) {
+  // … build name, img, etc.
+  const item = document.createElement("div");
+  item.className = "inbox-item" + (locked ? " locked" : "");
+  item.innerHTML = `
+    <div class="thumb">
+      <img class="${locked ? 'blur' : ''}" src="${img}" alt="">
+    </div>
+    <div class="inbox-meta">
+      <div class="inbox-name">${name}${age}</div>
+      <div class="inbox-sub">${loc}</div>
+      ${trailing || ""}
+    </div>
+  `;
 
-      const item = document.createElement("div");
-      item.className = "inbox-item" + (locked ? " locked" : "");
-      item.innerHTML = `
-        <div class="thumb">
-          <img class="${locked?'blur':''}" src="${img}" alt="">
-        </div>
-        <div class="inbox-meta">
-          <div class="inbox-name">${name}${age}</div>
-          <div class="inbox-sub">${loc}</div>
-          ${trailing || ""}
-        </div>
-      `;
+  // make the whole card open their public profile
+  item.dataset.uid = u?.uid || "";
+  item.addEventListener("click", (ev) => {
+    // ignore clicks on the overlay or control buttons
+    if (ev.target.closest(".lock-badge, .pill, button")) return;
+    const uid = item.dataset.uid;
+    if (uid) {
+      location.href = `./user.html?uid=${encodeURIComponent(uid)}`;
+    }
+  });
+
+  // add a “Members Only” overlay if this card is locked
+  if (locked) {
+    const overlay = document.createElement("div");
+    overlay.className = "lock-badge";
+    overlay.innerHTML = `
+      <div>
+        <div>Members Only</div>
+        <button class="lock-msg" data-upg>Unlock</button>
+      </div>
+    `;
+    item.appendChild(overlay);
+    // clicking “Unlock” should trigger the upgrade button
+    overlay.querySelector("[data-upg]").addEventListener("click", () => {
+      upgradeBtn?.click();
+    });
+  }
+
+  return item;
+}
       
       //make the whole card open their public profile
   item.dataset.uid = u?.uid || "";
