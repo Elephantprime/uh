@@ -937,6 +937,17 @@
       alert("Your account has been deleted."); location.replace("./signup.html");
     }
     deleteBtn?.addEventListener("click", handleDeleteAccount);
+    // Force Profile link to navigate
+(() => {
+  const profileLink =
+    document.querySelector('#profileLink, #nav-profile, a[href="/profile.html"], a[href="./profile.html"]');
+  if (!profileLink) return;
+  profileLink.addEventListener('click', (e) => {
+    if (e.metaKey || e.ctrlKey) return; // allow new tab
+    e.preventDefault();
+    window.location.href = '/profile.html';
+  }, { capture: true });
+})();
 
     /* ===== SECTION: Modal Controls (Edit/Inbox/Chat) ===== */
     function openEdit(){ editModal.style.display="flex"; }
