@@ -936,7 +936,8 @@
 
       alert("Your account has been deleted."); location.replace("./signup.html");
     }
-    deleteBtn?.addEventListener("click", handleDeleteAccount);
+    deleteBtn?.addEventListener("click", handleDeleteAccount); 
+   
     // Force Profile link to navigate
 (() => {
   const profileLink =
@@ -948,6 +949,7 @@
     window.location.href = '/profile.html';
   }, { capture: true });
 })();
+   
 
     /* ===== SECTION: Modal Controls (Edit/Inbox/Chat) ===== */
     function openEdit(){ editModal.style.display="flex"; }
