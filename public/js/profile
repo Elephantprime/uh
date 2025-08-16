@@ -1,0 +1,137 @@
+/* ===================== 🔶 PROFILE.JS — GLOBAL ADAPTERS 🔶 ===================== */
+// Uses globals from /js/firebase.js
+const app   = globalThis.firebaseApp || globalThis.app;
+const auth  = globalThis.firebaseAuth || globalThis.auth;
+const db    = globalThis.firebaseDb || globalThis.db;
+
+const {
+  onAuthStateChanged, signOut
+} = globalThis.firebaseAuthApi || {};       // optional API object your firebase.js may expose
+
+const {
+  collection, query, where, limit, getDocs
+} = globalThis.firebaseFirestoreApi || {};  // optional API object your firebase.js may expose
+
+// Fallbacks if your firebase.js attached compat-style objects
+function colRef(path){ return collection ? collection(db, path) : db.collection(path); }
+async function getDocsCompat(q){
+  if (getDocs) return await getDocs(q);
+  // compat fallback
+  const snap = await q.get();
+  // shape to look like modular
+  return { docs: snap.docs.map(d => ({ id: d.id, data: () => d.data() })) };
+}
+
+/* ===================== 🔶 DOM HOOKS 🔶 ===================== */
+const els = {
+  statusText: document.getElementById("statusText"),
+  browseBtn: document.getElementById("browseBtn"),
+  matchesList: document.getElementById("matchesList") || document.getElementById("matchesContainer"),
+};
+
+/* ===================== 🔶 SMALL HELPERS 🔶 ===================== */
+const setStatus = (t) => { if (els.statusText) els.statusText.textContent = t; };
+const clearNode = (n) => { if (!n) return; while (n.firstChild) n.removeChild(n.firstChild); };
+
+/* ===================== 🔶 AUTH GATE 🔶 ===================== */
+const useOnAuthStateChanged = onAuthStateChanged || auth?.onAuthStateChanged?.bind(auth);
+if (!useOnAuthStateChanged) console.error("[profile] Missing onAuthStateChanged. Check /js/firebase.js.");
+
+useOnAuthStateChanged(async (user) => {
+  if (!user) {
+    setStatus("Not signed in. Redirecting…");
+    location.replace("/login.html");
+    return;
+  }
+  setStatus(`Signed in as ${user.email ?? user.uid}`);
+  // Auto-load matches on arrival (acts like “Browse” on page load)
+  try { await loadAllMembers(user.uid); } catch(e){ console.error(e); }
+});
+
+/* ===================== 🔶 RENDER: MEMBER CARDS 🔶 ===================== */
+function renderMembers(list){
+  const mount = els.matchesList;
+  if (!mount) return;
+  clearNode(mount);
+
+  // container
+  const grid = document.createElement("div");
+  grid.style.display = "grid";
+  grid.style.gridTemplateColumns = "repeat(auto-fill, minmax(220px, 1fr))";
+  grid.style.gap = "12px";
+
+  list.forEach(u => {
+    const d = u.data ? u.data() : u; // handle compat
+    if (!d) return;
+
+    const card = document.createElement("div");
+    card.style.background = "#17171c";
+    card.style.border = "1px solid #23232a";
+    card.style.borderRadius = "12px";
+    card.style.padding = "12px";
+
+    const img = document.createElement("img");
+    img.src = d.photoURL || "/assets/default-avatar.png";
+    img.alt = (d.displayName || "User") + " photo";
+    img.style.width = "100%";
+    img.style.height = "180px";
+    img.style.objectFit = "cover";
+    img.style.borderRadius = "10px";
+
+    const name = document.createElement("div");
+    name.textContent = d.displayName || "Unknown";
+    name.style.fontWeight = "700";
+    name.style.marginTop = "10px";
+
+    const meta = document.createElement("div");
+    meta.style.fontSize = "13px";
+    meta.style.opacity = "0.8";
+    const ageText = Number.isFinite(d.age) ? ` • ${d.age}` : "";
+    meta.textContent = `${d.location || ""}${ageText}`.trim();
+
+    const flags = document.createElement("div");
+    flags.style.fontSize = "12px";
+    flags.style.opacity = "0.7";
+    flags.style.marginTop = "6px";
+    const rf = Array.isArray(d.redFlags) ? d.redFlags : (typeof d.redFlags === "string" ? d.redFlags.split(",").map(s=>s.trim()).filter(Boolean) : []);
+    flags.textContent = rf.length ? `⚑ ${rf.join(" • ")}` : "";
+
+    card.appendChild(img);
+    card.appendChild(name);
+    card.appendChild(meta);
+    if (flags.textContent) card.appendChild(flags);
+
+    grid.appendChild(card);
+  });
+
+  mount.appendChild(grid);
+}
+
+/* ===================== 🔶 DATA: LOAD ALL MEMBERS (EXCEPT SELF) 🔶 ===================== */
+async function loadAllMembers(myUid){
+  // Build query: users excluding self, cap at 60 for now
+  // (If you need strict “exclude self” in modular, you’d mirror with a where + client filter.)
+  let q = colRef("users");
+  // If modular query available, we can use limit(); else fetch and filter.
+  if (query && limit) q = query(q, limit(60));
+
+  const snap = await getDocsCompat(q);
+  const rows = snap.docs.filter(doc => doc.id !== myUid);
+  renderMembers(rows);
+}
+
+/* ===================== 🔶 BROWSE BUTTON — CLICK HANDLER 🔶 ===================== */
+els.browseBtn?.addEventListener("click", async () => {
+  try {
+    const me = auth.currentUser;
+    if (!me) throw new Error("Not signed in");
+    setStatus("Loading members…");
+    await loadAllMembers(me.uid);
+    setStatus(`Signed in as ${me.email ?? me.uid}`);
+  } catch (e){
+    console.error(e);
+    alert("Could not load matches: " + (e?.message || e));
+  }
+});
+
+/* ===================== 🔶 END STEP 1 (BROWSE) 🔶 ===================== */
