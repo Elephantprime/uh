@@ -1,69 +1,89 @@
-/* ===================== 🔶 PROFILE.JS — GLOBAL ADAPTERS 🔶 ===================== */
-// Uses globals from /js/firebase.js
-const app   = globalThis.firebaseApp || globalThis.app;
-const auth  = globalThis.firebaseAuth || globalThis.auth;
-const db    = globalThis.firebaseDb || globalThis.db;
+/* ===================== 🔶 PROFILE.JS — ENV RESOLUTION 🔶 ===================== */
+// Try compat first (window.firebase), then your globals from /js/firebase.js
+const compat = window.firebase || null;
 
-const {
-  onAuthStateChanged, signOut
-} = globalThis.firebaseAuthApi || {};       // optional API object your firebase.js may expose
+const app   = window.firebaseApp || window.app || compat?.app?.();
+const auth  = window.firebaseAuth || window.auth || compat?.auth?.();
+const db    = window.firebaseDb   || window.db   || compat?.firestore?.();
 
-const {
-  collection, query, where, limit, getDocs
-} = globalThis.firebaseFirestoreApi || {};  // optional API object your firebase.js may expose
+const apiAuth = window.firebaseAuthApi || {};        // { onAuthStateChanged, signOut, updateProfile }
+const apiFs   = window.firebaseFirestoreApi || {};   // { collection, query, limit, getDocs }
 
-// Fallbacks if your firebase.js attached compat-style objects
-function colRef(path){ return collection ? collection(db, path) : db.collection(path); }
-async function getDocsCompat(q){
-  if (getDocs) return await getDocs(q);
-  // compat fallback
-  const snap = await q.get();
-  // shape to look like modular
-  return { docs: snap.docs.map(d => ({ id: d.id, data: () => d.data() })) };
-}
+/* Guard + diagnostics */
+(function diag(){
+  if (!auth) console.error("[profile] Auth not found. Ensure /js/firebase.js loads before profile.js");
+  if (!db)   console.error("[profile] Firestore not found. Ensure it's initialized in /js/firebase.js");
+})();
 
-/* ===================== 🔶 DOM HOOKS 🔶 ===================== */
+/* ===================== 🔶 DOM 🔶 ===================== */
 const els = {
   statusText: document.getElementById("statusText"),
-  browseBtn: document.getElementById("browseBtn"),
-  matchesList: document.getElementById("matchesList") || document.getElementById("matchesContainer"),
+  browseBtn:  document.getElementById("browseBtn"),
+  matchesList:document.getElementById("matchesList") || document.getElementById("matchesContainer"),
 };
 
-/* ===================== 🔶 SMALL HELPERS 🔶 ===================== */
-const setStatus = (t) => { if (els.statusText) els.statusText.textContent = t; };
-const clearNode = (n) => { if (!n) return; while (n.firstChild) n.removeChild(n.firstChild); };
+const setStatus = (t)=> { if (els.statusText) els.statusText.textContent = t; };
+const clearNode = (n)=> { if (!n) return; while (n.firstChild) n.removeChild(n.firstChild); };
 
 /* ===================== 🔶 AUTH GATE 🔶 ===================== */
-const useOnAuthStateChanged = onAuthStateChanged || auth?.onAuthStateChanged?.bind(auth);
-if (!useOnAuthStateChanged) console.error("[profile] Missing onAuthStateChanged. Check /js/firebase.js.");
+function onAuth(cb){
+  if (apiAuth.onAuthStateChanged && auth) return apiAuth.onAuthStateChanged(auth, cb);
+  if (auth && typeof auth.onAuthStateChanged === "function") return auth.onAuthStateChanged(cb);
+  console.error("[profile] onAuthStateChanged unavailable.");
+  // Fallback: try once after a short delay
+  setTimeout(()=> cb(auth?.currentUser || compat?.auth?.()?.currentUser || null), 500);
+}
 
-useOnAuthStateChanged(async (user) => {
+onAuth(async (user) => {
   if (!user) {
     setStatus("Not signed in. Redirecting…");
-    location.replace("/login.html");
+    try { location.replace("/login.html"); } catch(e){}
     return;
   }
   setStatus(`Signed in as ${user.email ?? user.uid}`);
-  // Auto-load matches on arrival (acts like “Browse” on page load)
-  try { await loadAllMembers(user.uid); } catch(e){ console.error(e); }
+  try {
+    await loadAllMembers(user.uid); // auto-browse on load
+  } catch (e) {
+    console.error(e);
+    setStatus("Failed to load members.");
+  }
 });
 
-/* ===================== 🔶 RENDER: MEMBER CARDS 🔶 ===================== */
-function renderMembers(list){
+/* ===================== 🔶 FIRESTORE HELPERS 🔶 ===================== */
+async function fsGetUsers(limitCount=60){
+  // Modular path via apiFs
+  if (apiFs.getDocs && apiFs.collection) {
+    const col = apiFs.collection(db, "users");
+    const q   = apiFs.limit ? apiFs.query(col, apiFs.limit(limitCount)) : col;
+    const snap = await apiFs.getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, data: d.data() }));
+  }
+  // Compat path via firebase.firestore()
+  if (db?.collection) {
+    const snap = await db.collection("users").limit(limitCount).get();
+    return snap.docs.map(d => ({ id: d.id, data: d.data() }));
+  }
+  throw new Error("Firestore API not available.");
+}
+
+/* ===================== 🔶 LOAD & RENDER MEMBERS 🔶 ===================== */
+async function loadAllMembers(myUid){
+  setStatus("Loading members…");
+  const rows = await fsGetUsers(60);
+  const list = rows.filter(r => r.id !== myUid);
+
   const mount = els.matchesList;
   if (!mount) return;
+
   clearNode(mount);
 
-  // container
   const grid = document.createElement("div");
   grid.style.display = "grid";
   grid.style.gridTemplateColumns = "repeat(auto-fill, minmax(220px, 1fr))";
   grid.style.gap = "12px";
 
-  list.forEach(u => {
-    const d = u.data ? u.data() : u; // handle compat
-    if (!d) return;
-
+  list.forEach(({id, data}) => {
+    const d = data || {};
     const card = document.createElement("div");
     card.style.background = "#17171c";
     card.style.border = "1px solid #23232a";
@@ -89,49 +109,27 @@ function renderMembers(list){
     const ageText = Number.isFinite(d.age) ? ` • ${d.age}` : "";
     meta.textContent = `${d.location || ""}${ageText}`.trim();
 
-    const flags = document.createElement("div");
-    flags.style.fontSize = "12px";
-    flags.style.opacity = "0.7";
-    flags.style.marginTop = "6px";
-    const rf = Array.isArray(d.redFlags) ? d.redFlags : (typeof d.redFlags === "string" ? d.redFlags.split(",").map(s=>s.trim()).filter(Boolean) : []);
-    flags.textContent = rf.length ? `⚑ ${rf.join(" • ")}` : "";
-
     card.appendChild(img);
     card.appendChild(name);
-    card.appendChild(meta);
-    if (flags.textContent) card.appendChild(flags);
+    if (meta.textContent) card.appendChild(meta);
 
     grid.appendChild(card);
   });
 
   mount.appendChild(grid);
+  setStatus(`Loaded ${list.length} members`);
 }
 
-/* ===================== 🔶 DATA: LOAD ALL MEMBERS (EXCEPT SELF) 🔶 ===================== */
-async function loadAllMembers(myUid){
-  // Build query: users excluding self, cap at 60 for now
-  // (If you need strict “exclude self” in modular, you’d mirror with a where + client filter.)
-  let q = colRef("users");
-  // If modular query available, we can use limit(); else fetch and filter.
-  if (query && limit) q = query(q, limit(60));
-
-  const snap = await getDocsCompat(q);
-  const rows = snap.docs.filter(doc => doc.id !== myUid);
-  renderMembers(rows);
-}
-
-/* ===================== 🔶 BROWSE BUTTON — CLICK HANDLER 🔶 ===================== */
+/* ===================== 🔶 BUTTON: BROWSE 🔶 ===================== */
 els.browseBtn?.addEventListener("click", async () => {
   try {
-    const me = auth.currentUser;
+    const me = (auth?.currentUser) || (compat?.auth?.()?.currentUser) || null;
     if (!me) throw new Error("Not signed in");
-    setStatus("Loading members…");
     await loadAllMembers(me.uid);
-    setStatus(`Signed in as ${me.email ?? me.uid}`);
-  } catch (e){
+  } catch (e) {
     console.error(e);
     alert("Could not load matches: " + (e?.message || e));
   }
 });
 
-/* ===================== 🔶 END STEP 1 (BROWSE) 🔶 ===================== */
+/* ===================== 🔶 END 🔶 ===================== */
