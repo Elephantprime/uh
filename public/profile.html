@@ -1,13 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <!-- ===== SECTION: Head / Meta ===== -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Unhinged — Profile</title>
-
-  <!-- ===== SECTION: Styles (Design System) ===== -->
-  <style>
+  <title>Unhinged — Profile</title>  <!-- ===== SECTION: Styles (Design System) ===== -->  <style>
     :root { --bg:#0e0e12; --panel:#15161b; --muted:#cfd0de; --red:#E11D2A; --green:#4CAF50; }
     * { box-sizing: border-box; }
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:#fff;min-height:100vh;display:flex;flex-direction:column}
@@ -102,12 +98,8 @@
     .bubble.them{align-self:flex-start;background:#2a2a2a}
     .chat-send{display:flex;gap:8px;padding:10px;border-top:1px solid #2a2a2a}
     .chat-send input{flex:1;padding:10px;border-radius:10px;background:#12131a;border:1px solid #2a2a2a;color:#fff}
-  </style>
-</head>
-<body>
-
-  <!-- ===== SECTION: Top Bar ===== -->
-  <div class="topbar">
+  </style></head>
+<body>  <!-- ===== SECTION: Top Bar ===== -->  <div class="topbar">
     <div class="brand" id="topLine">Your Profile</div>
     <div class="nav-actions">
       <button class="btn secondary" id="filterBtn">Filter</button>
@@ -119,10 +111,7 @@
       <button class="btn secondary" id="logoutBtn">Logout</button>
       <button class="btn ghost" id="deleteBtn" title="Delete my account">Delete</button>
     </div>
-  </div>
-
-  <!-- ===== SECTION: Content ===== -->
-  <div class="content">
+  </div>  <!-- ===== SECTION: Content ===== -->  <div class="content">
     <!-- ===== SECTION: Swipe Card ===== -->
     <div class="card-frame" id="cardFrame">
       <img class="main-photo" id="main-photo" src="" alt="Profile Photo" />
@@ -136,95 +125,87 @@
       <div class="indicator pass" id="pass-indicator">PASS</div>
       <div class="indicator like" id="like-indicator">LIKE</div>
       <div class="empty" id="empty" style="display:none;">No more matches</div>
-    </div>
+    </div><!-- ===== SECTION: Bottom Actions ===== -->
+<div class="actions">
+  <button class="action-btn pass-btn" id="pass-btn" aria-label="Pass">✖</button>
+  <button class="chaos-btn" onclick="location.href='./app.html'">Community Chaos</button>
+  <button class="action-btn like-btn" id="like-btn" aria-label="Like">❤</button>
+</div>
 
-    <!-- ===== SECTION: Bottom Actions ===== -->
-    <div class="actions">
-      <button class="action-btn pass-btn" id="pass-btn" aria-label="Pass">✖</button>
-      <button class="chaos-btn" onclick="location.href='./app.html'">Community Chaos</button>
-      <button class="action-btn like-btn" id="like-btn" aria-label="Like">❤</button>
-    </div>
-  </div>
-
-  <!-- ===== SECTION: Edit Profile Modal ===== -->
-  <div class="modal-backdrop" id="editModal">
+  </div>  <!-- ===== SECTION: Edit Profile Modal ===== -->  <div class="modal-backdrop" id="editModal">
     <div class="modal">
       <h3>Edit Profile</h3>
-      <div class="muted" id="uidLine"></div>
-
-      <!-- Subsection: Identity -->
-      <div class="row">
-        <div>
-          <label for="displayName">Display name <span class="req" id="reqDisplayName" hidden>*</span></label>
-          <input id="displayName" type="text" />
-        </div>
-        <div>
-          <label for="username">Username</label>
-          <input id="username" type="text" placeholder="yourhandle" />
-        </div>
-      </div>
-
-      <!-- Subsection: About -->
-      <div class="row">
-        <div>
-          <label for="age">Age <span class="req" id="reqAge" hidden>*</span></label>
-          <input id="age" type="number" min="18" max="100" />
-        </div>
-        <div>
-          <label for="location">Location <span class="req" id="reqLocation" hidden>*</span></label>
-          <input id="location" type="text" placeholder="City, State" />
-        </div>
-      </div>
-
-      <!-- Subsection: Extra (Gender/Hobbies/Interests) -->
-      <div class="row">
-        <div>
-          <label for="gender">Gender</label>
-          <select id="gender">
-            <option value="">Prefer not to say</option>
-            <option value="female">Female</option>
-            <option value="male">Male</option>
-          </select>
-        </div>
-        <div></div>
-      </div>
-      <div class="row">
-        <div>
-          <label for="hobbies">Hobbies</label>
-          <input id="hobbies" type="text" placeholder="e.g., hiking, gaming" />
-        </div>
-        <div>
-          <label for="interests">Interests</label>
-          <input id="interests" type="text" placeholder="e.g., live music, travel" />
-        </div>
-      </div>
-
-      <label for="bio">Bio</label>
-      <textarea id="bio" rows="3" placeholder="Say something…"></textarea>
-
-      <!-- Subsection: Photos -->
-      <label for="avatar" style="margin-top:.5rem;">Add photos (you can select multiple) <span class="req" id="reqPhoto" hidden>*</span></label>
-      <input id="avatar" type="file" accept="image/*" multiple />
-      <div class="hint">Click a saved photo below to set it as your <b>Primary</b>. Selected files preview below before upload.</div>
-      <div class="status" id="uploadStatus"></div>
-
-      <!-- Previews (not yet uploaded) -->
-      <div class="muted" style="margin-top:.5rem;" id="previewTitle" hidden>Selected (not yet uploaded)</div>
-      <div class="gallery" id="previewGallery" hidden></div>
-
-      <!-- Saved photos -->
-      <div class="muted" style="margin-top:.75rem;">Saved Photos</div>
-      <div class="gallery" id="gallery"></div>
-
-      <div style="margin-top:.75rem;display:flex;gap:.5rem;justify-content:flex-end;">
-        <button class="btn secondary" id="cancelEdit">Cancel</button>
-        <button class="btn" id="saveEdit">Save</button>
-      </div>
+      <div class="muted" id="uidLine"></div><!-- Subsection: Identity -->
+  <div class="row">
+    <div>
+      <label for="displayName">Display name <span class="req" id="reqDisplayName" hidden>*</span></label>
+      <input id="displayName" type="text" />
+    </div>
+    <div>
+      <label for="username">Username</label>
+      <input id="username" type="text" placeholder="yourhandle" />
     </div>
   </div>
 
-  <!-- ===== INBOX MODAL ===== -->
-  <div class="inbox-modal" id="inboxModal">
+  <!-- Subsection: About -->
+  <div class="row">
+    <div>
+      <label for="age">Age <span class="req" id="reqAge" hidden>*</span></label>
+      <input id="age" type="number" min="18" max="100" />
+    </div>
+    <div>
+      <label for="location">Location <span class="req" id="reqLocation" hidden>*</span></label>
+      <input id="location" type="text" placeholder="City, State" />
+    </div>
+  </div>
+
+  <!-- Subsection: Extra (Gender/Hobbies/Interests) -->
+  <div class="row">
+    <div>
+      <label for="gender">Gender</label>
+      <select id="gender">
+        <option value="">Prefer not to say</option>
+        <option value="female">Female</option>
+        <option value="male">Male</option>
+      </select>
+    </div>
+    <div></div>
+  </div>
+  <div class="row">
+    <div>
+      <label for="hobbies">Hobbies</label>
+      <input id="hobbies" type="text" placeholder="e.g., hiking, gaming" />
+    </div>
+    <div>
+      <label for="interests">Interests</label>
+      <input id="interests" type="text" placeholder="e.g., live music, travel" />
+    </div>
+  </div>
+
+  <label for="bio">Bio</label>
+  <textarea id="bio" rows="3" placeholder="Say something…"></textarea>
+
+  <!-- Subsection: Photos -->
+  <label for="avatar" style="margin-top:.5rem;">Add photos (you can select multiple) <span class="req" id="reqPhoto" hidden>*</span></label>
+  <input id="avatar" type="file" accept="image/*" multiple />
+  <div class="hint">Click a saved photo below to set it as your <b>Primary</b>. Selected files preview below before upload.</div>
+  <div class="status" id="uploadStatus"></div>
+
+  <!-- Previews (not yet uploaded) -->
+  <div class="muted" style="margin-top:.5rem;" id="previewTitle" hidden>Selected (not yet uploaded)</div>
+  <div class="gallery" id="previewGallery" hidden></div>
+
+  <!-- Saved photos -->
+  <div class="muted" style="margin-top:.75rem;">Saved Photos</div>
+  <div class="gallery" id="gallery"></div>
+
+  <div style="margin-top:.75rem;display:flex;gap:.5rem;justify-content:flex-end;">
+    <button class="btn secondary" id="cancelEdit">Cancel</button>
+    <button class="btn" id="saveEdit">Save</button>
+  </div>
+</div>
+
+  </div>  <!-- ===== INBOX MODAL ===== -->  <div class="inbox-modal" id="inboxModal">
     <div class="inbox-card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <h3 style="margin:0">Inbox</h3>
@@ -238,10 +219,7 @@
       </div>
       <div class="inbox-list" id="inboxList"></div>
     </div>
-  </div>
-
-  <!-- ===== CHAT MODAL ===== -->
-  <div class="chat-modal" id="chatModal">
+  </div>  <!-- ===== CHAT MODAL ===== -->  <div class="chat-modal" id="chatModal">
     <div class="chat-card">
       <div class="chat-head">
         <div id="chatTitle">Chat</div>
@@ -253,31 +231,24 @@
         <button class="btn" id="chatSend">Send</button>
       </div>
     </div>
-  </div>
-
-  <!-- ===== FILTER MODAL ===== -->
-  <div class="modal-backdrop" id="filterModal">
+  </div>  <!-- ===== FILTER MODAL ===== -->  <div class="modal-backdrop" id="filterModal">
     <div class="modal">
-      <h3>Filters</h3>
+      <h3>Filters</h3><label for="filterLocation">Location</label>
+  <input id="filterLocation" type="text" placeholder="City, State" />
 
-      <label for="filterLocation">Location</label>
-      <input id="filterLocation" type="text" placeholder="City, State" />
-
-      <label>Age Range</label>
-      <div class="row">
-        <input id="filterAgeMin" type="number" min="18" max="99" placeholder="Min" />
-        <input id="filterAgeMax" type="number" min="18" max="99" placeholder="Max" />
-      </div>
-
-      <div style="margin-top:1rem;display:flex;gap:.5rem;justify-content:flex-end;">
-        <button class="btn secondary" id="cancelFilter">Cancel</button>
-        <button class="btn" id="applyFilter">Apply</button>
-      </div>
-    </div>
+  <label>Age Range</label>
+  <div class="row">
+    <input id="filterAgeMin" type="number" min="18" max="99" placeholder="Min" />
+    <input id="filterAgeMax" type="number" min="18" max="99" placeholder="Max" />
   </div>
 
-  <!-- ===== SECTION: Scripts ===== -->
-  <script type="module">
+  <div style="margin-top:1rem;display:flex;gap:.5rem;justify-content:flex-end;">
+    <button class="btn secondary" id="cancelFilter">Cancel</button>
+    <button class="btn" id="applyFilter">Apply</button>
+  </div>
+</div>
+
+  </div>  <!-- ===== SECTION: Scripts ===== -->  <script type="module">
     /* ===== SECTION: Imports ===== */
     import { auth, db, storage } from "./js/firebase.js";
     import {
@@ -310,6 +281,10 @@
     // Swipe card
     const cardFrame = document.getElementById("cardFrame");
     const mainPhoto = document.getElementById("main-photo");
+    // If an image fails to load, fall back to a neutral placeholder (prevents broken or random images)
+    if (mainPhoto) {
+      mainPhoto.addEventListener("error", () => { mainPhoto.src = NEUTRAL_PHOTO; }, { once: true });
+    }
     const nameEl = document.getElementById("name");
     const handleEl = document.getElementById("handle");
     const subInfo = document.getElementById("sub-info");
@@ -377,6 +352,10 @@
     let activeChat = { chatId: null, partner: null, unsub: null };
     let currentFilters = { location: "", min: null, max: null };
 
+    /* ===== SECTION: View Params ===== */
+    const _params = new URLSearchParams(location.search);
+    const viewUidParam = _params.get("uid"); // if present, force showing that user's profile
+
     /* Neutral placeholder (no stock faces) */
     const NEUTRAL_PHOTO = "data:image/svg+xml;utf8," + encodeURIComponent(
       `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1200'><rect width='100%' height='100%' fill='#0b0b0f'/><circle cx='400' cy='420' r='160' fill='#20222b'/><rect x='210' y='650' width='380' height='260' rx='28' fill='#20222b'/></svg>`
@@ -397,7 +376,9 @@
 
     function safePrimaryPhoto(p){
       const cand = p?.photoURL || (Array.isArray(p?.photos) && p.photos[0]) || "";
-      return (typeof cand === "string" && /^https?:\/\//i.test(cand)) ? cand : "";
+      if (typeof cand !== "string") return "";
+      const ok = /^(https?:\/\/|data:image\//i.test(cand));
+      return ok ? cand : "";
     }
 
     function renderBadges(badges=[]) {
@@ -950,6 +931,30 @@
       topLine.textContent   = myDocCached.username ? `@${myDocCached.username}` : `UID: ${me.uid}`;
       uidLine.textContent   = topLine.textContent;
 
+      // If a ?uid= is provided in URL, show that profile only
+      if (viewUidParam){
+        try{
+          if (viewUidParam === me.uid){
+            matches = [myDocCached];
+            currentIndex = 0;
+            renderProfile(myDocCached);
+            refreshSaveButtonState(myDocCached);
+            return; // do not build swipe list
+          } else {
+            const otherSnap = await getDoc(doc(db, "users", viewUidParam));
+            if (otherSnap.exists()){
+              const other = { uid: viewUidParam, ...otherSnap.data() };
+              matches = [other];
+              currentIndex = 0;
+              renderProfile(other);
+              refreshSaveButtonState(myDocCached);
+              return; // do not build swipe list
+            }
+          }
+        }catch(e){ console.warn("viewUidParam load failed:", e?.message); }
+        // if not found, fall through to normal list
+      }
+
       // Load others (exclude me)
       try{
         const snap = await getDocs(collection(db,"users"));
@@ -963,6 +968,5 @@
       renderProfile(matches[currentIndex] || null);
       refreshSaveButtonState(myDocCached);
     });
-  </script>
-</body>
+  </script></body>
 </html>
