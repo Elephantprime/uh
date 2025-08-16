@@ -263,6 +263,16 @@
       ref as sRef, uploadBytes, getDownloadURL, listAll, deleteObject
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
+    // ===== Global error traps so we can see what's blocking button wiring =====
+    window.addEventListener("error", (e)=>{
+      alert("Script error: " + (e?.message || "unknown"));
+      console.error("Script error", e);
+    });
+    window.addEventListener("unhandledrejection", (e)=>{
+      alert("Async error: " + (e?.reason?.message || e?.reason || "unknown"));
+      console.error("Unhandled rejection", e);
+    });
+
     /* ===== SECTION: Config (Requirements & Membership) ===== */
     const REQUIRED = { PHOTO: true, LOCATION: true, DISPLAY_NAME: false, AGE: false };
     const MEMBERSHIP = { requiredForViews: true, requiredForLikes: true }; // gate Likes/Views
