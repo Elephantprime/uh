@@ -249,11 +249,29 @@
 </div>
 
   </div>  <!-- ===== SECTION: Scripts ===== -->  <script type="module">
-    $1
-    /* ===== SECTION: Neutral Placeholder (must be defined early) ===== */
-    const NEUTRAL_PHOTO = "data:image/svg+xml;utf8," + encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1200'><rect width='100%' height='100%' fill='#0b0b0f'/><circle cx='400' cy='420' r='160' fill='#20222b'/><rect x='210' y='650' width='380' height='260' rx='28' fill='#20222b'/></svg>`
-    );
+    /* ===== SECTION: Imports ===== */
+    import { auth, db, storage } from "./js/firebase.js";
+    import {
+      onAuthStateChanged, updateProfile, signOut,
+      EmailAuthProvider, reauthenticateWithCredential, deleteUser
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      collection, getDocs, doc, getDoc, setDoc, deleteDoc, serverTimestamp,
+      query, where, orderBy, limit, addDoc, onSnapshot, updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      ref as sRef, uploadBytes, getDownloadURL, listAll, deleteObject
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+    // ===== Global error traps so we can see what's blocking button wiring =====
+    window.addEventListener("error", (e)=>{
+      alert("Script error: " + (e?.message || "unknown"));
+      console.error("Script error", e);
+    });
+    window.addEventListener("unhandledrejection", (e)=>{
+      alert("Async error: " + (e?.reason?.message || e?.reason || "unknown"));
+      console.error("Unhandled rejection", e);
+    });
 
     /* ===== SECTION: Config (Requirements & Membership) ===== */
     const REQUIRED = { PHOTO: true, LOCATION: true, DISPLAY_NAME: false, AGE: false };
@@ -347,6 +365,11 @@
     /* ===== SECTION: View Params ===== */
     const _params = new URLSearchParams(location.search);
     const viewUidParam = _params.get("uid"); // if present, force showing that user's profile
+
+    /* Neutral placeholder (no stock faces) */
+    const NEUTRAL_PHOTO = "data:image/svg+xml;utf8," + encodeURIComponent(
+      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1200'><rect width='100%' height='100%' fill='#0b0b0f'/><circle cx='400' cy='420' r='160' fill='#20222b'/><rect x='210' y='650' width='380' height='260' rx='28' fill='#20222b'/></svg>`
+    );
 
     /* ===== SECTION: Required Markers ===== */
     reqDisplayName.hidden = !REQUIRED.DISPLAY_NAME;
