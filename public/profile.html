@@ -231,37 +231,6 @@
     </div>
   </div>
   
-// ===== Self-delete handler =====
-const deleteBtn = document.getElementById("deleteAccount");
-if (deleteBtn) {
-  deleteBtn.addEventListener("click", async () => {
-    if (!confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
-
-    try {
-      const uid = auth.currentUser?.uid;
-      if (!uid) return;
-
-      // 1) Remove Firestore user doc
-      await deleteDoc(doc(db, "users", uid));
-
-      // 2) Remove their avatar folder in Storage (if you use one)
-      try { await deleteStorageFolder(`avatars/${uid}`); } catch (e) {
-        console.warn("storage cleanup:", e.message);
-      }
-
-      // 3) Remove related docs (likes/views/matches/chats) if you have helper
-      try { await deleteRelatedDocs(uid); } catch {}
-
-      // 4) Finally delete their Auth account
-      await deleteUser(auth.currentUser);
-
-      alert("Account deleted.");
-      window.location.href = "/login.html";
-    } catch (err) {
-      alert("Delete failed: " + (err.message || err));
-    }
-  });
-}
   <!-- ===== INBOX MODAL ===== -->
   <div class="inbox-modal" id="inboxModal">
     <div class="inbox-card">
