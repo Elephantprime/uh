@@ -18,8 +18,6 @@
     .btn.ghost{background:transparent;border:1px solid #2a2a2a}
     .btn.pill{border-radius:16px;padding:.55rem 1rem}
     .btn.small{padding:.35rem .7rem;font-size:.9rem}
-
-    /* Special chaos button (solid pill) */
     .chaos-btn{background:var(--red);color:#fff;border:none;border-radius:16px;padding:8px 16px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
 
     /* Text helpers */
@@ -35,7 +33,7 @@
 
     /* ===== SECTION: Swipe Card ===== */
     .card-frame{position:relative;width:92%;max-width:420px;height:72vh;border:2px solid #2a2a2a;border-radius:16px;overflow:hidden;background:#000;box-shadow:0 8px 24px rgba(0,0,0,.4);touch-action:pan-y}
-    .main-photo{width:100%;height:100%;object-fit:cover;user-select:none;-webkit-user-drag:none}
+    .main-photo{width:100%;height:100%;object-fit:cover;user-select:none;-webkit-user-drag:none;cursor:pointer}
     .info-overlay{position:absolute;left:0;right:0;bottom:0;padding:14px 16px;background:linear-gradient(transparent, rgba(0,0,0,.78));pointer-events:none}
     .info-overlay h2{margin:0;font-size:1.4rem}
     .handle{font-size:.95rem;color:#cfd0de;margin-top:2px}
@@ -204,124 +202,26 @@
     const MEMBERSHIP = { requiredForViews: true, requiredForLikes: true }; // gate “likes/views” later
 
     /* ===== SECTION: DOM Refs ===== */
-/* ===== SECTION: DOM Refs ===== */
-// Top bar
-const topLine = document.getElementById("topLine");
-const myProfileBtn = document.getElementById("myProfileBtn");
-const editBtn = document.getElementById("editBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-const upgradeBtn = document.getElementById("upgradeBtn");
+    // Top bar
+    const topLine = document.getElementById("topLine");
+    const myProfileBtn = document.getElementById("myProfileBtn");
+    const editBtn = document.getElementById("editBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const upgradeBtn = document.getElementById("upgradeBtn");
 
-// Swipe card
-const cardFrame = document.getElementById("cardFrame");
-const mainPhoto = document.getElementById("main-photo");
-const nameEl = document.getElementById("name");
-const handleEl = document.getElementById("handle");
-const subInfo = document.getElementById("sub-info");
-const badgesEl = document.getElementById("badges");
-const flagsEl = document.getElementById("flags");
-const passBtn = document.getElementById("pass-btn");
-const likeBtn = document.getElementById("like-btn");
-const passIndicator = document.getElementById("pass-indicator");
-const likeIndicator = document.getElementById("like-indicator");
-const emptyEl = document.getElementById("empty");
-
-/* ===== SECTION: Swipe (Touch/Buttons) ===== */
-function nextProfile() {
-  currentIndex++;
-  renderProfile(matches[currentIndex] || null);
-}
-
-function showIndicator(t) {
-  passIndicator.style.opacity = t === "pass" ? 1 : 0;
-  likeIndicator.style.opacity = t === "like" ? 1 : 0;
-}
-
-let startX = 0, dx = 0, dragging = false;
-
-cardFrame.addEventListener("touchstart", e => {
-  startX = e.touches[0].clientX;
-  dragging = true;
-});
-
-cardFrame.addEventListener("touchmove", e => {
-  if (!dragging) return;
-  dx = e.touches[0].clientX - startX;
-  if (dx > 50) showIndicator("like");
-  else if (dx < -50) showIndicator("pass");
-  else showIndicator(null);
-});
-
-cardFrame.addEventListener("touchend", () => {
-  if (!dragging) return;
-  if (Math.abs(dx) > 100) nextProfile();
-  showIndicator(null);
-/* ===== SECTION: DOM Refs ===== */
-// Top bar
-const topLine = document.getElementById("topLine");
-const myProfileBtn = document.getElementById("myProfileBtn");
-const editBtn = document.getElementById("editBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-const upgradeBtn = document.getElementById("upgradeBtn");
-
-// Swipe card
-const cardFrame = document.getElementById("cardFrame");
-const mainPhoto = document.getElementById("main-photo");
-const nameEl = document.getElementById("name");
-const handleEl = document.getElementById("handle");
-const subInfo = document.getElementById("sub-info");
-const badgesEl = document.getElementById("badges");
-const flagsEl = document.getElementById("flags");
-const passBtn = document.getElementById("pass-btn");
-const likeBtn = document.getElementById("like-btn");
-const passIndicator = document.getElementById("pass-indicator");
-const likeIndicator = document.getElementById("like-indicator");
-const emptyEl = document.getElementById("empty");
-
-/* ===== SECTION: Swipe (Touch/Buttons) ===== */
-function nextProfile() {
-  currentIndex++;
-  renderProfile(matches[currentIndex] || null);
-}
-
-function showIndicator(t) {
-  passIndicator.style.opacity = t === "pass" ? 1 : 0;
-  likeIndicator.style.opacity = t === "like" ? 1 : 0;
-}
-
-let startX = 0, dx = 0, dragging = false;
-
-cardFrame.addEventListener("touchstart", e => {
-  startX = e.touches[0].clientX;
-  dragging = true;
-});
-
-cardFrame.addEventListener("touchmove", e => {
-  if (!dragging) return;
-  dx = e.touches[0].clientX - startX;
-  if (dx > 50) showIndicator("like");
-  else if (dx < -50) showIndicator("pass");
-  else showIndicator(null);
-});
-
-cardFrame.addEventListener("touchend", () => {
-  if (!dragging) return;
-  if (Math.abs(dx) > 100) nextProfile();
-  showIndicator(null);
-  dragging = false;
-  dx = 0;
-});
-
-passBtn.addEventListener("click", nextProfile);
-likeBtn.addEventListener("click", nextProfile);
-
-// --- NEW: Open public profile when you click the photo ---
-mainPhoto.style.cursor = "pointer";
-mainPhoto.addEventListener("click", () => {
-  const p = matches[currentIndex];
-  if (!p || !p.uid) return; // requires uid field in match object
-  location.href = `./user.html?uid=${encodeURIComponent(p.uid)}`;
-});
+    // Swipe card
+    const cardFrame = document.getElementById("cardFrame");
+    const mainPhoto = document.getElementById("main-photo");
+    const nameEl = document.getElementById("name");
+    const handleEl = document.getElementById("handle");
+    const subInfo = document.getElementById("sub-info");
+    const badgesEl = document.getElementById("badges");
+    const flagsEl = document.getElementById("flags");
+    const passBtn = document.getElementById("pass-btn");
+    const likeBtn = document.getElementById("like-btn");
+    const passIndicator = document.getElementById("pass-indicator");
+    const likeIndicator = document.getElementById("like-indicator");
+    const emptyEl = document.getElementById("empty");
 
     // Edit modal
     const editModal = document.getElementById("editModal");
@@ -368,11 +268,17 @@ mainPhoto.addEventListener("click", () => {
     /* ===== SECTION: Helper – Renderers ===== */
     function renderBadges(badges=[]) {
       badgesEl.innerHTML = "";
-      badges.forEach(url => { const img = document.createElement("img"); img.src=url; img.alt="badge"; badgesEl.appendChild(img); });
+      (badges||[]).forEach(url => { const img = document.createElement("img"); img.src=url; img.alt="badge"; badgesEl.appendChild(img); });
     }
     function renderFlags(flags=[]) {
       flagsEl.innerHTML = "";
-      flags.forEach(()=>{ const img=document.createElement("img"); img.src="https://upload.wikimedia.org/wikipedia/commons/f/f7/Flag_icon_red.svg"; img.alt="flag"; flagsEl.appendChild(img); });
+      const count = Array.isArray(flags)?flags.length:0;
+      for(let i=0;i<count;i++){
+        const img=document.createElement("img");
+        img.src="https://upload.wikimedia.org/wikipedia/commons/f/f7/Flag_icon_red.svg";
+        img.alt="red flag";
+        flagsEl.appendChild(img);
+      }
     }
     function renderProfile(p) {
       if (!p) {
@@ -386,7 +292,6 @@ mainPhoto.addEventListener("click", () => {
       const age  = p.age ? `, ${p.age}` : "";
       nameEl.textContent = `${name}${age}`;
       handleEl.textContent = p.username ? `@${p.username}` : "";
-      // brief hints: location • hobbies • interests
       const hobbyHint = (p.hobbies && p.hobbies.trim()) ? ` • ${p.hobbies.trim().slice(0,20)}${p.hobbies.trim().length>20?'…':''}` : "";
       const interestHint = (p.interests && p.interests.trim()) ? ` • ${p.interests.trim().slice(0,20)}${p.interests.trim().length>20?'…':''}` : "";
       subInfo.textContent = (p.location || "") + hobbyHint + interestHint;
@@ -470,40 +375,12 @@ mainPhoto.addEventListener("click", () => {
     passBtn.addEventListener("click", nextProfile);
     likeBtn.addEventListener("click", nextProfile);
 
-    /* ===== SECTION: Modal (Open/Close) ===== */
-    editBtn.addEventListener("click", ()=>{
-      uploadStatus.textContent="";
-      ["invalid"].forEach(c=>{displayNameInput.classList.remove(c); ageInput.classList.remove(c); locationInput.classList.remove(c);});
-      editModal.style.display="flex";
-      refreshSaveButtonState(myDocCached);
+    // --- Open public profile when you click the photo ---
+    mainPhoto.addEventListener("click", () => {
+      const p = matches[currentIndex];
+      if (!p || !p.uid) return; // requires uid
+      location.href = `./user.html?uid=${encodeURIComponent(p.uid)}`;
     });
-    cancelEdit.addEventListener("click", ()=>{
-      editModal.style.display="none"; clearPreviews();
-      ["invalid"].forEach(c=>{displayNameInput.classList.remove(c); ageInput.classList.remove(c); locationInput.classList.remove(c);});
-    });
-
-    /* ===== SECTION: Filters (Optional; remove this whole block if not needed) ===== */
-    const FILTERS = { location:"", gender:"any", ageMin:null, ageMax:null };
-    function applyFilters(list){
-      const locFilter = (FILTERS.location||"").toLowerCase();
-      return list.filter(u=>{
-        if (locFilter && !(u.location||"").toLowerCase().includes(locFilter)) return false;
-        if (FILTERS.gender && FILTERS.gender!=="any") {
-          const g = (u.gender||"").toLowerCase();
-          if (g !== FILTERS.gender) return false;
-        }
-        const age = typeof u.age==="number" ? u.age : null;
-        if (FILTERS.ageMin!=null && (age==null || age < FILTERS.ageMin)) return false;
-        if (FILTERS.ageMax!=null && (age==null || age > FILTERS.ageMax)) return false;
-        return true;
-      });
-    }
-    function rebuildMatches(){
-      const filtered = applyFilters(allUsers);
-      matches = filtered.length ? filtered : (myDocCached ? [myDocCached] : []);
-      currentIndex = 0;
-      renderProfile(matches[currentIndex] || null);
-    }
 
     /* ===== SECTION: Data Layer (Load/Create/Save) ===== */
     async function loadOrCreateUserDoc(uid, userObj){
@@ -569,7 +446,7 @@ mainPhoto.addEventListener("click", () => {
         avatarInput.value=""; clearPreviews();
         showOK("Profile saved."); setTimeout(()=>{ editModal.style.display="none"; }, 500);
 
-        rebuildMatches(); // re-apply filters (if any)
+        rebuildMatches(); // re-apply if you add filters later
       }catch(e){ showError(`Save failed: ${e?.message||'error'}`); }
       finally{ saveEdit.disabled=false; }
     }
@@ -614,6 +491,7 @@ mainPhoto.addEventListener("click", () => {
       }
     });
 
+    // ---- Load & hydrate ----
     onAuthStateChanged(auth, async (user)=>{
       if(!user){
         if(!_profileNavGuard){ _profileNavGuard=true; location.replace("./login.html"); }
@@ -621,7 +499,7 @@ mainPhoto.addEventListener("click", () => {
       }
       me = user;
 
-      // Load/create user doc and hydrate UI
+      // Load/create my doc
       myDocCached = await loadOrCreateUserDoc(me.uid, me);
       displayNameInput.value = myDocCached.displayName || "";
       usernameInput.value   = myDocCached.username || "";
@@ -635,12 +513,15 @@ mainPhoto.addEventListener("click", () => {
       topLine.textContent   = myDocCached.username ? `@${myDocCached.username}` : `UID: ${me.uid}`;
       uidLine.textContent   = topLine.textContent;
 
-      // Load others (exclude me); fall back to self if none
+      // Load others (exclude me) and ENSURE uid is present
       const snap = await getDocs(collection(db,"users"));
       allUsers = [];
-      snap.forEach(d=>{ if(d.id!==me.uid) allUsers.push(d.data()); });
+      snap.forEach(d=>{ if(d.id!==me.uid) allUsers.push({ uid: d.id, ...d.data() }); });
 
-      rebuildMatches();
+      // Build swipe list (fallback to me if no one else yet)
+      matches = allUsers.length ? allUsers : [myDocCached];
+      currentIndex = 0;
+      renderProfile(matches[currentIndex] || null);
       refreshSaveButtonState(myDocCached);
     });
   </script>
