@@ -24,18 +24,18 @@
     .card h2{margin:0;padding:14px 14px;border-bottom:1px solid rgba(255,255,255,.06);background:#12131a;position:relative}
     .card-body{padding:14px}
 
-    /* NEW: three-box promo row above Live Stream */
+    /* NEW: three-box promo row above Live Stream (two-left stacked, one-right) */
     .promoRow{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
     .promoLeft{display:grid;grid-template-rows:1fr 1fr;gap:18px}
     .promoRight{display:flex;flex-direction:column}
     .promoCardLink{display:block;text-decoration:none}
     .promoBig{display:flex;flex-direction:column;height:100%}
     .promoCenter{flex:1;display:flex;align-items:center;justify-content:center}
-    .promoBadge{width:140px;height:140px;border-radius:999px;background:radial-gradient(circle at 30% 30%, #ff9fb0, #e11d2a 58%, #8a0c16 100%);box-shadow:0 10px 28px rgba(225,29,42,.35)}
-    .promoFlag{width:0;height:0;border-top:70px solid transparent;border-bottom:70px solid transparent;border-left:140px solid #e11d2a;filter:drop-shadow(0 10px 18px rgba(225,29,42,.35))}
+    .promoThumb{width:160px;height:160px;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 28px rgba(0,0,0,.35)}
+    .promoThumb img{width:100%;height:100%;object-fit:cover}
     .subtle{color:var(--muted);font-size:13px}
 
-    /* Big 2x2 layout */
+    /* Big 2x2 layout (existing) */
     .gridTop{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
     .gridBottom{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
     .bigPane{min-height:68vh;display:flex;flex-direction:column}
@@ -70,10 +70,9 @@
     .modal h3{margin:0 0 8px}
     .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 
-    /* IMPORTANT: keep Live/Chat responsive but DO NOT collapse promoRow */
     @media (max-width:960px){
-      .gridTop,.gridBottom{grid-template-columns:1fr}
-      /* .promoRow intentionally NOT changed, it stays 2 columns */
+      .gridTop,.gridBottom,.promoRow{grid-template-columns:1fr}
+      .promoLeft{grid-template-rows:auto}
     }
   </style>
 </head>
@@ -90,55 +89,62 @@
   </header>
 
   <main class="wrap">
-
-    <!-- NEW: THREE-BOX ROW ABOVE LIVE STREAM -->
+    <!-- NEW ROW: two-left stacked + one-right (above Live Stream) -->
     <div class="promoRow">
-      <!-- Left: two stacked cards -->
+      <!-- LEFT: Badges + Red Flags (stacked) -->
       <div class="promoLeft">
-        <!-- Badges (big single badge, clickable to public/badges.html) -->
-        <a class="promoCardLink" href="./public/badges.html">
-          <section class="card promoBig">
-            <h2>Badges</h2>
-            <div class="card-body promoCenter">
-              <div class="promoBadge" aria-hidden="true"></div>
+        <!-- Badges (links to public/badges.html) -->
+        <a class="card promoCardLink promoBig" href="./public/badges.html">
+          <h2>Badges</h2>
+          <div class="card-body promoCenter">
+            <div class="promoThumb">
+              <!-- actual badge image -->
+              <img alt="Badge" src="https://images.unsplash.com/photo-1549989476-69a92fa57c36?q=80&w=1200&auto=format&fit=crop">
             </div>
-            <div class="card-body" style="border-top:1px solid rgba(255,255,255,.06)">
-              <div class="subtle">Tap to view all badges</div>
-            </div>
-          </section>
+          </div>
+          <div class="card-body" style="padding-top:0">
+            <div class="subtle">Tap to see all badges</div>
+          </div>
         </a>
 
-        <!-- Red Flags (big flag, clickable to public/redflags.html) -->
-        <a class="promoCardLink" href="./public/redflags.html">
-          <section class="card promoBig">
-            <h2>Red Flags</h2>
-            <div class="card-body promoCenter">
-              <div class="promoFlag" aria-hidden="true"></div>
+        <!-- Red Flags (links to public/redflags.html) -->
+        <a class="card promoCardLink promoBig" href="./public/redflags.html">
+          <h2>Red Flags</h2>
+          <div class="card-body promoCenter">
+            <div class="promoThumb">
+              <!-- actual red-flag image -->
+              <img alt="Red flag" src="https://images.unsplash.com/photo-1501631259223-89d4e246ed23?q=80&w=1200&auto=format&fit=crop">
             </div>
-            <div class="card-body" style="border-top:1px solid rgba(255,255,255,.06)">
-              <div class="subtle">Tap to view all flags</div>
-            </div>
-          </section>
+          </div>
+          <div class="card-body" style="padding-top:0">
+            <div class="subtle">Tap to see all red flags</div>
+          </div>
         </a>
       </div>
 
-      <!-- Right: tall card (same total height as two left stacked) -->
-      <section class="card promoRight">
+      <!-- RIGHT: Casualties of Modern Dating (password-protected upload) -->
+      <section class="card promoRight promoBig">
         <h2>Casualties of Modern Dating</h2>
         <div class="card-body" style="display:flex;flex-direction:column;gap:10px;flex:1">
-          <div class="muted">Upload a short video (test placeholder).</div>
-          <input type="file" id="codVideo" accept="video/*" />
-          <button class="btn primary" id="codUpload">Upload</button>
-          <div id="codStatus" class="muted"></div>
-          <div style="flex:1;border:1px dashed #2a2c39;border-radius:12px;display:flex;align-items:center;justify-content:center;opacity:.7">
-            <span>Preview area</span>
+          <div class="subtle">Upload a video or photo (owner-only)</div>
+          <div class="row">
+            <input id="cmdPassword" type="password" placeholder="Password (owner only)" />
+            <button id="cmdUnlock" class="btn">Unlock</button>
+          </div>
+          <div id="cmdUploadRow" class="row" style="display:none">
+            <input id="cmdFile" type="file" accept="image/*,video/*" />
+            <button id="cmdUpload" class="btn primary">Upload</button>
+          </div>
+          <div id="cmdPreview" style="display:none">
+            <div class="subtle" style="margin-bottom:6px">Preview</div>
+            <div id="cmdPreviewBox" style="border:1px solid #2a2c39;border-radius:12px;padding:10px;display:flex;justify-content:center;align-items:center;min-height:160px;background:#0f1016"></div>
           </div>
         </div>
       </section>
     </div>
-    <!-- /NEW: THREE-BOX ROW -->
+    <!-- /NEW ROW -->
 
-    <!-- TOP ROW -->
+    <!-- TOP ROW (existing) -->
     <div class="gridTop">
       <!-- Live Stream (big) -->
       <section class="card bigPane">
@@ -156,6 +162,7 @@
           <div class="row" style="justify-content:space-between">
             <div class="muted" id="meTag">(not in chat)</div>
             <div class="row">
+              <!-- RED ENTER -->
               <button class="btn primary" id="enterChatBtn">Enter Chat</button>
               <button class="btn" id="leaveChatBtn" style="display:none">Leave</button>
             </div>
@@ -179,7 +186,7 @@
       </section>
     </div>
 
-    <!-- BOTTOM ROW -->
+    <!-- BOTTOM ROW (existing) -->
     <div class="gridBottom">
       <!-- Chaos Board -->
       <section class="card smallPane">
@@ -254,24 +261,28 @@
   </div>
 
   <script type="module">
-    /* ===== Firebase Imports ===== */
+    /* ==== Firebase ==== */
     import { auth, db } from "./js/firebase.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      collection, addDoc, serverTimestamp, onSnapshot,
+      query, orderBy, limit, getDoc, doc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    /* ===== Chat (Firestore) ===== */
+    /* ==== Chat config (Firestore only) ==== */
     const ROOMS = [
       { id: "general",      label: "#general" },
       { id: "first-dates",  label: "#first-dates" },
       { id: "gym-rats",     label: "#gym-rats" },
       { id: "chaos-lounge", label: "#chaos-lounge" },
     ];
+
     let me = null;
     let myDisplayName = ""; // from users/{uid}
     let currentRoom = ROOMS[0].id;
     let unsubFeed = null;
 
-    // DOM: chat
+    /* ==== DOM ==== */
     const meTag = document.getElementById("meTag");
     const enterChatBtn = document.getElementById("enterChatBtn");
     const leaveChatBtn = document.getElementById("leaveChatBtn");
@@ -282,7 +293,6 @@
     const chatInput = document.getElementById("chatInput");
     const chatSend = document.getElementById("chatSend");
 
-    // Boards DOM
     const chaosList = document.getElementById("chaosList");
     const reviewList = document.getElementById("reviewList");
     const chaosModal = document.getElementById("chaosModal");
@@ -304,11 +314,47 @@
     const detailBody  = document.getElementById("detailBody");
     const detailClose = document.getElementById("detailClose");
 
-    /* ===== Helpers ===== */
+    /* ====== Casualties upload (password: Spark) ====== */
+    const cmdPassword = document.getElementById("cmdPassword");
+    const cmdUnlock   = document.getElementById("cmdUnlock");
+    const cmdUploadRow= document.getElementById("cmdUploadRow");
+    const cmdFile     = document.getElementById("cmdFile");
+    const cmdUpload   = document.getElementById("cmdUpload");
+    const cmdPreview  = document.getElementById("cmdPreview");
+    const cmdPreviewBox = document.getElementById("cmdPreviewBox");
+
+    cmdUnlock.addEventListener("click", ()=>{
+      if ((cmdPassword.value || "") === "Spark"){
+        cmdUploadRow.style.display = "flex";
+      } else {
+        alert("Wrong password.");
+        cmdUploadRow.style.display = "none";
+      }
+    });
+
+    cmdUpload.addEventListener("click", ()=>{
+      const f = cmdFile.files && cmdFile.files[0];
+      if (!f) return;
+      // Client-side preview only (no backend wire-up here)
+      cmdPreview.style.display = "block";
+      cmdPreviewBox.innerHTML = "";
+      const url = URL.createObjectURL(f);
+      if (f.type.startsWith("video/")){
+        const v = document.createElement("video");
+        v.src = url; v.controls = true; v.style.maxWidth = "100%"; v.style.maxHeight = "320px";
+        cmdPreviewBox.appendChild(v);
+      } else {
+        const img = document.createElement("img");
+        img.src = url; img.alt = "upload preview"; img.style.maxWidth = "100%"; img.style.maxHeight = "320px";
+        cmdPreviewBox.appendChild(img);
+      }
+    });
+
+    /* ==== UI helpers ==== */
     function open(el){ el.style.display = "flex"; }
     function close(el){ el.style.display = "none"; }
     function setSigned(on){
-      const label = (ROOMS.find(r=>r.id===currentRoom)?.label) || "#general";
+      const label = ROOMS.find(r=>r.id===currentRoom)?.label || "#general";
       meTag.textContent = on ? `In ${label} as ${myDisplayName}` : "(not in chat)";
       enterChatBtn.style.display = on ? "none" : "inline-flex";
       leaveChatBtn.style.display = on ? "inline-flex" : "none";
@@ -365,7 +411,7 @@
       return "";
     }
 
-    /* ===== Boards (simple in-memory with 1 example each) ===== */
+    /* ==== Boards (simple in-memory with 1 example each) ==== */
     const chaosItems = [{
       title: "Walked Out on the Check",
       author: "@Rae25",
@@ -423,17 +469,17 @@
       close(reviewModal);
     });
 
-    // Modal toggles (chaos/reviews/details)
+    // Modal toggles
     document.getElementById("uploadChaos").addEventListener("click", ()=> open(chaosModal));
     document.getElementById("uploadReview").addEventListener("click", ()=> open(reviewModal));
     document.getElementById("cCancel").addEventListener("click", ()=> close(chaosModal));
     document.getElementById("rCancel").addEventListener("click", ()=> close(reviewModal));
     chaosModal.addEventListener("click", (e)=>{ if(e.target===chaosModal) close(chaosModal); });
     reviewModal.addEventListener("click", (e)=>{ if(e.target===reviewModal) close(reviewModal); });
-    document.getElementById("detailClose").addEventListener("click", ()=> close(detailModal));
+    detailClose.addEventListener("click", ()=> close(detailModal));
     detailModal.addEventListener("click", (e)=>{ if(e.target===detailModal) close(detailModal); });
 
-    /* ===== Chat controls (no anonymous) ===== */
+    /* ==== Chat controls (no anonymous) ==== */
     enterChatBtn.addEventListener("click", async ()=>{
       if (!me) { location.href = "./login.html"; return; }
       if (!myDisplayName){ alert("Your profile needs a username/display name."); return; }
@@ -453,7 +499,7 @@
     chatSend.addEventListener("click", sendMessage);
     chatInput.addEventListener("keydown", (e)=>{ if(e.key==="Enter") sendMessage(); });
 
-    /* ===== Auth: derive visible name from users/{uid} ===== */
+    /* ==== Auth: derive visible name from users/{uid} ==== */
     onAuthStateChanged(auth, async (user)=>{
       me = user || null;
       myDisplayName = "";
@@ -474,16 +520,7 @@
       setSigned(false);
     });
 
-    /* ===== Casualties upload (placeholder UI only) ===== */
-    const codVideo = document.getElementById("codVideo");
-    const codUpload = document.getElementById("codUpload");
-    const codStatus = document.getElementById("codStatus");
-    codUpload?.addEventListener("click", ()=>{
-      const f = codVideo.files?.[0];
-      codStatus.textContent = f ? `Ready: ${f.name}` : "Select a video first.";
-    });
-
-    /* ===== Init ===== */
+    /* ==== Init ==== */
     (function init(){
       renderRooms();
       renderBoard(chaosList, chaosItems);
