@@ -95,7 +95,8 @@
           <div class="row" style="justify-content:space-between">
             <div class="muted" id="meTag">(not in chat)</div>
             <div class="row">
-              <button class="btn" id="enterChatBtn">Enter Chat</button>
+              <!-- CHANGED: make Enter button red -->
+              <button class="btn primary" id="enterChatBtn">Enter Chat</button>
               <button class="btn" id="leaveChatBtn" style="display:none">Leave</button>
             </div>
           </div>
@@ -215,7 +216,6 @@
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     /* ===== Chat (Firestore) ===== */
-    // Use clean Firestore IDs but show labels with '#'
     const ROOMS = [
       { id: "general",      label: "#general" },
       { id: "first-dates",  label: "#first-dates" },
@@ -437,6 +437,7 @@
       const body  = (cBody.value||"").trim();
       if (!title || !about || !body) return;
       const author = myDisplayName || (localStorage.getItem("uh_chat_fallback") || "Member");
+      reviewItems; // no-op to keep identical formatting
       chaosItems.unshift({ title, author, about, body });
       renderBoard(chaosList, chaosItems);
       cTitle.value = ""; cAbout.value = ""; cBody.value = "";
