@@ -21,20 +21,19 @@
     .btn.primary{background:var(--red);border-color:var(--red);color:#fff}
     .btn.ghost{background:transparent}
     .card{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);overflow:hidden}
-    .card h2{margin:0;padding:14px;border-bottom:1px solid rgba(255,255,255,.06);background:#12131a;position:relative}
+    .card h2{margin:0;padding:14px 14px;border-bottom:1px solid rgba(255,255,255,.06);background:#12131a;position:relative}
     .card-body{padding:14px}
 
-    /* NEW: three-box promo row above Live Stream (2 on left stacked, 1 tall on right) */
+    /* NEW: three-box promo row above Live Stream */
     .promoRow{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
     .promoLeft{display:grid;grid-template-rows:1fr 1fr;gap:18px}
     .promoRight{display:flex;flex-direction:column}
     .promoCardLink{display:block;text-decoration:none}
     .promoBig{display:flex;flex-direction:column;height:100%}
-    .promoCenter{flex:1;display:flex;align-items:center;justify-content:center;padding:12px}
+    .promoCenter{flex:1;display:flex;align-items:center;justify-content:center}
+    .promoBadge{width:140px;height:140px;border-radius:999px;background:radial-gradient(circle at 30% 30%, #ff9fb0, #e11d2a 58%, #8a0c16 100%);box-shadow:0 10px 28px rgba(225,29,42,.35)}
+    .promoFlag{width:0;height:0;border-top:70px solid transparent;border-bottom:70px solid transparent;border-left:140px solid #e11d2a;filter:drop-shadow(0 10px 18px rgba(225,29,42,.35))}
     .subtle{color:var(--muted);font-size:13px}
-
-    /* SVG helpers */
-    .svgWrap{width:160px;max-width:60%;aspect-ratio:1/1;display:block}
 
     /* Big 2x2 layout */
     .gridTop{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
@@ -71,10 +70,10 @@
     .modal h3{margin:0 0 8px}
     .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 
-    /* Keep promoRow as 2 columns on mobile (per your request) */
+    /* IMPORTANT: keep Live/Chat responsive but DO NOT collapse promoRow */
     @media (max-width:960px){
       .gridTop,.gridBottom{grid-template-columns:1fr}
-      /* promoRow remains 2 columns */
+      /* .promoRow intentionally NOT changed, it stays 2 columns */
     }
   </style>
 </head>
@@ -96,24 +95,12 @@
     <div class="promoRow">
       <!-- Left: two stacked cards -->
       <div class="promoLeft">
-        <!-- Badges (clickable to public/badges.html) -->
+        <!-- Badges (clicks to public/badges.html) -->
         <a class="promoCardLink" href="./public/badges.html">
           <section class="card promoBig">
             <h2>Badges</h2>
             <div class="card-body promoCenter">
-              <!-- Medal/Badge SVG -->
-              <svg class="svgWrap" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <!-- Ribbon -->
-                <path d="M30 10h60l-10 30H40z" fill="#e11d2a"/>
-                <path d="M40 10h40l-7 22H47z" fill="#b50f1b"/>
-                <!-- Medal circle -->
-                <circle cx="60" cy="70" r="26" fill="#f6c31c" />
-                <circle cx="60" cy="70" r="22" fill="#ffd968" />
-                <!-- Star -->
-                <path d="M60 55l5.8 10.6 11.9 1.7-8.6 8.4 2 11.8L60 82.9 48.9 87l2-11.8-8.6-8.4 11.9-1.7z" fill="#ffef9c"/>
-                <!-- Shine -->
-                <circle cx="52" cy="62" r="6" fill="#fff" opacity=".35"/>
-              </svg>
+              <div class="promoBadge" aria-hidden="true"></div>
             </div>
             <div class="card-body" style="border-top:1px solid rgba(255,255,255,.06)">
               <div class="subtle">Tap to view all badges</div>
@@ -121,21 +108,12 @@
           </section>
         </a>
 
-        <!-- Red Flags (clickable to public/redflags.html) -->
+        <!-- Red Flags (clicks to public/redflags.html) -->
         <a class="promoCardLink" href="./public/redflags.html">
           <section class="card promoBig">
             <h2>Red Flags</h2>
             <div class="card-body promoCenter">
-              <!-- Red flag on pole SVG -->
-              <svg class="svgWrap" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <!-- Pole -->
-                <rect x="26" y="16" width="6" height="90" fill="#888"/>
-                <!-- Flag -->
-                <path d="M32 20h54l-10 14 10 14H32z" fill="#e11d2a"/>
-                <path d="M32 20h30l-6 8 6 8H32z" fill="#b50f1b"/>
-                <!-- Small shadow -->
-                <rect x="26" y="16" width="6" height="90" fill="#000" opacity=".15"/>
-              </svg>
+              <div class="promoFlag" aria-hidden="true"></div>
             </div>
             <div class="card-body" style="border-top:1px solid rgba(255,255,255,.06)">
               <div class="subtle">Tap to view all flags</div>
@@ -146,31 +124,18 @@
 
       <!-- Right: tall card (same total height as two left stacked) -->
       <section class="card promoRight">
-        <h2 style="text-align:center">
-          Casualties of Modern Dating
-        </h2>
-        <div class="card-body" style="display:flex;flex-direction:column;gap:12px;flex:1">
-          <!-- Password gate -->
-          <div id="codLock">
-            <div class="muted">Owner upload only. Enter password to unlock.</div>
-            <div class="row">
-              <input id="codPwd" type="password" placeholder="Password" />
-              <button class="btn primary" id="codUnlock">Unlock</button>
-            </div>
-            <div id="codMsg" class="muted"></div>
+        <h2>Casualties of Modern Dating</h2>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:10px;flex:1">
+          <div class="muted">Upload a short image or video (preview below).</div>
+          <!-- Smaller upload controls to maximize preview area -->
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input type="file" id="codVideo" accept="image/*,video/*" />
+            <button class="btn primary" id="codUpload" style="padding:6px 10px;font-size:12px">Upload</button>
+            <div id="codStatus" class="muted" style="font-size:12px"></div>
           </div>
-
-          <!-- Upload area (hidden until unlocked) -->
-          <div id="codArea" style="display:none">
-            <div class="muted">Upload photo or video</div>
-            <input type="file" id="codFile" accept="image/*,video/*" />
-            <div class="row">
-              <button class="btn primary" id="codUpload">Upload</button>
-              <div id="codStatus" class="muted"></div>
-            </div>
-            <div style="flex:1;border:1px dashed #2a2c39;border-radius:12px;display:flex;align-items:center;justify-content:center;opacity:.7;margin-top:8px">
-              <span>Preview area</span>
-            </div>
+          <!-- Preview area -->
+          <div id="codPreview" style="flex:1;border:1px dashed #2a2c39;border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0f1016">
+            <span style="opacity:.7">Preview area</span>
           </div>
         </div>
       </section>
@@ -513,29 +478,52 @@
       setSigned(false);
     });
 
-    /* ===== Casualties password + upload (placeholder UI only) ===== */
-    const codLock   = document.getElementById("codLock");
-    const codArea   = document.getElementById("codArea");
-    const codPwd    = document.getElementById("codPwd");
-    const codUnlock = document.getElementById("codUnlock");
-    const codMsg    = document.getElementById("codMsg");
-    const codFile   = document.getElementById("codFile");
+    /* ===== Casualties upload: show selected file in preview ===== */
+    const codVideo = document.getElementById("codVideo");
     const codUpload = document.getElementById("codUpload");
     const codStatus = document.getElementById("codStatus");
+    const codPreview = document.getElementById("codPreview");
 
-    codUnlock?.addEventListener("click", ()=>{
-      if ((codPwd.value || "") === "Spark"){
-        codLock.style.display = "none";
-        codArea.style.display = "block";
-        codMsg.textContent = "";
+    function showPreview(file){
+      if (!file) return;
+      // Clear preview
+      codPreview.innerHTML = "";
+      const url = URL.createObjectURL(file);
+      let el;
+      if (file.type.startsWith("image/")){
+        el = document.createElement("img");
+        el.src = url;
+        el.alt = "Preview";
+        el.style.maxWidth = "100%";
+        el.style.maxHeight = "100%";
+        el.style.objectFit = "contain";
+      } else if (file.type.startsWith("video/")){
+        el = document.createElement("video");
+        el.src = url;
+        el.controls = true;
+        el.playsInline = true;
+        el.style.maxWidth = "100%";
+        el.style.maxHeight = "100%";
+        el.style.objectFit = "contain";
       } else {
-        codMsg.textContent = "Wrong password.";
+        const t = document.createElement("div");
+        t.textContent = "Unsupported file type.";
+        t.style.opacity = "0.8";
+        el = t;
       }
-    });
+      codPreview.appendChild(el);
+      codStatus.textContent = `Ready: ${file.name}`;
+    }
 
+    // Preview immediately on select, and also on Upload click
+    codVideo?.addEventListener("change", (e)=>{
+      const f = e.target.files?.[0];
+      showPreview(f);
+    });
     codUpload?.addEventListener("click", ()=>{
-      const f = codFile.files?.[0];
-      codStatus.textContent = f ? `Ready: ${f.name}` : "Select a file first.";
+      const f = codVideo.files?.[0];
+      if (!f){ codStatus.textContent = "Select a file first."; return; }
+      showPreview(f);
     });
 
     /* ===== Init ===== */
@@ -547,4 +535,3 @@
   </script>
 </body>
 </html>
-```0
