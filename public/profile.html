@@ -948,7 +948,7 @@
     /* ===== SECTION: Auth / Init ===== */
     myProfileBtn.addEventListener("click", ()=>{ if(me){ location.replace(`./profile.html?uid=${encodeURIComponent(me.uid)}`); } else { location.replace("./login.html"); } });
     logoutBtn.addEventListener("click", async ()=>{ try{ await signOut(auth); location.replace("./login.html"); }catch(e){ console.error("Logout error:", e); } });
-
+ deleteBtn?.addEventListener("click", handleDeleteAccount);
     upgradeBtn.addEventListener("click", async () => {
       if (!me) return;
       try {
