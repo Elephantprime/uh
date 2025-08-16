@@ -6,7 +6,6 @@
   <title>Unhinged — Login</title>
   <style>
     body{font-family:Arial, sans-serif;max-width:600px;margin:0 auto;padding:2rem;background:#0e0e12;color:#fff}
-    h1{margin-top:0}
     form{margin-top:1rem;padding:1rem;border:1px solid #2a2a2a;border-radius:8px;background:#15161b}
     label{display:block;margin-bottom:.25rem}
     input{width:100%;padding:.6rem;margin-bottom:1rem;border:1px solid #2a2a2a;border-radius:6px;background:#12131a;color:#fff}
@@ -17,71 +16,41 @@
 </head>
 <body>
   <h1>Sign In</h1>
-  <div id="login-status" class="sub"></div>
   <form id="login-form">
     <label for="email">Email</label>
     <input id="email" type="email" autocomplete="username" required />
     <label for="password">Password</label>
     <input id="password" type="password" autocomplete="current-password" required />
-    <button type="submit" id="signin">Login</button>
+    <button type="submit">Login</button>
     <div class="sub" id="status"></div>
   </form>
+  <p class="sub">New here? <a href="./signup.html">Create an account</a></p>
 
   <script type="module">
-    import { auth, db } from "./js/firebase.js";
+    import { auth } from "./js/firebase.js";
     import { onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const $ = id => document.getElementById(id);
-    const form = $("login-form");
-    const email = $("email");
-    const pass  = $("password");
-    const status = $("status");
+    const form = document.getElementById("login-form");
+    const email = document.getElementById("email");
+    const pass  = document.getElementById("password");
+    const status = document.getElementById("status");
 
-    const goProfile = (uid)=> location.replace(`./profile.html?uid=${encodeURIComponent(uid)}`);
-
-    const mapErr = (code, fallback="Login failed")=>{
-      const m = {
-        "auth/invalid-credential":"Wrong email or password.",
-        "auth/invalid-email":"Invalid email address.",
-        "auth/user-disabled":"Account disabled.",
-        "auth/user-not-found":"No account with that email.",
-        "auth/wrong-password":"Wrong password.",
-        "auth/too-many-requests":"Too many attempts. Try again later.",
-        "auth/network-request-failed":"Network error. Check your connection.",
-        "auth/unauthorized-domain":"Unauthorized domain in Firebase Auth settings."
-      };
-      return m[code] || fallback;
-    };
-
-    // If already signed in, go straight to your own profile
+    let _navigating = false;
     onAuthStateChanged(auth, (user)=>{
-      if (user) goProfile(user.uid);
+      if (user && !_navigating) {
+        _navigating = true;
+        location.replace(`./profile.html?uid=${encodeURIComponent(user.uid)}`);
+      }
     });
 
     form.addEventListener("submit", async (e)=>{
       e.preventDefault();
       status.textContent = "Signing in…";
-      try {
-        const em = (email.value||"").trim();
-        const pw = pass.value || "";
-        if (!em || !pw){ status.textContent = "Enter email and password."; return; }
-
-        const cred = await signInWithEmailAndPassword(auth, em, pw);
-        const user = cred.user;
-
-        // Ensure minimal doc exists (ok if it already does)
-        await setDoc(doc(db, "users", user.uid), {
-          uid: user.uid,
-          email: user.email || em,
-          updatedAt: serverTimestamp()
-        }, { merge:true });
-
-        status.textContent = "Success. Redirecting…";
-        goProfile(user.uid);
-      } catch (err) {
-        console.error(err);
-        status.textContent = mapErr(err.code, err.message);
+      try{
+        const cred = await signInWithEmailAndPassword(auth, (email.value||"").trim(), pass.value);
+        location.replace(`./profile.html?uid=${encodeURIComponent(cred.user.uid)}`);
+      }catch(err){
+        status.textContent = ({"auth/invalid-credential":"Wrong email or password.","auth/invalid-email":"Invalid email.","auth/user-disabled":"Account disabled.","auth/user-not-found":"No account with that email.","auth/wrong-password":"Wrong password.","auth/too-many-requests":"Too many attempts. Try again later."}[err.code] || err.message);
       }
     });
   </script>
