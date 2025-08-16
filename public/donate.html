@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UNHINGED — Support & Tiers</title>
+  <meta name="theme-color" content="#E11D2A" />
+  <style>
+    :root{--bg:#0e0e12;--panel:#15161b;--ink:#101117;--muted:#cfd0de;--red:#E11D2A;--ylw:#F6C31C;--br:16px}
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:#fff;font:500 16px/1.5 system-ui,Segoe UI,Roboto,Arial}
+    a{color:inherit;text-decoration:none}
+    .top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--ink);border-bottom:1px solid #222}
+    .brand{display:flex;align-items:center;gap:10px}
+    .dot{width:14px;height:14px;border-radius:4px;background:var(--red);box-shadow:0 0 18px #e11d2a}
+    .word{font-weight:900;letter-spacing:.02em}
+    .nav{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{border:1px solid #2a2a2a;background:#20222b;color:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
+    .btn.primary{background:var(--red);border-color:var(--red)}
+    .btn.ghost{background:transparent}
+    .wrap{max-width:1100px;margin:0 auto;padding:18px}
+    h1{margin:.2rem 0 1rem}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 18px}
+    .tab{border:1px solid #2a2a2a;border-radius:999px;padding:8px 12px;background:#171822;cursor:pointer}
+    .tab.active{border-color:var(--red);box-shadow:0 0 0 2px #E11D2A33 inset}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .card{background:var(--panel);border:1px solid #25262f;border-radius:var(--br);padding:16px;display:flex;flex-direction:column}
+    .price{font-size:1.25rem;font-weight:900;margin:2px 0 8px}
+    .perk{color:var(--muted);margin-left:18px}
+    .cta{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap}
+    .note{margin-top:10px;color:var(--muted);font-size:.95rem}
+    .sect{scroll-margin-top:84px}
+    .hero{background:#12131a;border:1px dashed #2a2a2a;border-radius:12px;padding:14px;margin:10px 0 18px}
+    .badge{display:inline-block;font-size:.8rem;border:1px solid #444;padding:4px 8px;border-radius:999px;background:#1a1b22;margin-right:6px}
+    @media (max-width:960px){ .grid{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+  <!-- Top -->
+  <div class="top">
+    <div class="brand"><div class="dot"></div><div class="word">UNHINGED</div></div>
+    <div class="nav">
+      <a class="btn ghost" href="./app.html">Back to App</a>
+      <a class="btn ghost" href="./profile.html">Profile</a>
+      <a class="btn" href="./login.html">Log in</a>
+      <a class="btn primary" href="./signup.html">Join</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <h1>Support Unhinged</h1>
+    <div class="hero">
+      Pick a path: <span class="badge">Affiliate</span>
+      <span class="badge">Advertising</span>
+      <span class="badge">Real Investor</span>.
+      All tiers receive a thank-you badge in your profile (coming soon).
+    </div>
+
+    <div class="tabs">
+      <a class="tab" id="tab-aff" href="#affiliate">Affiliate</a>
+      <a class="tab" id="tab-adv" href="#advertising">Advertising</a>
+      <a class="tab" id="tab-inv" href="#investor">Real Investor</a>
+    </div>
+
+    <!-- Affiliate -->
+    <section id="affiliate" class="sect">
+      <h2>Affiliate Program</h2>
+      <p class="note">Earn a cut for every paid member you bring in. Easy links, live dashboard (soon), monthly payouts.</p>
+      <div class="grid">
+        <div class="card">
+          <div class="price">Starter — Free</div>
+          <ul class="perk">
+            <li>15% per paid signup (30 days)</li>
+            <li>Basic tracking link</li>
+          </ul>
+          <div class="cta">
+            <a class="btn primary" href="#apply-affiliate" onclick="openForm('aff','Starter')">Get Link</a>
+            <a class="btn ghost" href="./signup.html">Create account</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="price">Pro — $49/mo</div>
+          <ul class="perk">
+            <li>25% per paid signup (60 days)</li>
+            <li>Custom landing page</li>
+            <li>Priority support</li>
+          </ul>
+          <div class="cta">
+            <a class="btn primary" href="#apply-affiliate" onclick="openForm('aff','Pro')">Upgrade</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="price">Partner — $199/mo</div>
+          <ul class="perk">
+            <li>35% per paid signup (90 days)</li>
+            <li>Co-branding assets</li>
+            <li>Quarterly promos</li>
+          </ul>
+          <div class="cta">
+            <a class="btn primary" href="#apply-affiliate" onclick="openForm('aff','Partner')">Apply</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr style="border-color:#25262f;margin:24px 0"/>
+
+    <!-- Advertising -->
+    <section id="advertising" class="sect">
+      <h2>Advertising Packages</h2>
+      <p class="note">Get in front of a spicy, high-engagement dating audience.</p>
+      <div class="grid">
+        <div class="card">
+          <div class="price">Bronze — $299</div>
+          <ul class="perk">
+            <li>1 week sidebar placement</li>
+            <li>1 sponsored post</li>
+          </ul>
+          <div class="cta">
+            <a class="btn primary" href="#apply-ads" onclick="openForm('ads','Bronze')">Book Bronze</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="price">Silver — $899</div>
+          <ul class="perk">
+            <li>3 weeks sidebar</li>
+            <li>3 sponsored posts</li>
+            <li>Newsletter mention</li>
+          </ul>
+          <div class="cta">
+            <a class="btn primary" href="#apply-ads" onclick="openForm('ads','Silver')">Book Silver</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="price">Gold — $2,499</div>
+          <ul class="perk">
+            <li>6 weeks sitewide</li>
+            <li>Weekly sponsored post</li>
+            <li>Featured in app rooms</li>
+          </ul>
+          <div class="cta">
+            <a class="btn primary" href="#apply-ads" onclick="openForm('ads','Gold')">Book Gold</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr style="border-color:#25262f;margin:24px 0"/>
+
+    <!-- Investor -->
+    <section id="investor" class="sect">
+      <h2>Real Investor Tiers</h2>
+      <p class="note">Back the chaos. These are non-equity support tiers now (we can formalize later).</p>
+      <div class="grid">
+        <div class="card">
+          <div class="price">Backer — $100</div>
+          <ul class="perk">
+            <li>Founding badge</li>
+            <li>Private roadmap updates</li>
+          </ul>
+          <div class="cta">
+            <a class="btn primary" href="#invest" onclick="openForm('inv','Backer $100')">Support $100</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="price">Sponsor — $1,000</div>
+          <ul class="perk">
+            <li>Larger badge</li>
+            <li>Beta feature access</li>
+          </ul>
+          <div class="cta">
+            <a class="btn primary" href="#invest" onclick="openForm('inv','Sponsor $1,000')">Support $1,000</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="price">Angel — $5,000</div>
+          <ul class="perk">
+            <li>Founder call + credits</li>
+            <li>Lifetime account</li>
+          </ul>
+          <div class="cta">
+            <a class="btn primary" href="#invest" onclick="openForm('inv','Angel $5,000')">Support $5,000</a>
+          </div>
+        </div>
+      </div>
+      <p class="note">Want equity? <a class="btn ghost" href="mailto:founder@unhinged.app?subject=Equity%20Conversation">Email us</a></p>
+    </section>
+
+    <!-- Simple inline “apply / pledge” modal -->
+    <div id="modal" style="position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:16px;z-index:50">
+      <div style="width:100%;max-width:640px;background:var(--panel);border:1px solid #25262f;border-radius:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #25262f">
+          <div id="mTitle">Support</div>
+          <button class="btn ghost" onclick="closeForm()">Close</button>
+        </div>
+        <div style="padding:12px 14px">
+          <form id="pledgeForm" onsubmit="return submitForm(event)">
+            <input type="hidden" id="mKind" />
+            <input type="hidden" id="mTier" />
+            <label>Your name</label>
+            <input id="fName" type="text" required />
+            <label>Email</label>
+            <input id="fEmail" type="email" required />
+            <label>Notes (optional)</label>
+            <textarea id="fNotes" rows="4" placeholder="Any details or questions…"></textarea>
+            <div class="note">We’ll email you next steps and a secure payment link.</div>
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn primary" type="submit">Send</button>
+              <button class="btn" type="button" onclick="closeForm()">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // tab highlight
+    const map = { '#affiliate':'tab-aff', '#advertising':'tab-adv', '#investor':'tab-inv' };
+    function hilite(){
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      const id = map[location.hash] || 'tab-aff';
+      document.getElementById(id).classList.add('active');
+    }
+    window.addEventListener('hashchange', hilite); hilite();
+
+    // simple modal form
+    function openForm(kind, tier){
+      document.getElementById('mKind').value = kind;
+      document.getElementById('mTier').value = tier;
+      document.getElementById('mTitle').textContent =
+        (kind==='aff'?'Affiliate — ':kind==='ads'?'Advertising — ':'Investor — ') + tier;
+      document.getElementById('modal').style.display = 'flex';
+    }
+    function closeForm(){ document.getElementById('modal').style.display = 'none'; }
+
+    // replace with your backend later; for now we use mailto draft for simplicity
+    function submitForm(e){
+      e.preventDefault();
+      const kind = document.getElementById('mKind').value;
+      const tier = document.getElementById('mTier').value;
+      const name = encodeURIComponent(document.getElementById('fName').value.trim());
+      const email= encodeURIComponent(document.getElementById('fEmail').value.trim());
+      const notes= encodeURIComponent(document.getElementById('fNotes').value.trim());
+      const subject = encodeURIComponent(`[UNHINGED] ${kind.toUpperCase()} — ${tier}`);
+      const body = encodeURIComponent(`Name: ${decodeURIComponent(name)}\nEmail: ${decodeURIComponent(email)}\nTier: ${tier}\nNotes:\n${decodeURIComponent(notes)}`);
+      window.location.href = `mailto:founder@unhinged.app?subject=${subject}&body=${body}`;
+      closeForm();
+      return false;
+    }
+  </script>
+</body>
+</html>
