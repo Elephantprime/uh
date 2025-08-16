@@ -1,3 +1,15 @@
+<!--
+  Sign‑up page for Unhinged.
+
+  This file replicates the original multi‑step signup flow but fixes a minor
+  issue in the script where the variable name `pass` was used.  Using a
+  reserved keyword for a variable can sometimes cause unexpected behavior
+  depending on tooling, so it has been renamed to `pwd` for clarity.  The
+  logic remains otherwise unchanged: users fill out their email and
+  password, take a quick quiz, and then their account is created in
+  Firebase Auth and Firestore.  If the user is already signed in, they
+  are immediately redirected to their profile.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -53,7 +65,6 @@
   <div class="card" id="step2" style="display:none">
     <h3>Quick Start Quiz</h3>
     <p class="muted" style="margin-top:0">Complete this to personalize your matches. All questions are required.</p>
-
     <!-- 8 sample questions (replace later as needed) -->
     <div class="q"><strong>1) What are you looking for? <span class="req">*</span></strong>
       <label><input type="radio" name="q1" value="serious"> Something serious</label>
@@ -109,69 +120,100 @@
     import { onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const step1 = document.getElementById("step1");
-    const step2 = document.getElementById("step2");
-    const email = document.getElementById("email");
-    const pass  = document.getElementById("password");
-    const toQuiz = document.getElementById("toQuiz");
-    const back1  = document.getElementById("back1");
+    const step1   = document.getElementById("step1");
+    const step2   = document.getElementById("step2");
+    const email   = document.getElementById("email");
+    const pwd     = document.getElementById("password");
+    const toQuiz  = document.getElementById("toQuiz");
+    const back1   = document.getElementById("back1");
     const createBtn = document.getElementById("create");
     const s1status = document.getElementById("s1status");
     const s2status = document.getElementById("s2status");
 
     let _signupNav = false;
-    onAuthStateChanged(auth, (user)=>{
+    onAuthStateChanged(auth, user => {
       if (user && !_signupNav) {
         _signupNav = true;
         location.replace(`./profile.html?uid=${encodeURIComponent(user.uid)}`);
       }
     });
 
-    function qAns(name){ return document.querySelector(`input[name="${name}"]:checked`)?.value || ""; }
+    function qAns(name) {
+      return document.querySelector(`input[name="${name}"]:checked`)?.value || "";
+    }
     const qNames = ["q1","q2","q3","q4","q5","q6","q7","q8"];
-    function getQuiz(){ const o={}; qNames.forEach(n=>o[n]=qAns(n)); return o; }
-    function quizValid(ans){ return qNames.every(n=>!!ans[n]); }
+    function getQuiz() {
+      const o = {};
+      qNames.forEach(n => o[n] = qAns(n));
+      return o;
+    }
+    function quizValid(ans) {
+      return qNames.every(n => !!ans[n]);
+    }
 
-    toQuiz.addEventListener("click", ()=>{
+    toQuiz.addEventListener("click", () => {
       s1status.textContent = "";
-      email.classList.remove("invalid"); pass.classList.remove("invalid");
-      const em = (email.value||"").trim();
-      const pw = pass.value;
+      email.classList.remove("invalid");
+      pwd.classList.remove("invalid");
+      const em = (email.value || "").trim();
+      const pw = pwd.value;
       let ok = true;
-      if (!em) { email.classList.add("invalid"); ok=false; }
-      if (!pw || pw.length < 6) { pass.classList.add("invalid"); ok=false; s1status.innerHTML = '<span class="err">Password must be at least 6 characters.</span>'; }
+      if (!em) {
+        email.classList.add("invalid");
+        ok = false;
+      }
+      if (!pw || pw.length < 6) {
+        pwd.classList.add("invalid");
+        ok = false;
+        s1status.innerHTML = '<span class="err">Password must be at least 6 characters.</span>';
+      }
       if (!ok) return;
       step1.style.display = "none";
       step2.style.display = "block";
     });
 
-    back1.addEventListener("click", ()=>{
+    back1.addEventListener("click", () => {
       step2.style.display = "none";
       step1.style.display = "block";
     });
 
-    createBtn.addEventListener("click", async ()=>{
+    createBtn.addEventListener("click", async () => {
       s2status.textContent = "";
       const answers = getQuiz();
-      if (!quizValid(answers)) { s2status.innerHTML = '<span class="err">Please answer all questions.</span>'; return; }
-      try{
+      if (!quizValid(answers)) {
+        s2status.innerHTML = '<span class="err">Please answer all questions.</span>';
+        return;
+      }
+      try {
         s2status.innerHTML = '<span class="prog">Creating your account…</span>';
-        const cred = await createUserWithEmailAndPassword(auth, (email.value||"").trim(), pass.value);
+        const cred = await createUserWithEmailAndPassword(auth, (email.value || "").trim(), pwd.value);
         const uid = cred.user.uid;
-        await setDoc(doc(db,"users",uid), {
-          uid, email:(email.value||"").trim(),
+        // Create or merge the Firestore document with default fields and quiz answers
+        await setDoc(doc(db, "users", uid), {
+          uid,
+          email: (email.value || "").trim(),
           displayName: cred.user.displayName || "Member",
           photoURL: cred.user.photoURL || "",
           photos: cred.user.photoURL ? [cred.user.photoURL] : [],
-          bio:"", age:null, location:"", badges:[], flags:[],
-          quiz:{ completed:true, answers:answers, completedAt:serverTimestamp() },
-          createdAt: serverTimestamp(), updatedAt: serverTimestamp()
-        }, { merge:true });
+          bio: "",
+          age: null,
+          location: "",
+          badges: [],
+          flags: [],
+          quiz: { completed: true, answers: answers, completedAt: serverTimestamp() },
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        }, { merge: true });
         s2status.innerHTML = '<span class="ok">Account created!</span>';
         location.replace(`./profile.html?uid=${encodeURIComponent(uid)}`);
-      }catch(err){
+      } catch (err) {
         console.error(err);
-        const msg = {"auth/email-already-in-use":"That email is already in use.","auth/invalid-email":"Invalid email.","auth/weak-password":"Password too weak.","auth/operation-not-allowed":"Sign-up disabled in this project."}[err.code] || err.message;
+        const msg = {
+          "auth/email-already-in-use": "That email is already in use.",
+          "auth/invalid-email": "Invalid email.",
+          "auth/weak-password": "Password too weak.",
+          "auth/operation-not-allowed": "Sign‑up disabled in this project."
+        }[err.code] || err.message;
         s2status.innerHTML = `<span class="err">${msg}</span>`;
       }
     });
