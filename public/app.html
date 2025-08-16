@@ -1,440 +1,388 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>UNHINGED — App</title>
-  <meta name="theme-color" content="#E11D2A" />
-  <style>
-    :root{--bg:#0e0e12;--panel:#15161b;--panel2:#1a1b22;--muted:#cfd0de;--red:#E11D2A;--green:#4CAF50;--br:16px}
-    *{box-sizing:border-box}
-    html,body{margin:0;background:var(--bg);color:#fff;font:500 16px/1.5 system-ui,Segoe UI,Roboto,Arial}
-    a{color:inherit;text-decoration:none}
-    /* Top bar */
-    .top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#101117;border-bottom:1px solid #222}
-    .brand{display:flex;align-items:center;gap:10px}
-    .dot{width:14px;height:14px;border-radius:4px;background:var(--red);box-shadow:0 0 18px #e11d2a}
-    .word{font-weight:900;letter-spacing:.02em}
-    .nav{display:flex;gap:8px;flex-wrap:wrap}
-    .btn{border:1px solid #2a2a2a;background:#20222b;color:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
-    .btn.primary{background:var(--red);border-color:var(--red)}
-    .btn.ghost{background:transparent}
-    .btn.small{padding:6px 10px;font-size:.9rem}
-    /* Grid */
-    .wrap{max-width:1200px;margin:0 auto;padding:16px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:minmax(360px,auto);gap:16px}
-    .card{background:var(--panel);border:1px solid #25262f;border-radius:var(--br);overflow:hidden;display:flex;flex-direction:column}
-    .head{padding:14px 16px;border-bottom:1px solid #25262f;font-weight:900;font-size:1.25rem}
-    .body{padding:14px 16px;flex:1;min-height:0}
-    .subtle{color:var(--muted)}
-    /* Live */
-    .live-box{height:100%;border-radius:12px;background:linear-gradient(180deg,#0b0b10,#0f1016);border:1px dashed #2a2b36;display:flex;align-items:center;justify-content:center;position:relative}
-    .live-ind{position:absolute;top:8px;right:10px;display:flex;align-items:center;gap:6px;font-size:.88rem}
-    .led{width:8px;height:8px;border-radius:50%;background:#ff4d4d;box-shadow:0 0 10px #ff4d4d;animation:pulse 1.8s infinite}
-    @keyframes pulse{50%{opacity:.55}}
-    /* Chat */
-    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .chat-top{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px}
-    .room{display:flex;gap:8px;align-items:center}
-    select, input[type="text"], textarea{background:#12131a;color:#fff;border:1px solid #2a2a2a;border-radius:8px;padding:8px}
-    .enter-line{display:flex;gap:8px;align-items:center}
-    .chat-log{height:260px;background:var(--panel2);border:1px solid #25262f;border-radius:12px;padding:10px;overflow:auto}
-    .msg{margin:6px 0;max-width:78%}
-    .me{margin-left:auto;background:#e11d2a;color:#fff;padding:8px 10px;border-radius:12px 12px 4px 12px;display:inline-block}
-    .them{background:#2a2b36;color:#fff;padding:8px 10px;border-radius:12px 12px 12px 4px;display:inline-block}
-    .sendbar{display:flex;gap:8px;margin-top:8px}
-    .sendbar input{flex:1}
-    /* Lists (Chaos/Reviews) */
-    .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
-    .tile{border:1px solid #2a2a2a;border-radius:12px;padding:10px;background:#12131a;cursor:pointer}
-    .title{font-weight:800;margin-bottom:4px}
-    .meta{font-size:.85rem;color:var(--muted)}
-    .search{display:flex;gap:8px;margin-bottom:8px}
-    .hint{color:var(--muted);font-size:.9rem;margin-top:6px}
-    .modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
-    .modal-card{width:100%;max-width:720px;background:var(--panel);border:1px solid #2a2a2a;border-radius:12px}
-    .modal-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #2a2a2a}
-    .modal-body{padding:12px 14px}
-    .limit{font-size:.85rem;color:#9aa0b3}
-    .ghost{opacity:.75}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UNHINGED — App</title>
+<meta name="theme-color" content="#E11D2A" />
+<style>
+  :root{
+    --bg:#0e0e12; --panel:#14161a; --ink:#e9e9f2;
+    --muted:#cfd0de; --red:#E11D2A; --border:#272831;
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:linear-gradient(180deg,#0e0e12,#12131a);color:var(--ink);font:500 16px/1.5 Inter,system-ui,Segoe UI,Roboto,Arial}
+  a{color:inherit;text-decoration:none}
+
+  /* Top bar */
+  .topbar{position:sticky;top:0;z-index:5;background:#0e0e12cc;backdrop-filter:saturate(120%) blur(6px);
+          display:flex;gap:10px;justify-content:space-between;align-items:center;border-bottom:1px solid #15161a;padding:10px 14px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:900}
+  .dot{width:14px;height:14px;background:var(--red);border-radius:4px}
+  .nav{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid #2a2b33;background:#191a21;
+       color:#fff;padding:8px 12px;border-radius:12px;cursor:pointer}
+  .btn.primary{background:var(--red);border-color:var(--red)}
+  .btn.small{padding:6px 10px;border-radius:10px;font-size:14px}
+
+  /* GRID LAYOUT (2x2) */
+  .wrap{max-width:1180px;margin:0 auto;padding:16px}
+  .board-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:60vh 42vh;gap:16px}
+  @media (max-width:980px){ .board-grid{grid-template-columns:1fr;grid-template-rows:auto;}}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden}
+  .panel h2{margin:0;padding:12px 14px;border-bottom:1px solid #1f202a}
+  .panel-body{flex:1;padding:12px 14px;overflow:auto}
+  .card{border:1px dashed #242632;border-radius:12px;padding:12px;height:100%;display:flex;align-items:center;justify-content:center;color:#8b8d9a}
+
+  /* Stream box */
+  .stream-box{position:relative;height:100%;border:1px dashed #242632;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#8b8d9a}
+  .live-pill{position:absolute;top:10px;right:12px;display:inline-flex;align-items:center;gap:8px;font-size:12px;color:#fff}
+  .live-dot{width:8px;height:8px;border-radius:50%;background:#ff3b3b;box-shadow:0 0 0 6px #ff3b3b1f}
+
+  /* Chat */
+  .chat-top{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+  select, input[type="text"]{background:#0f1016;border:1px solid #232432;color:#fff;border-radius:10px;padding:8px 10px}
+  .chat-area{display:grid;grid-template-columns:1fr 220px;gap:12px;height:100%}
+  @media (max-width:900px){ .chat-area{grid-template-columns:1fr} }
+  .chat-log{height:100%;min-height:260px;background:#0f1016;border:1px solid #232432;border-radius:12px;padding:10px;overflow:auto}
+  .send-row{display:flex;gap:10px;margin-top:10px}
+  .send-row input{flex:1}
+  .presence{background:#0f1016;border:1px solid #232432;border-radius:12px;padding:10px;height:100%;overflow:auto}
+  .presence h4{margin:0 0 8px 0}
+  .who{display:flex;align-items:center;gap:8px;margin:6px 0}
+  .dot2{width:8px;height:8px;border-radius:50%;background:#41d17d}
+
+  /* Lists for Chaos/Reviews */
+  .list-head{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .list{display:flex;flex-direction:column;gap:8px}
+  .item{background:#0f1016;border:1px solid #232432;border-radius:12px;padding:10px}
+  .item .title{font-weight:800;cursor:pointer}
+  .sub{color:var(--muted);font-size:13px}
+
+  /* Simple modal */
+  .modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:14px;z-index:50}
+  .modal-card{width:100%;max-width:720px;background:#15161b;border:1px solid #2a2b33;border-radius:14px;overflow:hidden}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #1f202a}
+  .modal-body{padding:14px;white-space:pre-wrap}
+</style>
 </head>
 <body>
-  <!-- Top bar -->
-  <div class="top">
-    <div class="brand"><div class="dot"></div><div class="word">UNHINGED</div></div>
-    <div class="nav">
-      <a class="btn ghost" href="./profile.html">Profile</a>
-      <a class="btn ghost" href="./login.html">Log in</a>
-      <a class="btn primary" href="./signup.html">Join</a>
-    </div>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="brand"><span class="dot"></span> UNHINGED</div>
+  <div class="nav">
+    <a class="btn" href="./profile.html">Profile</a>
+    <a class="btn" href="./login.html">Log in</a>
+    <a class="btn primary" href="./signup.html">Join</a>
   </div>
+</div>
 
-  <div class="wrap">
-    <div class="grid">
-      <!-- Live Stream -->
-      <section class="card" id="liveCard">
-        <div class="head">Live Stream</div>
-        <div class="body">
-          <div class="live-box">
-            <div class="live-ind"><span class="led"></span><span class="ghost">Live</span></div>
-            <div class="subtle">[ Embed live stream here ]</div>
-          </div>
+<div class="wrap">
+  <div class="board-grid">
+
+    <!-- Live Stream -->
+    <section class="panel" aria-labelledby="liveTitle">
+      <h2 id="liveTitle">Live Stream</h2>
+      <div class="panel-body">
+        <div class="stream-box">
+          <div class="live-pill"><span class="live-dot"></span>Live</div>
+          [ Embed live stream here ]
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- Chat Room -->
-      <section class="card" id="chatCard">
-        <div class="head">Chat Room</div>
-        <div class="body">
-          <div class="chat-top">
-            <div class="room">
-              <label class="ghost" for="roomSel">Room</label>
-              <select id="roomSel">
-                <option value="general">#general</option>
-                <option value="firstdates">#first-dates</option>
-                <option value="gymrats">#gym-rats</option>
-              </select>
+    <!-- Chat Room -->
+    <section class="panel" aria-labelledby="chatTitle">
+      <h2 id="chatTitle">Chat Room</h2>
+      <div class="panel-body">
+        <div class="chat-top">
+          <label for="roomSel" class="sub">Room</label>
+          <select id="roomSel">
+            <option value="general">#general</option>
+            <option value="first-dates">#first-dates</option>
+            <option value="gym-rats">#gym-rats</option>
+            <option value="red-flags">#red-flags</option>
+          </select>
+          <button id="enterBtn" class="btn">Enter Chat</button>
+          <span id="whoAmI" class="sub">(not in chat)</span>
+        </div>
+
+        <div class="chat-area">
+          <div>
+            <div id="chatLog" class="chat-log" aria-live="polite"></div>
+            <div class="send-row">
+              <input id="chatInput" type="text" placeholder="Type a message…" disabled />
+              <button id="sendBtn" class="btn primary" disabled>Send</button>
             </div>
-            <div class="enter-line">
-              <span id="whoLine" class="ghost">(not in chat)</span>
-              <button class="btn small" id="enterChatBtn">Enter Chat</button>
-            </div>
           </div>
-
-          <div class="chat-log" id="chatLog" aria-live="polite"></div>
-          <div class="sendbar">
-            <input id="chatInput" type="text" placeholder="Type a message…" disabled />
-            <button class="btn" id="sendBtn" disabled>Send</button>
-          </div>
+          <aside class="presence">
+            <h4>In Room</h4>
+            <div id="presenceList"></div>
+          </aside>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- Chaos Board -->
-      <section class="card" id="chaosCard">
-        <div class="head">Chaos Board</div>
-        <div class="body">
-          <div class="search">
-            <input id="chaosSearch" type="text" placeholder="Search by name or @username" />
-            <button class="btn small" id="chaosSearchBtn">Search</button>
-            <button class="btn small ghost" id="chaosClearBtn">Clear</button>
-            <button class="btn small" id="newChaosBtn">Submit Chaos Story</button>
-          </div>
-          <div class="list" id="chaosList"></div>
-          <div class="hint">Click a title to read the full story.</div>
+    <!-- Chaos Board -->
+    <section class="panel" aria-labelledby="chaosTitle">
+      <h2 id="chaosTitle">Chaos Board</h2>
+      <div class="panel-body">
+        <div class="list-head">
+          <input id="chaosSearch" type="text" placeholder="Search by name or @username" />
+          <button id="chaosSearchBtn" class="btn">Search</button>
+          <button id="chaosClearBtn" class="btn">Clear</button>
+          <button id="chaosNewBtn" class="btn primary">Submit Chaos Story</button>
         </div>
-      </section>
+        <div class="sub">Click a title to read the full story.</div>
+        <div id="chaosList" class="list"></div>
+      </div>
+    </section>
 
-      <!-- Review Board -->
-      <section class="card" id="reviewCard">
-        <div class="head">Review Board</div>
-        <div class="body">
-          <div class="search">
-            <input id="reviewSearch" type="text" placeholder="Search by name or @username" />
-            <button class="btn small" id="reviewSearchBtn">Search</button>
-            <button class="btn small ghost" id="reviewClearBtn">Clear</button>
-            <button class="btn small" id="newReviewBtn">Submit Review</button>
-          </div>
-          <div class="list" id="reviewList"></div>
-          <div class="hint">Click a title to read the full review.</div>
+    <!-- Review Board -->
+    <section class="panel" aria-labelledby="reviewTitle">
+      <h2 id="reviewTitle">Review Board</h2>
+      <div class="panel-body">
+        <div class="list-head">
+          <input id="reviewSearch" type="text" placeholder="Search by name or @username" />
+          <button id="reviewSearchBtn" class="btn">Search</button>
+          <button id="reviewClearBtn" class="btn">Clear</button>
+          <button id="reviewNewBtn" class="btn primary">Submit Review</button>
         </div>
-      </section>
-    </div>
+        <div class="sub">Click a title to read the full review.</div>
+        <div id="reviewList" class="list"></div>
+      </div>
+    </section>
+
   </div>
+</div>
 
-  <!-- Story Modal (shared) -->
-  <div class="modal" id="storyModal">
-    <div class="modal-card">
-      <div class="modal-head">
-        <div id="storyModalTitle">Title</div>
-        <button class="btn small ghost" id="closeStory">Close</button>
-      </div>
-      <div class="modal-body">
-        <div class="meta" id="storyMeta"></div>
-        <p id="storyText" style="white-space:pre-wrap;margin-top:8px"></p>
-        <div id="storyImages" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
-      </div>
+<!-- Read modal -->
+<div id="readModal" class="modal" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <div class="modal-head">
+      <strong id="readTitle"></strong>
+      <button id="readClose" class="btn small">Close</button>
     </div>
+    <div class="modal-body" id="readBody"></div>
   </div>
+</div>
 
-  <!-- New Chaos -->
-  <div class="modal" id="newChaosModal">
-    <div class="modal-card">
-      <div class="modal-head">
-        <div>Submit Chaos Story</div>
-        <button class="btn small ghost" id="closeNewChaos">Close</button>
-      </div>
-      <div class="modal-body">
-        <label>Title <span class="limit">(max 60 chars)</span></label>
-        <input id="chaosTitle" type="text" maxlength="60" placeholder="Walked Out on the Check" />
-        <label>Story</label>
-        <textarea id="chaosBody" rows="6" placeholder="Tell us the chaos…" ></textarea>
-        <label>Optional image(s)</label>
-        <input id="chaosFiles" type="file" accept="image/*" multiple />
-        <div style="margin-top:10px"><button class="btn" id="saveChaos">Submit</button></div>
-      </div>
-    </div>
-  </div>
+<!-- Firebase-backed script -->
+<script type="module">
+  /* ===== Firebase ===== */
+  import { auth, db } from "./js/firebase.js";
+  import {
+    onAuthStateChanged, signInAnonymously
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    doc, getDoc, setDoc, addDoc, collection, serverTimestamp,
+    query, orderBy, limit, onSnapshot, deleteDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  <!-- New Review -->
-  <div class="modal" id="newReviewModal">
-    <div class="modal-card">
-      <div class="modal-head">
-        <div>Submit Review</div>
-        <button class="btn small ghost" id="closeNewReview">Close</button>
-      </div>
-      <div class="modal-body">
-        <label>Title <span class="limit">(max 60 chars)</span></label>
-        <input id="reviewTitle" type="text" maxlength="60" placeholder="Would Text Again (Maybe)" />
-        <label>Review</label>
-        <textarea id="reviewBody" rows="6" placeholder="Spill (respectfully) the tea…" ></textarea>
-        <label>Optional image(s)</label>
-        <input id="reviewFiles" type="file" accept="image/*" multiple />
-        <div style="margin-top:10px"><button class="btn" id="saveReview">Submit</button></div>
-      </div>
-    </div>
-  </div>
+  /* ===== Utility: modal ===== */
+  const readModal = document.getElementById('readModal');
+  const readTitle = document.getElementById('readTitle');
+  const readBody  = document.getElementById('readBody');
+  const readClose = document.getElementById('readClose');
+  function openRead(title, body){ readTitle.textContent = title; readBody.textContent = body; readModal.style.display='flex'; }
+  readClose.onclick = ()=> readModal.style.display='none';
+  readModal.addEventListener('click', e=>{ if(e.target===readModal) readModal.style.display='none'; });
 
-  <script type="module">
-    /* ===== Imports ===== */
-    import { auth, db, storage } from "./js/firebase.js";
-    import {
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import {
-      collection, doc, getDoc, setDoc, addDoc, getDocs, query, where,
-      orderBy, limit, serverTimestamp, onSnapshot
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import {
-      ref as sRef, uploadBytes, getDownloadURL
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-
-    /* ===== DOM ===== */
-    const enterChatBtn = document.getElementById("enterChatBtn");
-    const whoLine      = document.getElementById("whoLine");
-    const roomSel      = document.getElementById("roomSel");
-    const chatLog      = document.getElementById("chatLog");
-    const chatInput    = document.getElementById("chatInput");
-    const sendBtn      = document.getElementById("sendBtn");
-
-    const storyModal   = document.getElementById("storyModal");
-    const closeStory   = document.getElementById("closeStory");
-    const storyModalTitle = document.getElementById("storyModalTitle");
-    const storyMeta    = document.getElementById("storyMeta");
-    const storyText    = document.getElementById("storyText");
-    const storyImages  = document.getElementById("storyImages");
-
-    const chaosList = document.getElementById("chaosList");
-    const chaosSearch = document.getElementById("chaosSearch");
-    document.getElementById("chaosSearchBtn").onclick = ()=> loadChaos(chaosSearch.value.trim());
-    document.getElementById("chaosClearBtn").onclick  = ()=> { chaosSearch.value=""; loadChaos(""); };
-    const newChaosModal = document.getElementById("newChaosModal");
-    document.getElementById("newChaosBtn").onclick = ()=> openModal(newChaosModal);
-    document.getElementById("closeNewChaos").onclick = ()=> closeModal(newChaosModal);
-    const chaosTitle = document.getElementById("chaosTitle");
-    const chaosBody  = document.getElementById("chaosBody");
-    const chaosFiles = document.getElementById("chaosFiles");
-    document.getElementById("saveChaos").onclick = saveChaos;
-
-    const reviewList = document.getElementById("reviewList");
-    const reviewSearch = document.getElementById("reviewSearch");
-    document.getElementById("reviewSearchBtn").onclick = ()=> loadReviews(reviewSearch.value.trim());
-    document.getElementById("reviewClearBtn").onclick  = ()=> { reviewSearch.value=""; loadReviews(""); };
-    const newReviewModal = document.getElementById("newReviewModal");
-    document.getElementById("newReviewBtn").onclick = ()=> openModal(newReviewModal);
-    document.getElementById("closeNewReview").onclick = ()=> closeModal(newReviewModal);
-    const reviewTitle = document.getElementById("reviewTitle");
-    const reviewBody  = document.getElementById("reviewBody");
-    const reviewFiles = document.getElementById("reviewFiles");
-    document.getElementById("saveReview").onclick = saveReview;
-
-    closeStory.onclick = ()=> closeModal(storyModal);
-    storyModal.addEventListener("click",(e)=>{ if(e.target===storyModal) closeModal(storyModal); });
-    newChaosModal.addEventListener("click",(e)=>{ if(e.target===newChaosModal) closeModal(newChaosModal); });
-    newReviewModal.addEventListener("click",(e)=>{ if(e.target===newReviewModal) closeModal(newReviewModal); });
-
-    function openModal(m){ m.style.display="flex"; }
-    function closeModal(m){ m.style.display="none"; }
-
-    /* ===== State ===== */
-    let me=null, myDoc=null;
-    let chatUnsub=null;
-
-    function displayNameFromProfile(){
-      const u = myDoc || {};
-      return (u.username && u.username.trim())
-        ? `@${u.username.trim()}`
-        : (u.displayName?.trim() || auth.currentUser?.displayName?.trim() || "Member");
-    }
-
-    /* ===== Chat ===== */
-    enterChatBtn.onclick = () => {
-      if (!me) { alert("Please log in first."); return; }
-      whoLine.textContent = displayNameFromProfile() + " in " + roomLabel(roomSel.value);
-      chatInput.disabled = false; sendBtn.disabled = false;
-      chatInput.focus();
-      subscribeRoom(roomSel.value);
-    };
-    roomSel.onchange = () => {
-      if (!me || chatInput.disabled) return; // not entered yet
-      subscribeRoom(roomSel.value);
-      whoLine.textContent = displayNameFromProfile() + " in " + roomLabel(roomSel.value);
-    };
-    sendBtn.onclick = async () => {
-      const text = chatInput.value.trim();
-      if (!text || !me) return;
-      const room = roomSel.value;
-      await addDoc(collection(db,"rooms",room,"messages"), {
-        uid: me.uid,
-        name: displayNameFromProfile(),
-        text,
-        createdAt: serverTimestamp()
-      });
-      chatInput.value="";
-    };
-    function roomLabel(v){
-      if (v==="firstdates") return "#first-dates";
-      if (v==="gymrats")   return "#gym-rats";
-      return "#general";
-    }
-    function subscribeRoom(room){
-      if (chatUnsub) { chatUnsub(); chatUnsub=null; }
-      chatLog.innerHTML = "<div class='ghost'>Loading…</div>";
-      const qy = query(collection(db,"rooms",room,"messages"), orderBy("createdAt","asc"), limit(300));
-      chatUnsub = onSnapshot(qy, snap => {
-        chatLog.innerHTML = "";
-        snap.forEach(d=>{
-          const m = d.data();
-          const mine = (m.uid===me?.uid);
-          const div = document.createElement("div");
-          div.className = "msg";
-          div.innerHTML = `<div class="${mine?'me':'them'}"><strong style="opacity:.85">${m.name||'Member'}:</strong> ${escapeHtml(m.text||'')}</div>`;
-          chatLog.appendChild(div);
-        });
-        chatLog.scrollTop = chatLog.scrollHeight;
-      });
-    }
-
-    /* ===== Chaos & Reviews ===== */
-    function tile(item, kind){
-      const el = document.createElement("div");
-      el.className = "tile";
-      const who = (item.authorUsername ? "@"+item.authorUsername : (item.authorName||"Member"));
-      el.innerHTML = `
-        <div class="title">${escapeHtml(item.title||"(untitled)")}</div>
-        <div class="meta">${who} · ${new Date(item.createdAt?.seconds?item.createdAt.seconds*1000:Date.now()).toLocaleString()}</div>
-      `;
-      el.onclick = ()=> openStory(item, kind);
-      return el;
-    }
-    function openStory(item, kind){
-      storyModalTitle.textContent = item.title || "(untitled)";
-      const who = (item.authorUsername ? "@"+item.authorUsername : (item.authorName||"Member"));
-      storyMeta.textContent = `${kind} • ${who} • ${new Date(item.createdAt?.seconds?item.createdAt.seconds*1000:Date.now()).toLocaleString()}`;
-      storyText.textContent = item.body || "";
-      storyImages.innerHTML = "";
-      (item.images||[]).forEach(url=>{
-        const img = document.createElement("img");
-        img.src = url; img.alt=""; img.style.maxWidth="160px"; img.style.borderRadius="8px";
-        storyImages.appendChild(img);
-      });
-      openModal(storyModal);
-    }
-    async function saveChaos(){ await saveStory("chaos", chaosTitle.value, chaosBody.value, chaosFiles.files); closeModal(newChaosModal); chaosTitle.value=""; chaosBody.value=""; chaosFiles.value=""; loadChaos(chaosSearch.value.trim()); }
-    async function saveReview(){ await saveStory("reviews", reviewTitle.value, reviewBody.value, reviewFiles.files); closeModal(newReviewModal); reviewTitle.value=""; reviewBody.value=""; reviewFiles.value=""; loadReviews(reviewSearch.value.trim()); }
-    async function saveStory(kind, title, body, files){
-      if (!me) { alert("Please log in first."); return; }
-      title = (title||"").slice(0,60);
-      const images = [];
-      if (files && files.length){
-        for (const f of files){
-          const safe = (f.name||"img").replace(/[^\w.\-]+/g,"_");
-          const path = `${kind}/${me.uid}/${Date.now()}_${safe}`;
-          const r = sRef(storage, path);
-          await uploadBytes(r, f);
-          const url = await getDownloadURL(r);
-          images.push(url);
-        }
-      }
-      await addDoc(collection(db, kind), {
-        uid: me.uid,
-        authorName: myDoc?.displayName || auth.currentUser?.displayName || "Member",
-        authorUsername: myDoc?.username || "",
-        title, body, images,
-        createdAt: serverTimestamp(),
-      });
-    }
-    async function loadChaos(qstr=""){
-      const out=[]; // Firestore can't OR two fields easily; fetch latest and filter client-side for now
-      const snap = await getDocs(query(collection(db,"chaos"), orderBy("createdAt","desc"), limit(60)));
-      snap.forEach(d=> out.push({ id:d.id, ...d.data() }));
-      const filtered = qstr ? out.filter(x => matchSearch(x,qstr)) : out;
-      chaosList.innerHTML = ""; filtered.forEach(x => chaosList.appendChild(tile(x,"Chaos")));
-    }
-    async function loadReviews(qstr=""){
-      const out=[];
-      const snap = await getDocs(query(collection(db,"reviews"), orderBy("createdAt","desc"), limit(60)));
-      snap.forEach(d=> out.push({ id:d.id, ...d.data() }));
-      const filtered = qstr ? out.filter(x => matchSearch(x,qstr)) : out;
-      reviewList.innerHTML = ""; filtered.forEach(x => reviewList.appendChild(tile(x,"Review")));
-    }
-    function matchSearch(x, q){
-      const s = q.toLowerCase();
-      return (x.authorUsername && ("@"+x.authorUsername).toLowerCase().includes(s))
-          || (x.authorName && x.authorName.toLowerCase().includes(s));
-    }
-
-    /* ===== Utils ===== */
-    function escapeHtml(str){
-      return String(str||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-    }
-
-    /* ===== Seed example entries (once per user) ===== */
-    async function seedExamplesOnce(){
-      if (!me) return;
-      const flagDoc = await getDoc(doc(db,"users",me.uid,"_flags","seedExamples"));
-      if (flagDoc.exists()) return;
-      // chaos
-      await addDoc(collection(db,"chaos"), {
-        uid: me.uid,
-        authorName: myDoc?.displayName || "Member",
-        authorUsername: myDoc?.username || "",
-        title: "Walked Out on the Check",
-        body: "First date. Great banter. When the bill landed, they said they were going to the restroom and… vanished. Waiter was cool; I tipped extra. Lesson learned.",
-        images: [],
-        createdAt: serverTimestamp()
-      });
-      // review
-      await addDoc(collection(db,"reviews"), {
-        uid: me.uid,
-        authorName: myDoc?.displayName || "Member",
-        authorUsername: myDoc?.username || "",
-        title: "Would Text Again (Maybe)",
-        body: "Fun, chaotic, disappears for weeks. 7/10 would text again after coffee and a clear plan.",
-        images: [],
-        createdAt: serverTimestamp()
-      });
-      await setDoc(doc(db,"users",me.uid,"_flags","seedExamples"), { at: serverTimestamp() });
-    }
-
-    /* ===== Auth / Init ===== */
-    async function loadMyDoc(uid){
-      const s = await getDoc(doc(db,"users",uid));
-      return s.exists() ? s.data() : null;
-    }
-    onAuthStateChanged(auth, async (user)=>{
-      me = user || null;
-      if (me){
-        myDoc = await loadMyDoc(me.uid);
-        whoLine.textContent = "(click Enter Chat)";
-        await seedExamplesOnce();
-      }else{
-        whoLine.textContent = "(not in chat)";
-      }
-      // initial loads
-      loadChaos("");
-      loadReviews("");
+  /* ===== Chaos / Reviews (simple local list for now) ===== */
+  const chaosStories = [
+    { id:"c1", title:"Walked Out on the Check", author:"@you",
+      body:"First date at a diner. Amazing until the bill came — he said he was 'testing initiative' and bounced. Server was a saint; I paid and left. Do not recommend." }
+  ];
+  const reviews = [
+    { id:"r1", title:"Great convo, vanished after brunch", author:"@you",
+      body:"Super charming, punctual, talked travel plans and then ghosted by Sunday night. 6/10, would caffeinate again." }
+  ];
+  // chaos
+  const chaosList = document.getElementById('chaosList');
+  function renderChaos(list){
+    chaosList.innerHTML = "";
+    list.forEach(s=>{
+      const it = document.createElement("div");
+      it.className = "item";
+      it.innerHTML = `<div class="title">${s.title}</div><div class="sub">by ${s.author}</div>`;
+      it.querySelector(".title").onclick = ()=> openRead(s.title, s.body);
+      chaosList.appendChild(it);
     });
-  </script>
+  }
+  renderChaos(chaosStories);
+  document.getElementById('chaosSearchBtn').onclick = ()=>{
+    const q=(document.getElementById('chaosSearch').value||"").toLowerCase();
+    renderChaos(chaosStories.filter(s => s.title.toLowerCase().includes(q) || (s.author||"").toLowerCase().includes(q)));
+  };
+  document.getElementById('chaosClearBtn').onclick = ()=>{ document.getElementById('chaosSearch').value=""; renderChaos(chaosStories); };
+  document.getElementById('chaosNewBtn').onclick = ()=>{
+    const t = prompt("Title (<=60 chars):"); if(!t) return;
+    const b = prompt("Your chaos story:"); if(!b) return;
+    chaosStories.unshift({id:"c"+Date.now(), title:t.slice(0,60), author:"@anon", body:b});
+    renderChaos(chaosStories);
+  };
+  // reviews
+  const reviewList = document.getElementById('reviewList');
+  function renderReviews(list){
+    reviewList.innerHTML = "";
+    list.forEach(s=>{
+      const it = document.createElement("div");
+      it.className = "item";
+      it.innerHTML = `<div class="title">${s.title}</div><div class="sub">by ${s.author}</div>`;
+      it.querySelector(".title").onclick = ()=> openRead(s.title, s.body);
+      reviewList.appendChild(it);
+    });
+  }
+  renderReviews(reviews);
+  document.getElementById('reviewSearchBtn').onclick = ()=>{
+    const q=(document.getElementById('reviewSearch').value||"").toLowerCase();
+    renderReviews(reviews.filter(s => s.title.toLowerCase().includes(q) || (s.author||"").toLowerCase().includes(q)));
+  };
+  document.getElementById('reviewClearBtn').onclick = ()=>{ document.getElementById('reviewSearch').value=""; renderReviews(reviews); };
+  document.getElementById('reviewNewBtn').onclick = ()=>{
+    const t = prompt("Review title (<=60 chars):"); if(!t) return;
+    const b = prompt("Write your review:"); if(!b) return;
+    reviews.unshift({id:"r"+Date.now(), title:t.slice(0,60), author:"@anon", body:b});
+    renderReviews(reviews);
+  };
+
+  /* ===== Firebase Chat ===== */
+  const roomSel = document.getElementById('roomSel');
+  const enterBtn = document.getElementById('enterBtn');
+  const whoAmI   = document.getElementById('whoAmI');
+  const chatLog  = document.getElementById('chatLog');
+  const chatInput= document.getElementById('chatInput');
+  const sendBtn  = document.getElementById('sendBtn');
+  const presenceList = document.getElementById('presenceList');
+
+  let me = null;
+  let myName = null;
+  let currentRoom = null;
+  let unsubMsgs = null;
+  let unsubPresence = null;
+
+  function line(who, text, faint=false){
+    const row = document.createElement('div');
+    row.innerHTML = `<span class="sub">${who}:</span> ${text}`;
+    if (faint) row.style.opacity = .8;
+    chatLog.appendChild(row);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
+  async function ensureAuth(){
+    if (auth.currentUser) return auth.currentUser;
+    await signInAnonymously(auth);
+    return auth.currentUser;
+  }
+
+  async function resolveDisplayName(uid){
+    // 1) users/{uid}.displayName,username
+    try{
+      const s = await getDoc(doc(db,"users",uid));
+      if (s.exists()){
+        const d = s.data();
+        if (d.username) return "@"+d.username;
+        if (d.displayName) return d.displayName;
+      }
+    }catch{}
+    // 2) auth displayName / email
+    if (auth.currentUser?.displayName) return auth.currentUser.displayName;
+    const email = auth.currentUser?.email;
+    if (email) return email.split("@")[0];
+    // 3) guest fallback
+    return "guest-"+String(uid).slice(-4);
+  }
+
+  function watchPresence(room){
+    if (unsubPresence) { unsubPresence(); unsubPresence = null; }
+    const presCol = collection(db,"chatRooms",room,"presence");
+    unsubPresence = onSnapshot(presCol, snap=>{
+      presenceList.innerHTML = "";
+      const who = [];
+      snap.forEach(d=>{
+        const n = d.data()?.name || "anon";
+        who.push(n);
+      });
+      who.sort((a,b)=>a.localeCompare(b));
+      who.forEach(n=>{
+        const div = document.createElement("div");
+        div.className = "who";
+        div.innerHTML = `<span class="dot2"></span> ${n}`;
+        presenceList.appendChild(div);
+      });
+    });
+  }
+
+  async function joinRoom(room){
+    // stop previous listeners
+    if (unsubMsgs) { unsubMsgs(); unsubMsgs = null; }
+    if (unsubPresence) { unsubPresence(); unsubPresence = null; }
+
+    currentRoom = room;
+    whoAmI.textContent = `(joining #${room}…)`;
+
+    // presence doc
+    const myPresRef = doc(db,"chatRooms",room,"presence", me.uid);
+    await setDoc(myPresRef, { uid: me.uid, name: myName, lastSeen: serverTimestamp() }, { merge:true });
+
+    // messages listener
+    const msgCol = collection(db,"chatRooms",room,"messages");
+    const qy = query(msgCol, orderBy("createdAt","asc"), limit(300));
+    unsubMsgs = onSnapshot(qy, snap=>{
+      chatLog.innerHTML = "";
+      snap.forEach(d=>{
+        const m = d.data();
+        const who = m.name || "anon";
+        const text = m.text || "";
+        line(who, text);
+      });
+    });
+
+    // presence listener (right panel)
+    watchPresence(room);
+
+    whoAmI.textContent = `(in #${room} as ${myName})`;
+    chatInput.disabled = false; sendBtn.disabled = false;
+    line("system", `You entered #${room} as ${myName}`, true);
+
+    // on unload, clear presence
+    window.addEventListener("beforeunload", async ()=>{
+      try{ await deleteDoc(myPresRef); }catch{}
+    }, { once:true });
+  }
+
+  async function sendMessage(text){
+    if (!text.trim() || !currentRoom) return;
+    const msgCol = collection(db,"chatRooms",currentRoom,"messages");
+    await addDoc(msgCol, {
+      uid: me.uid,
+      name: myName,
+      text: text.trim(),
+      createdAt: serverTimestamp()
+    });
+    chatInput.value = "";
+  }
+
+  // UI wiring
+  enterBtn.onclick = async ()=>{
+    await ensureAuth();
+    me = auth.currentUser;
+    myName = await resolveDisplayName(me.uid);
+    await joinRoom(roomSel.value);
+  };
+
+  sendBtn.onclick = ()=> sendMessage(chatInput.value);
+  chatInput.addEventListener("keydown", e=>{
+    if (e.key === "Enter") { e.preventDefault(); sendMessage(chatInput.value); }
+  });
+
+  // If user is already signed in, prep name immediately (still need Enter to join)
+  onAuthStateChanged(auth, async (user)=>{
+    if (user){ me = user; myName = await resolveDisplayName(user.uid); whoAmI.textContent = `(not in chat — will join as ${myName})`; }
+    else { whoAmI.textContent = `(not in chat)`; }
+  });
+</script>
 </body>
 </html>
