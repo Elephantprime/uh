@@ -236,6 +236,26 @@
     const myProfileBtn = document.getElementById("myProfileBtn");
     const editBtn = document.getElementById("editBtn");
     const logoutBtn = document.getElementById("logoutBtn");
+    const upgradeBtn = document.getElementById("upgradeBtn");
+upgradeBtn.addEventListener("click", async () => {
+  if (!me) return;
+  try {
+    const resp = await fetch("/api/create-checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uid: me.uid, email: me.email }),
+    });
+    const data = await resp.json();
+    if (data.checkoutUrl) {
+      location.href = data.checkoutUrl;
+    } else {
+      alert("Could not start checkout.");
+    }
+  } catch (e) {
+    console.error(e);
+    alert("Checkout error");
+  }
+});
 
     // Swipe card
     const cardFrame = document.getElementById("cardFrame");
