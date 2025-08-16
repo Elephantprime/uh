@@ -24,7 +24,12 @@
     .card h2{margin:0;padding:14px 14px;border-bottom:1px solid rgba(255,255,255,.06);background:#12131a;position:relative}
     .card-body{padding:14px}
 
-    /* Big 2x2 layout */
+    /* NEW: preTop row (three boxes stacked into the width of one big pane) */
+    .preTop{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+    .stack{display:grid;grid-template-rows:1fr 1fr;gap:18px;min-height:68vh}
+    .tallBox{min-height:68vh;display:flex;flex-direction:column}
+
+    /* Big 2x2 layout (unchanged) */
     .gridTop{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
     .gridBottom{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
     .bigPane{min-height:68vh;display:flex;flex-direction:column}
@@ -60,6 +65,9 @@
     .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 
     @media (max-width:960px){
+      .preTop{grid-template-columns:1fr}
+      .stack{min-height:unset}
+      .tallBox{min-height:unset}
       .gridTop,.gridBottom{grid-template-columns:1fr}
     }
   </style>
@@ -77,7 +85,35 @@
   </header>
 
   <main class="wrap">
-    <!-- TOP ROW -->
+    <!-- NEW ROW ABOVE LIVE STREAM: three boxes -->
+    <div class="preTop">
+      <!-- Left column (two stacked boxes) -->
+      <div class="stack">
+        <section class="card">
+          <h2>Badges</h2>
+          <div class="card-body" id="badgesBox">
+            <!-- populate later -->
+          </div>
+        </section>
+        <section class="card">
+          <h2>Red Flags</h2>
+          <div class="card-body" id="flagsBox">
+            <!-- populate later -->
+          </div>
+        </section>
+      </div>
+
+      <!-- Right column (one tall box) -->
+      <section class="card tallBox">
+        <h2>Command</h2>
+        <div class="card-body" id="cmdBox" style="flex:1">
+          <!-- populate later -->
+        </div>
+      </section>
+    </div>
+    <!-- /NEW ROW -->
+
+    <!-- TOP ROW (unchanged) -->
     <div class="gridTop">
       <!-- Live Stream (big) -->
       <section class="card bigPane">
@@ -95,6 +131,7 @@
           <div class="row" style="justify-content:space-between">
             <div class="muted" id="meTag">(not in chat)</div>
             <div class="row">
+              <!-- RED ENTER, VISIBLE -->
               <button class="btn primary" id="enterChatBtn">Enter Chat</button>
               <button class="btn" id="leaveChatBtn" style="display:none">Leave</button>
             </div>
@@ -118,7 +155,7 @@
       </section>
     </div>
 
-    <!-- BOTTOM ROW -->
+    <!-- BOTTOM ROW (unchanged) -->
     <div class="gridBottom">
       <!-- Chaos Board -->
       <section class="card smallPane">
@@ -201,7 +238,7 @@
       query, orderBy, limit, getDoc, doc
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    /* ==== Chat config (Firestore) ==== */
+    /* ==== Chat config (Firestore only) ==== */
     const ROOMS = [
       { id: "general",      label: "#general" },
       { id: "first-dates",  label: "#first-dates" },
@@ -210,7 +247,7 @@
     ];
 
     let me = null;
-    let myDisplayName = ""; // from users/{uid} or fallback
+    let myDisplayName = ""; // from users/{uid}
     let currentRoom = ROOMS[0].id;
     let unsubFeed = null;
 
@@ -268,8 +305,8 @@
     }
     function renderMessage(m){
       const b = document.createElement("div");
-      b.className = "bubble " + (m.uid === (me?.uid || "_") ? "me" : "them");
-      b.textContent = `${m.from || "anon"}: ${m.text || ""}`;
+      b.className = "bubble " + (m.from === myDisplayName ? "me" : "them");
+      b.textContent = `${m.from}: ${m.text}`;
       chatFeed.appendChild(b);
     }
     function clearFeed(){ chatFeed.innerHTML = ""; }
@@ -281,7 +318,10 @@
       const qy = query(col, orderBy("createdAt","asc"), limit(500));
       unsubFeed = onSnapshot(qy, (snap)=>{
         clearFeed();
-        snap.forEach(d => renderMessage(d.data()));
+        snap.forEach(d => {
+          const m = d.data();
+          renderMessage({ from: m.from || "anon", text: m.text || "" });
+        });
         chatFeed.scrollTop = chatFeed.scrollHeight;
       });
     }
@@ -290,19 +330,19 @@
       const text = chatInput.value.trim();
       if (!text) return;
       if (!me){ location.href = "./login.html"; return; }
-      if (!myDisplayName){ alert("Your profile needs a username/display name."); return; }
-
+      if (!myDisplayName){ alert("Profile name missing."); return; }
       const col = collection(db, "rooms", currentRoom, "messages");
-      await addDoc(col, {
-        uid: me.uid,                // <— required by your rules
-        from: myDisplayName,
-        text,
-        createdAt: serverTimestamp()
-      });
+      await addDoc(col, { from: myDisplayName, text, createdAt: serverTimestamp(), uid: me.uid });
       chatInput.value = "";
     }
 
-    function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function bestVisibleNameFromDoc(docData){
+      const uname = (docData?.username || "").trim();
+      const disp  = (docData?.displayName || "").trim();
+      if (uname) return uname.startsWith("@") ? uname : "@"+uname;
+      if (disp)  return disp;
+      return "";
+    }
 
     /* ==== Boards (simple in-memory with 1 example each) ==== */
     const chaosItems = [{
@@ -320,13 +360,6 @@
 
     function renderBoard(listEl, items){
       listEl.innerHTML = "";
-      if (!items.length){
-        const d = document.createElement("div");
-        d.className = "muted";
-        d.textContent = "Nothing here yet.";
-        listEl.appendChild(d);
-        return;
-      }
       items.forEach((it)=>{
         const card = document.createElement("div");
         card.className = "item";
@@ -343,8 +376,18 @@
         listEl.appendChild(card);
       });
     }
+    function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-    // Submit handlers (still in-memory for now)
+    // Submit handlers (in-memory)
+    document.getElementById("uploadChaos").addEventListener("click", ()=> open(chaosModal));
+    document.getElementById("uploadReview").addEventListener("click", ()=> open(reviewModal));
+    cCancel.addEventListener("click", ()=> close(chaosModal));
+    rCancel.addEventListener("click", ()=> close(reviewModal));
+    chaosModal.addEventListener("click", (e)=>{ if(e.target===chaosModal) close(chaosModal); });
+    reviewModal.addEventListener("click", (e)=>{ if(e.target===reviewModal) close(reviewModal); });
+    document.getElementById("detailClose").addEventListener("click", ()=> close(detailModal));
+    detailModal.addEventListener("click", (e)=>{ if(e.target===detailModal) close(detailModal); });
+
     cSave.addEventListener("click", ()=>{
       const title = (cTitle.value||"").trim().slice(0,60);
       const about = (cAbout.value||"").trim();
@@ -368,17 +411,7 @@
       close(reviewModal);
     });
 
-    // Modal toggles
-    document.getElementById("uploadChaos").addEventListener("click", ()=> open(chaosModal));
-    document.getElementById("uploadReview").addEventListener("click", ()=> open(reviewModal));
-    document.getElementById("cCancel").addEventListener("click", ()=> close(chaosModal));
-    document.getElementById("rCancel").addEventListener("click", ()=> close(reviewModal));
-    document.getElementById("detailClose").addEventListener("click", ()=> close(detailModal));
-    [detailModal, chaosModal, reviewModal].forEach(m=>{
-      m.addEventListener("click", (e)=>{ if(e.target===m) close(m); });
-    });
-
-    /* ==== Chat controls (no anonymous) ==== */
+    /* ==== Chat controls ==== */
     enterChatBtn.addEventListener("click", async ()=>{
       if (!me) { location.href = "./login.html"; return; }
       if (!myDisplayName){ alert("Your profile needs a username/display name."); return; }
@@ -406,12 +439,7 @@
         try {
           const uref = doc(db, "users", me.uid);
           const snap = await getDoc(uref);
-          if (snap.exists()) {
-            const d = snap.data() || {};
-            const uname = (d.username || "").trim();
-            const disp  = (d.displayName || "").trim();
-            myDisplayName = uname ? (uname.startsWith("@") ? uname : "@"+uname) : (disp || "");
-          }
+          if (snap.exists()) myDisplayName = bestVisibleNameFromDoc(snap.data());
           if (!myDisplayName) {
             const emailName = (me.email || "").split("@")[0];
             myDisplayName = emailName || "Member";
@@ -422,6 +450,8 @@
         }
       }
       setSigned(false);
+      renderBoard(chaosList, chaosItems);
+      renderBoard(reviewList, reviewItems);
     });
 
     /* ==== Init ==== */
