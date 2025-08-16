@@ -1,88 +1,36 @@
-/* ===================== 🔶 PROFILE.JS — ENV RESOLUTION 🔶 ===================== */
-// Try compat first (window.firebase), then your globals from /js/firebase.js
-const compat = window.firebase || null;
+/* ===================== 🔶 PROFILE.JS (COMPAT-ONLY, MINIMAL) 🔶 ===================== */
 
-const app   = window.firebaseApp || window.app || compat?.app?.();
-const auth  = window.firebaseAuth || window.auth || compat?.auth?.();
-const db    = window.firebaseDb   || window.db   || compat?.firestore?.();
+const statusEl   = document.getElementById("statusText");
+const matchesEl  = document.getElementById("matchesList");
+const browseBtn  = document.getElementById("browseBtn");
 
-const apiAuth = window.firebaseAuthApi || {};        // { onAuthStateChanged, signOut, updateProfile }
-const apiFs   = window.firebaseFirestoreApi || {};   // { collection, query, limit, getDocs }
+function setStatus(t){ if (statusEl) statusEl.textContent = t; }
+function clearNode(n){ if (!n) return; while(n.firstChild) n.removeChild(n.firstChild); }
 
-/* Guard + diagnostics */
-(function diag(){
-  if (!auth) console.error("[profile] Auth not found. Ensure /js/firebase.js loads before profile.js");
-  if (!db)   console.error("[profile] Firestore not found. Ensure it's initialized in /js/firebase.js");
-})();
-
-/* ===================== 🔶 DOM 🔶 ===================== */
-const els = {
-  statusText: document.getElementById("statusText"),
-  browseBtn:  document.getElementById("browseBtn"),
-  matchesList:document.getElementById("matchesList") || document.getElementById("matchesContainer"),
-};
-
-const setStatus = (t)=> { if (els.statusText) els.statusText.textContent = t; };
-const clearNode = (n)=> { if (!n) return; while (n.firstChild) n.removeChild(n.firstChild); };
-
-/* ===================== 🔶 AUTH GATE 🔶 ===================== */
-function onAuth(cb){
-  if (apiAuth.onAuthStateChanged && auth) return apiAuth.onAuthStateChanged(auth, cb);
-  if (auth && typeof auth.onAuthStateChanged === "function") return auth.onAuthStateChanged(cb);
-  console.error("[profile] onAuthStateChanged unavailable.");
-  // Fallback: try once after a short delay
-  setTimeout(()=> cb(auth?.currentUser || compat?.auth?.()?.currentUser || null), 500);
+/* ===================== 🔶 HARD CHECKS 🔶 ===================== */
+if (!window.firebase) {
+  setStatus("Firebase not loaded");
+  console.error("[profile] window.firebase missing. Ensure /js/firebase.js is before profile.js.");
+} else if (!firebase.auth || !firebase.firestore) {
+  setStatus("Firebase SDK incomplete");
+  console.error("[profile] Missing auth/firestore on firebase.");
 }
 
-onAuth(async (user) => {
-  if (!user) {
-    setStatus("Not signed in. Redirecting…");
-    try { location.replace("/login.html"); } catch(e){}
-    return;
-  }
-  setStatus(`Signed in as ${user.email ?? user.uid}`);
-  try {
-    await loadAllMembers(user.uid); // auto-browse on load
-  } catch (e) {
-    console.error(e);
-    setStatus("Failed to load members.");
-  }
-});
+/* ===================== 🔶 SHORTCUTS 🔶 ===================== */
+const auth = window.firebase?.auth?.();
+const db   = window.firebase?.firestore?.();
 
-/* ===================== 🔶 FIRESTORE HELPERS 🔶 ===================== */
-async function fsGetUsers(limitCount=60){
-  // Modular path via apiFs
-  if (apiFs.getDocs && apiFs.collection) {
-    const col = apiFs.collection(db, "users");
-    const q   = apiFs.limit ? apiFs.query(col, apiFs.limit(limitCount)) : col;
-    const snap = await apiFs.getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, data: d.data() }));
-  }
-  // Compat path via firebase.firestore()
-  if (db?.collection) {
-    const snap = await db.collection("users").limit(limitCount).get();
-    return snap.docs.map(d => ({ id: d.id, data: d.data() }));
-  }
-  throw new Error("Firestore API not available.");
-}
-
-/* ===================== 🔶 LOAD & RENDER MEMBERS 🔶 ===================== */
-async function loadAllMembers(myUid){
-  setStatus("Loading members…");
-  const rows = await fsGetUsers(60);
-  const list = rows.filter(r => r.id !== myUid);
-
-  const mount = els.matchesList;
-  if (!mount) return;
-
-  clearNode(mount);
+/* ===================== 🔶 RENDER USERS 🔶 ===================== */
+function renderUsers(rows){
+  if (!matchesEl) return;
+  clearNode(matchesEl);
 
   const grid = document.createElement("div");
   grid.style.display = "grid";
   grid.style.gridTemplateColumns = "repeat(auto-fill, minmax(220px, 1fr))";
   grid.style.gap = "12px";
 
-  list.forEach(({id, data}) => {
+  rows.forEach(({id, data}) => {
     const d = data || {};
     const card = document.createElement("div");
     card.style.background = "#17171c";
@@ -112,24 +60,46 @@ async function loadAllMembers(myUid){
     card.appendChild(img);
     card.appendChild(name);
     if (meta.textContent) card.appendChild(meta);
-
     grid.appendChild(card);
   });
 
-  mount.appendChild(grid);
-  setStatus(`Loaded ${list.length} members`);
+  matchesEl.appendChild(grid);
 }
 
-/* ===================== 🔶 BUTTON: BROWSE 🔶 ===================== */
-els.browseBtn?.addEventListener("click", async () => {
+/* ===================== 🔶 LOAD MEMBERS (EXCEPT SELF) 🔶 ===================== */
+async function loadMembers(myUid){
+  setStatus("Loading members…");
+  const snap = await db.collection("users").limit(60).get();
+  const rows = snap.docs
+    .filter(d => d.id !== myUid)
+    .map(d => ({ id: d.id, data: d.data() }));
+  renderUsers(rows);
+  setStatus(`Loaded ${rows.length} members`);
+}
+
+/* ===================== 🔶 AUTH LISTENER 🔶 ===================== */
+auth?.onAuthStateChanged(async (user) => {
+  if (!user) {
+    setStatus("Not signed in. Redirecting…");
+    try { location.replace("/login.html"); } catch(_) {}
+    return;
+  }
+  setStatus(`Signed in as ${user.email || user.uid}`);
+  try { await loadMembers(user.uid); } catch (e) {
+    console.error(e); setStatus("Failed to load members");
+  }
+});
+
+/* ===================== 🔶 BROWSE BUTTON 🔶 ===================== */
+browseBtn?.addEventListener("click", async () => {
   try {
-    const me = (auth?.currentUser) || (compat?.auth?.()?.currentUser) || null;
+    const me = auth?.currentUser;
     if (!me) throw new Error("Not signed in");
-    await loadAllMembers(me.uid);
+    await loadMembers(me.uid);
   } catch (e) {
-    console.error(e);
-    alert("Could not load matches: " + (e?.message || e));
+    console.error(e); alert("Could not load matches: " + (e?.message || e));
   }
 });
 
 /* ===================== 🔶 END 🔶 ===================== */
+```0
