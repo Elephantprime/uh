@@ -720,6 +720,14 @@
           ${trailing || ""}
         </div>
       `;
+      // make the whole card open the person's public profile
+item.dataset.uid = u.uid || "";
+item.addEventListener("click", (ev) => {
+  // ignore clicks on "unlock"/membership buttons if present
+  if (ev.target?.closest(".lock-badge") || ev.target?.dataset?.upg) return;
+  const uid = item.dataset.uid;
+  if (uid) location.href = `./user.html?uid=${encodeURIComponent(uid)}`;
+});
       if (locked){
         const overlay = document.createElement("div");
         overlay.className = "lock-badge";
