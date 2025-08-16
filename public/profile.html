@@ -85,7 +85,6 @@
     .inbox-meta{padding:8px}
     .inbox-name{font-weight:700}
     .inbox-sub{font-size:.9rem;color:#cfd0de}
-
     .locked .blur { filter: blur(6px); }
     .lock-badge{
       position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
@@ -106,20 +105,19 @@
   </style>
 </head>
 <body>
-  div>
 
   <!-- ===== SECTION: Top Bar ===== -->
   <div class="topbar">
     <div class="brand" id="topLine">Your Profile</div>
     <div class="nav-actions">
-      <a class="chaos-btn" href="./app.html">Community Chaos</a>
+      <button class="btn secondary" id="filterBtn">Filter</button>
       <button class="btn secondary inbox-btn" id="inboxBtn">Inbox</button>
+      <a class="chaos-btn" href="./app.html">Community Chaos</a>
       <button class="btn secondary" id="myProfileBtn">My Profile</button>
       <button class="btn secondary" id="upgradeBtn">Go Paid</button>
       <button class="btn" id="editBtn">Edit Profile</button>
       <button class="btn secondary" id="logoutBtn">Logout</button>
       <button class="btn ghost" id="deleteBtn" title="Delete my account">Delete</button>
-      <button class="btn secondary" id="filterBtn">Filter</button>
     </div>
   </div>
 
@@ -256,26 +254,27 @@
       </div>
     </div>
   </div>
+
   <!-- ===== FILTER MODAL ===== -->
-<div class="modal-backdrop" id="filterModal">
-  <div class="modal">
-    <h3>Filters</h3>
+  <div class="modal-backdrop" id="filterModal">
+    <div class="modal">
+      <h3>Filters</h3>
 
-    <label for="filterLocation">Location</label>
-    <input id="filterLocation" type="text" placeholder="City, State" />
+      <label for="filterLocation">Location</label>
+      <input id="filterLocation" type="text" placeholder="City, State" />
 
-    <label>Age Range</label>
-    <div class="row">
-      <input id="filterAgeMin" type="number" min="18" max="99" placeholder="Min" />
-      <input id="filterAgeMax" type="number" min="18" max="99" placeholder="Max" />
-    </div>
+      <label>Age Range</label>
+      <div class="row">
+        <input id="filterAgeMin" type="number" min="18" max="99" placeholder="Min" />
+        <input id="filterAgeMax" type="number" min="18" max="99" placeholder="Max" />
+      </div>
 
-    <div style="margin-top:1rem;display:flex;gap:.5rem;justify-content:flex-end;">
-      <button class="btn secondary" id="cancelFilter">Cancel</button>
-      <button class="btn" id="applyFilter">Apply</button>
+      <div style="margin-top:1rem;display:flex;gap:.5rem;justify-content:flex-end;">
+        <button class="btn secondary" id="cancelFilter">Cancel</button>
+        <button class="btn" id="applyFilter">Apply</button>
+      </div>
     </div>
   </div>
-</
 
   <!-- ===== SECTION: Scripts ===== -->
   <script type="module">
@@ -289,34 +288,6 @@
       collection, getDocs, doc, getDoc, setDoc, deleteDoc, serverTimestamp,
       query, where, orderBy, limit, addDoc, onSnapshot, updateDoc
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    /* ===== SECTION: Filter Modal Controls ===== */
-const filterBtn     = document.getElementById("filterBtn");
-const filterModal   = document.getElementById("filterModal");
-const cancelFilter  = document.getElementById("cancelFilter");
-const applyFilter   = document.getElementById("applyFilter");
-const filterLocEl   = document.getElementById("filterLocation");
-const filterAgeMin  = document.getElementById("filterAgeMin");
-const filterAgeMax  = document.getElementById("filterAgeMax");
-
-function openFilter(){ filterModal.style.display = "flex"; }
-function closeFilter(){ filterModal.style.display = "none"; }
-
-filterBtn?.addEventListener("click", openFilter);
-cancelFilter?.addEventListener("click", closeFilter);
-filterModal?.addEventListener("click", e=>{
-  if (e.target === filterModal) closeFilter();
-});
-
-applyFilter?.addEventListener("click", ()=>{
-  const loc = filterLocEl?.value.trim() || "";
-  const min = Number(filterAgeMin?.value) || null;
-  const max = Number(filterAgeMax?.value) || null;
-
-  // TODO: hook into your matches/allUsers arrays
-  console.log("Filter applied:", { location: loc, minAge: min, maxAge: max });
-
-  closeFilter();
-});
     import {
       ref as sRef, uploadBytes, getDownloadURL, listAll, deleteObject
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
@@ -334,6 +305,7 @@ applyFilter?.addEventListener("click", ()=>{
     const upgradeBtn = document.getElementById("upgradeBtn");
     const inboxBtn = document.getElementById("inboxBtn");
     const deleteBtn = document.getElementById("deleteBtn");
+    const filterBtn = document.getElementById("filterBtn");
 
     // Swipe card
     const cardFrame = document.getElementById("cardFrame");
@@ -386,6 +358,14 @@ applyFilter?.addEventListener("click", ()=>{
     const chatInput = document.getElementById("chatInput");
     const chatSend = document.getElementById("chatSend");
 
+    // Filter modal
+    const filterModal   = document.getElementById("filterModal");
+    const cancelFilter  = document.getElementById("cancelFilter");
+    const applyFilter   = document.getElementById("applyFilter");
+    const filterLocEl   = document.getElementById("filterLocation");
+    const filterAgeMin  = document.getElementById("filterAgeMin");
+    const filterAgeMax  = document.getElementById("filterAgeMax");
+
     /* ===== SECTION: State ===== */
     let me = null;
     let myDocCached = null;
@@ -395,6 +375,7 @@ applyFilter?.addEventListener("click", ()=>{
     let previewURLs = [];
     let _profileNavGuard = false;
     let activeChat = { chatId: null, partner: null, unsub: null };
+    let currentFilters = { location: "", min: null, max: null };
 
     /* Neutral placeholder (no stock faces) */
     const NEUTRAL_PHOTO = "data:image/svg+xml;utf8," + encodeURIComponent(
@@ -476,7 +457,6 @@ applyFilter?.addEventListener("click", ()=>{
       subInfo.textContent = (p.location || "") + hobbyHint + interestHint;
 
       renderBadges(p.badges||[]);
-      // flags could be stored at top-level or quiz.flags
       const flags = Array.isArray(p.flags) ? p.flags : (Array.isArray(p.quiz?.flags) ? p.quiz.flags.map(f=>f.code) : []);
       renderFlagsList(flags);
     }
@@ -656,21 +636,18 @@ applyFilter?.addEventListener("click", ()=>{
       }
       return out;
     }
-
     async function getLikesForMe(uid){
       const qy = query(collection(db,"likes"), where("toUid","==",uid), orderBy("createdAt","desc"), limit(50));
       const snap = await getDocs(qy);
       const ids = []; snap.forEach(d=>ids.push(d.data().fromUid));
       return fetchUsersByIds(ids);
     }
-
     async function getViewsForMe(uid){
       const qy = query(collection(db,"views"), where("viewedUid","==",uid), orderBy("createdAt","desc"), limit(50));
       const snap = await getDocs(qy);
       const ids = []; snap.forEach(d=>ids.push(d.data().viewerUid));
       return fetchUsersByIds(ids);
     }
-
     async function getMatchesForMe(uid){
       const qy = query(collection(db,"matches"), where("uids","array-contains",uid), orderBy("createdAt","desc"), limit(50));
       const snap = await getDocs(qy);
@@ -682,7 +659,6 @@ applyFilter?.addEventListener("click", ()=>{
       });
       return fetchUsersByIds(partnerIds);
     }
-
     async function getThreads(uid){
       const qy = query(collection(db,"chats"), where("uids","array-contains",uid), orderBy("lastMessageAt","desc"), limit(50));
       const snap = await getDocs(qy);
@@ -748,20 +724,12 @@ applyFilter?.addEventListener("click", ()=>{
       inboxList.innerHTML = "<div class='muted'>Loading…</div>";
 
       let items = [];
-      try{
-        items = await TAB_FUNCS[tab](me.uid);
-      }catch(e){
-        console.error(e);
-        inboxList.innerHTML = "<div class='muted'>Could not load. Try again.</div>";
-        return;
-      }
+      try{ items = await TAB_FUNCS[tab](me.uid); }
+      catch(e){ console.error(e); inboxList.innerHTML = "<div class='muted'>Could not load. Try again.</div>"; return; }
 
       const locked = gateLikesViewsLocked(tab);
       inboxList.innerHTML = "";
-      if (!items.length){
-        inboxList.innerHTML = "<div class='muted'>Nothing here yet.</div>";
-        return;
-      }
+      if (!items.length){ inboxList.innerHTML = "<div class='muted'>Nothing here yet.</div>"; return; }
 
       for (const u of items){
         let trailing = "";
@@ -773,21 +741,13 @@ applyFilter?.addEventListener("click", ()=>{
         }
         const card = userCard(u, { locked, trailing });
         if (!locked){
-          // click on image to open profile
           card.querySelector("img")?.addEventListener("click", ()=> location.href = `./user.html?uid=${encodeURIComponent(u.uid)}`);
-          // buttons
           card.querySelector(`[data-open="${u.uid}"]`)?.addEventListener("click", ()=> location.href = `./user.html?uid=${encodeURIComponent(u.uid)}`);
           card.querySelector(`[data-chat="${u.uid}"]`)?.addEventListener("click", ()=> openChatWith(u));
         }
         inboxList.appendChild(card);
       }
     }
-
-    inboxTabs?.addEventListener("click", (e)=>{
-      const btn = e.target.closest(".inbox-tab");
-      if (!btn) return;
-      renderInbox(btn.dataset.tab);
-    });
 
     /* ===== SECTION: Chat ===== */
     function openChatModal(){ chatModal.style.display = "flex"; }
@@ -803,7 +763,6 @@ applyFilter?.addEventListener("click", ()=>{
     chatModal?.addEventListener("click", e=>{ if(e.target===chatModal) closeChatModal(); });
 
     async function findOrCreateChat(uidA, uidB){
-      // try to find existing chat
       const qy = query(collection(db,"chats"), where("uids","array-contains", uidA), orderBy("createdAt","desc"), limit(50));
       const snap = await getDocs(qy);
       let existing = null;
@@ -812,7 +771,6 @@ applyFilter?.addEventListener("click", ()=>{
         if (arr.includes(uidB)) existing = { id:d.id, ...d.data() };
       });
       if (existing) return existing.id;
-      // create new
       const ref = await addDoc(collection(db,"chats"), {
         uids:[uidA, uidB],
         createdAt: serverTimestamp(),
@@ -830,7 +788,6 @@ applyFilter?.addEventListener("click", ()=>{
       chatTitle.textContent = user.displayName ? `Chat with ${user.displayName}` : "Chat";
       openChatModal();
 
-      // subscribe messages
       const msgCol = collection(db,"chats",chatId,"messages");
       activeChat.unsub = onSnapshot(query(msgCol, orderBy("createdAt","asc"), limit(200)), (snap)=>{
         chatScroll.innerHTML = "";
@@ -854,6 +811,39 @@ applyFilter?.addEventListener("click", ()=>{
       chatInput.value = "";
     });
 
+    /* ===== SECTION: Filter Modal Controls ===== */
+    function openFilter(){ filterModal.style.display = "flex"; }
+    function closeFilter(){ filterModal.style.display = "none"; }
+    filterBtn?.addEventListener("click", openFilter);
+    cancelFilter?.addEventListener("click", closeFilter);
+    filterModal?.addEventListener("click", e=>{ if(e.target===filterModal) closeFilter(); });
+
+    const _norm = s => (s || "").toLowerCase().trim();
+    function _ageOK(u, min, max){
+      const a = Number(u?.age);
+      if (min != null && (!Number.isFinite(a) || a < min)) return false;
+      if (max != null && (!Number.isFinite(a) || a > max)) return false;
+      return true;
+    }
+    function _locOK(u, loc){
+      if (!loc) return true;
+      return _norm(u?.location).includes(_norm(loc));
+    }
+    function rebuildMatchesWithFilters(){
+      let list = Array.isArray(allUsers) ? allUsers.slice() : [];
+      list = list.filter(u => _ageOK(u, currentFilters.min, currentFilters.max) && _locOK(u, currentFilters.location));
+      matches = list.length ? list : [myDocCached];
+      currentIndex = 0;
+      renderProfile(matches[currentIndex] || null);
+    }
+    applyFilter?.addEventListener("click", ()=>{
+      currentFilters.location = filterLocEl?.value.trim() || "";
+      currentFilters.min = filterAgeMin?.value ? Number(filterAgeMin.value) : null;
+      currentFilters.max = filterAgeMax?.value ? Number(filterAgeMax.value) : null;
+      rebuildMatchesWithFilters();
+      closeFilter();
+    });
+
     /* ===== SECTION: Delete Account ===== */
     async function deleteStorageFolder(prefix){
       try{
@@ -863,7 +853,6 @@ applyFilter?.addEventListener("click", ()=>{
         for (const dir of list.prefixes){ await deleteStorageFolder(dir.fullPath); }
       }catch(e){ console.warn("Storage cleanup warning:", e.message); }
     }
-
     async function deleteRelatedDocs(uid){
       const collectionsToClean = [
         { name:"likes", field:"fromUid" },
@@ -881,20 +870,17 @@ applyFilter?.addEventListener("click", ()=>{
           } else {
             qy = query(collection(db, cfg.name), where(cfg.field, "==", uid), limit(100));
           }
-          let snap = await getDocs(qy);
+          const snap = await getDocs(qy);
           const toDelete = [];
           snap.forEach(d=> toDelete.push(d.ref));
           for (const ref of toDelete){ await deleteDoc(ref); }
         }catch(e){ console.warn(`Cleanup ${cfg.name} skip:`, e.message); }
       }
     }
-
     async function handleDeleteAccount(){
       if (!me) return;
       const confirmText = prompt("Type DELETE to permanently remove your account (this cannot be undone).");
       if (confirmText !== "DELETE") return;
-
-      // Re-auth if needed
       try{
         const lastSignIn = me.metadata?.lastSignInTime ? new Date(me.metadata.lastSignInTime).getTime() : 0;
         const needsReauth = (Date.now() - lastSignIn) > (5*60*1000);
@@ -905,51 +891,28 @@ applyFilter?.addEventListener("click", ()=>{
           const cred = EmailAuthProvider.credential(email, pwd);
           await reauthenticateWithCredential(me, cred);
         }
-      }catch(e){
-        alert("Re-auth failed. Cannot delete account.");
-        return;
-      }
+      }catch(e){ alert("Re-auth failed. Cannot delete account."); return; }
 
-      try{
-        // delete Firestore user doc
-        await deleteDoc(doc(db,"users", me.uid));
-      }catch(e){ console.warn("User doc delete:", e.message); }
+      try{ await deleteDoc(doc(db,"users", me.uid)); }catch(e){ console.warn("User doc delete:", e.message); }
+      try{ await deleteStorageFolder(`avatars/${me.uid}`); }catch(e){ console.warn("Storage delete:", e.message); }
+      try{ await deleteRelatedDocs(me.uid); }catch(e){ console.warn("Related cleanup:", e.message); }
+      try{ await deleteUser(me); }catch(e){ alert("Could not delete the auth account. Sign in again and retry."); return; }
 
-      try{
-        // storage folder
-        await deleteStorageFolder(`avatars/${me.uid}`);
-      }catch(e){ console.warn("Storage delete:", e.message); }
-
-      try{
-        // related collections (best-effort)
-        await deleteRelatedDocs(me.uid);
-      }catch(e){ console.warn("Related cleanup:", e.message); }
-
-      try{
-        // delete auth user (last)
-        await deleteUser(me);
-      }catch(e){
-        alert("Could not delete the auth account. You may need to sign in again and retry.");
-        return;
-      }
-
-      alert("Your account has been deleted.");
-      location.replace("./signup.html");
+      alert("Your account has been deleted."); location.replace("./signup.html");
     }
     deleteBtn?.addEventListener("click", handleDeleteAccount);
 
-    /* ===== SECTION: Modal Controls ===== */
+    /* ===== SECTION: Modal Controls (Edit/Inbox/Chat) ===== */
     function openEdit(){ editModal.style.display="flex"; }
     function closeEdit(){ editModal.style.display="none"; }
     editBtn.addEventListener("click", (e)=>{ e.preventDefault(); openEdit(); });
     cancelEdit.addEventListener("click", closeEdit);
     editModal.addEventListener("click", (e)=>{ if(e.target===editModal) closeEdit(); });
 
-    /* ===== SECTION: Auth / Init (No Loops) ===== */
+    /* ===== SECTION: Auth / Init ===== */
     myProfileBtn.addEventListener("click", ()=>{ if(me){ location.replace(`./profile.html?uid=${encodeURIComponent(me.uid)}`); } });
     logoutBtn.addEventListener("click", async ()=>{ try{ await signOut(auth); location.replace("./login.html"); }catch(e){ console.error("Logout error:", e); } });
 
-    // Go Paid (Square/checkout stub) — uses your existing backend endpoint
     upgradeBtn.addEventListener("click", async () => {
       if (!me) return;
       try {
