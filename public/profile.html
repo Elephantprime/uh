@@ -5,119 +5,100 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Unhinged — Profile Swipe</title>
 <style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #0e0e12;
-    color: #fff;
-    height: 100vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-  }
-  .photo-container {
-    position: relative;
-    flex: 1;
-    background: #000;
-    overflow: hidden;
-    touch-action: pan-y;
-  }
-  .main-photo {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    user-select: none;
-    -webkit-user-drag: none;
-  }
-  .info-overlay {
-    position: absolute;
-    bottom: 80px;
-    left: 0;
-    right: 0;
-    padding: 16px;
-    background: linear-gradient(transparent, rgba(0,0,0,0.7));
-    pointer-events: none;
-  }
-  .info-overlay h2 { margin: 0; font-size: 1.6rem; }
-  .info-overlay .sub { font-size: 0.9rem; color: #ddd; margin-top: 4px; }
-  .badges, .flags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-  .badges img {
-    width: 28px; height: 28px; border-radius: 50%;
-    border: 1px solid #4cafef; background: #2a2a3a; padding: 2px;
-  }
-  .flags img {
-    width: 24px; height: 24px; border-radius: 50%;
-    border: 1px solid #E11D2A; background: #3a2a2a; padding: 2px;
-  }
-  .indicator {
-    position: absolute;
-    top: 40px;
-    font-size: 2rem;
-    font-weight: bold;
-    padding: 10px 20px;
-    border: 4px solid;
-    border-radius: 8px;
-    opacity: 0;
-    transform: rotate(-20deg);
-    pointer-events: none;
-  }
-  .indicator.pass {
-    left: 20px;
-    color: #E11D2A;
-    border-color: #E11D2A;
-  }
-  .indicator.like {
-    right: 20px;
-    color: #4CAF50;
-    border-color: #4CAF50;
-    transform: rotate(20deg);
-  }
-  .actions {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 12px;
-    background: #0e0e12;
-  }
-  .action-btn {
-    width: 56px; height: 56px; border-radius: 50%;
-    border: none; font-size: 1.5rem; display: flex;
-    align-items: center; justify-content: center; cursor: pointer;
-  }
-  .pass-btn { background: #2a2a2a; color: #E11D2A; }
-  .like-btn { background: #2a2a2a; color: #4CAF50; }
-  .chaos-btn {
-    background: #E11D2A; color: #fff; font-size: 0.9rem;
-    border-radius: 16px; padding: 8px 16px; cursor: pointer; border: none;
-  }
+  :root { --bg:#0e0e12; --panel:#15161b; --muted:#cfd0de; --red:#E11D2A; --green:#4CAF50; }
+  body { margin:0; font-family:Arial, sans-serif; background:var(--bg); color:#fff; height:100vh; overflow:hidden; display:flex; flex-direction:column; }
+  /* Top bar */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;background:var(--panel);border-bottom:1px solid #2a2a2a}
+  .topbar h1{font-size:1.1rem;margin:0}
+  .btn,.pill{border:none;border-radius:999px;padding:.5rem .9rem;background:var(--red);color:#fff;cursor:pointer;text-decoration:none}
+  .ghost{background:#2a2a2a}
+  /* Main swipe area */
+  .photo-container{position:relative;flex:1;background:#000;overflow:hidden;touch-action:pan-y}
+  .main-photo{width:100%;height:100%;object-fit:cover;user-select:none;-webkit-user-drag:none}
+  .info-overlay{position:absolute;bottom:88px;left:0;right:0;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,.75))}
+  .info-overlay h2{margin:0 0 .25rem 0;font-size:1.6rem}
+  .sub{color:#ddd;font-size:.95rem}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .badges img{width:28px;height:28px;border-radius:50%;border:1px solid #4cafef;background:#2a2a3a;padding:2px}
+  .flags img{width:24px;height:24px;border-radius:50%;border:1px solid var(--red);background:#3a2a2a;padding:2px}
+  .indicator{position:absolute;top:40px;font-size:2rem;font-weight:700;padding:10px 20px;border:4px solid;border-radius:8px;opacity:0;pointer-events:none}
+  .indicator.pass{left:20px;color:var(--red);border-color:var(--red);transform:rotate(-18deg)}
+  .indicator.like{right:20px;color:var(--green);border-color:var(--green);transform:rotate(18deg)}
+  /* Bottom action row (always visible) */
+  .actions{display:flex;justify-content:space-around;align-items:center;padding:12px;background:var(--bg);border-top:1px solid #222}
+  .action-btn{width:56px;height:56px;border-radius:50%;border:none;font-size:1.5rem;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .pass-btn{background:#2a2a2a;color:var(--red)}
+  .like-btn{background:#2a2a2a;color:var(--green)}
+  /* Modal editor */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:1rem}
+  .sheet{width:min(520px,94vw);background:var(--panel);border:1px solid #2a2a2a;border-radius:12px;padding:1rem}
+  .sheet h3{margin:.25rem 0 1rem 0}
+  label{display:block;margin:.5rem 0 .25rem}
+  input,textarea{width:100%;padding:.6rem;border:1px solid #2a2a2a;border-radius:6px;background:#12131a;color:#fff}
+  .row2{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem}
+  .muted{color:var(--muted)}
 </style>
 </head>
 <body>
 
+<!-- TOP NAV -->
+<div class="topbar">
+  <h1>Unhinged</h1>
+  <div style="display:flex;gap:.5rem">
+    <a class="pill ghost" href="./app.html">Community Chaos</a>
+    <button id="editBtn" class="pill">Edit Profile</button>
+    <button id="logout" class="pill ghost">Sign out</button>
+  </div>
+</div>
+
+<!-- SWIPE AREA -->
 <div class="photo-container" id="photo-container">
   <img class="main-photo" id="main-photo" src="" alt="Profile Photo">
   <div class="info-overlay">
     <h2 id="name"></h2>
     <div class="sub" id="sub-info"></div>
-    <div class="badges" id="badges"></div>
-    <div class="flags" id="flags"></div>
+    <div class="row badges" id="badges"></div>
+    <div class="row flags" id="flags"></div>
   </div>
   <div class="indicator pass" id="pass-indicator">PASS</div>
   <div class="indicator like" id="like-indicator">LIKE</div>
 </div>
 
+<!-- ACTIONS -->
 <div class="actions">
   <button class="action-btn pass-btn" id="pass-btn">✖</button>
-  <button class="chaos-btn" onclick="location.href='./app.html'">Community Chaos</button>
+  <a class="btn" href="./app.html">Community Chaos</a>
   <button class="action-btn like-btn" id="like-btn">❤</button>
+</div>
+
+<!-- EDIT PROFILE MODAL (hidden until clicked) -->
+<div class="modal" id="editModal">
+  <div class="sheet">
+    <h3>Edit Profile</h3>
+    <div id="editStatus" class="muted"></div>
+    <label>Display name</label>
+    <input id="editName" type="text">
+    <label>Bio</label>
+    <textarea id="editBio" rows="3"></textarea>
+    <label>Photo URL</label>
+    <input id="editPhoto" type="url" placeholder="https://...">
+    <label>Location</label>
+    <input id="editLoc" type="text" placeholder="City, State">
+    <label>Age</label>
+    <input id="editAge" type="number" min="18" max="99">
+    <div class="row2">
+      <button class="pill ghost" id="cancelEdit">Cancel</button>
+      <button class="pill" id="saveEdit">Save</button>
+    </div>
+  </div>
 </div>
 
 <script type="module">
   import { auth, db } from "./js/firebase.js";
-  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { onAuthStateChanged, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { collection, getDocs, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+  // UI elements
   const photoContainer = document.getElementById("photo-container");
   const mainPhoto = document.getElementById("main-photo");
   const nameEl = document.getElementById("name");
@@ -128,15 +109,26 @@
   const likeBtn = document.getElementById("like-btn");
   const passIndicator = document.getElementById("pass-indicator");
   const likeIndicator = document.getElementById("like-indicator");
+  const editBtn = document.getElementById("editBtn");
+  const editModal = document.getElementById("editModal");
+  const cancelEdit = document.getElementById("cancelEdit");
+  const saveEdit = document.getElementById("saveEdit");
+  const eName = document.getElementById("editName");
+  const eBio  = document.getElementById("editBio");
+  const ePhoto= document.getElementById("editPhoto");
+  const eLoc  = document.getElementById("editLoc");
+  const eAge  = document.getElementById("editAge");
+  const editStatus = document.getElementById("editStatus");
+  document.getElementById("logout").onclick = async ()=>{ await signOut(auth); location.replace("./login.html"); };
 
+  // swipe state
   let matches = [];
+  let me = null;
   let currentIndex = 0;
-  let startX = 0;
-  let currentX = 0;
-  let isDragging = false;
+  let startX = 0, currentX = 0, isDragging = false;
 
-  function renderProfile(profile) {
-    if (!profile) {
+  function renderProfile(p) {
+    if (!p) {
       mainPhoto.src = "";
       nameEl.textContent = "No more matches";
       subInfo.textContent = "";
@@ -144,22 +136,22 @@
       flagsEl.innerHTML = "";
       return;
     }
-    mainPhoto.src = profile.photoURL || "https://via.placeholder.com/500x800";
-    nameEl.textContent = `${profile.displayName || "Member"}, ${profile.age || ""}`;
-    subInfo.textContent = `${profile.location || ""}`;
-
+    mainPhoto.src = p.photoURL || "https://via.placeholder.com/800x1200";
+    nameEl.textContent = [p.displayName || "Member", p.age ? p.age : null].filter(Boolean).join(", ");
+    subInfo.textContent = p.location || "";
+    // badges (image URLs)
     badgesEl.innerHTML = "";
-    (profile.badges || []).forEach(url => {
+    (p.badges || []).forEach(url=>{
       const img = document.createElement("img");
       img.src = url;
       badgesEl.appendChild(img);
     });
-
+    // flags (just red flag icons per flag entry)
     flagsEl.innerHTML = "";
-    (profile.flags || []).forEach(() => {
-      const flagIcon = document.createElement("img");
-      flagIcon.src = "https://upload.wikimedia.org/wikipedia/commons/f/f7/Flag_icon_red.svg";
-      flagsEl.appendChild(flagIcon);
+    (p.flags || []).forEach(()=>{
+      const img = document.createElement("img");
+      img.src = "https://upload.wikimedia.org/wikipedia/commons/f/f7/Flag_icon_red.svg";
+      flagsEl.appendChild(img);
     });
   }
 
@@ -168,60 +160,105 @@
     renderProfile(matches[currentIndex]);
   }
 
-  function showIndicator(type) {
-    if (type === "pass") {
-      passIndicator.style.opacity = 1;
-      likeIndicator.style.opacity = 0;
-    } else if (type === "like") {
-      likeIndicator.style.opacity = 1;
-      passIndicator.style.opacity = 0;
-    } else {
-      passIndicator.style.opacity = 0;
-      likeIndicator.style.opacity = 0;
-    }
+  function showIndicator(kind){
+    passIndicator.style.opacity = kind==="pass" ? 1 : 0;
+    likeIndicator.style.opacity = kind==="like" ? 1 : 0;
   }
 
-  // Swipe events
-  photoContainer.addEventListener("touchstart", e => {
-    startX = e.touches[0].clientX;
-    isDragging = true;
-  });
-
-  photoContainer.addEventListener("touchmove", e => {
+  // touch swipe
+  photoContainer.addEventListener("touchstart", e=>{ startX = e.touches[0].clientX; isDragging = true; });
+  photoContainer.addEventListener("touchmove", e=>{
     if (!isDragging) return;
     currentX = e.touches[0].clientX - startX;
     if (currentX > 50) showIndicator("like");
     else if (currentX < -50) showIndicator("pass");
     else showIndicator(null);
   });
-
-  photoContainer.addEventListener("touchend", () => {
+  photoContainer.addEventListener("touchend", ()=>{
     if (!isDragging) return;
-    if (currentX > 100) {
-      nextProfile();
-    } else if (currentX < -100) {
-      nextProfile();
-    }
-    showIndicator(null);
-    currentX = 0;
-    isDragging = false;
+    if (currentX > 100 || currentX < -100) nextProfile();
+    showIndicator(null); currentX = 0; isDragging = false;
   });
 
+  // click buttons
   passBtn.addEventListener("click", nextProfile);
   likeBtn.addEventListener("click", nextProfile);
 
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      location.replace("./login.html");
-      return;
-    }
-    const snap = await getDocs(collection(db, "users"));
-    matches = [];
-    snap.forEach(doc => {
-      if (doc.id !== user.uid) {
-        matches.push(doc.data());
+  // Edit modal
+  function openEdit(p){
+    eName.value = p.displayName || "";
+    eBio.value  = p.bio || "";
+    ePhoto.value= p.photoURL || "";
+    eLoc.value  = p.location || "";
+    eAge.value  = p.age || "";
+    editStatus.textContent = "";
+    editModal.style.display = "flex";
+  }
+  cancelEdit.onclick = ()=> editModal.style.display = "none";
+  saveEdit.onclick = async ()=>{
+    try{
+      editStatus.textContent = "Saving…";
+      await updateProfile(me, { displayName: eName.value.trim(), photoURL: ePhoto.value.trim() || null });
+      await setDoc(doc(db,"users",me.uid), {
+        displayName: eName.value.trim(),
+        bio: eBio.value.trim(),
+        photoURL: ePhoto.value.trim(),
+        location: eLoc.value.trim(),
+        age: eAge.value ? Number(eAge.value) : null,
+        updatedAt: serverTimestamp()
+      }, { merge:true });
+      editStatus.textContent = "Saved.";
+      editModal.style.display = "none";
+      // if we're viewing self (fallback), refresh card
+      if (matches[currentIndex] && matches[currentIndex].uid === me.uid) {
+        matches[currentIndex] = { ...matches[currentIndex],
+          displayName:eName.value.trim(), bio:eBio.value.trim(),
+          photoURL:ePhoto.value.trim(), location:eLoc.value.trim(),
+          age: eAge.value ? Number(eAge.value) : null
+        };
+        renderProfile(matches[currentIndex]);
       }
+    }catch(err){
+      console.error(err);
+      editStatus.textContent = "Error saving profile.";
+    }
+  };
+  editBtn.onclick = ()=> { if (me) openEdit(matches[currentIndex] || {}); };
+
+  // Load data
+  onAuthStateChanged(auth, async (user)=>{
+    if (!user) return location.replace("./login.html");
+    me = user;
+
+    // Load all users
+    const snap = await getDocs(collection(db,"users"));
+    matches = [];
+    snap.forEach(d=>{
+      const data = d.data();
+      // prefer explicit fields; attach uid for self-detection
+      matches.push({ uid:d.id, ...data });
     });
+
+    // Filter: show others first
+    const others = matches.filter(p => p.uid !== me.uid);
+    // Fallback: include self if no others
+    if (others.length === 0) {
+      // ensure we have *some* data for self
+      const myDoc = await getDoc(doc(db,"users",me.uid));
+      let selfData = myDoc.exists() ? { uid:me.uid, ...myDoc.data() } : {
+        uid: me.uid,
+        displayName: me.displayName || "You",
+        photoURL: me.photoURL || "",
+        location: "",
+        age: null,
+        badges: [],
+        flags: []
+      };
+      matches = [ selfData ];   // show your own card so the screen isn’t empty
+    } else {
+      matches = others;
+    }
+
     currentIndex = 0;
     renderProfile(matches[currentIndex]);
   });
