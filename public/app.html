@@ -24,24 +24,22 @@
     .card h2{margin:0;padding:14px 14px;border-bottom:1px solid rgba(255,255,255,.06);background:#12131a;position:relative}
     .card-body{padding:14px}
 
-    /* Existing layout */
+    /* NEW: three-box promo row above Live Stream */
+    .promoRow{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+    .promoLeft{display:grid;grid-template-rows:1fr 1fr;gap:18px}
+    .promoRight{display:flex;flex-direction:column}
+    .promoCardLink{display:block;text-decoration:none}
+    .promoBig{display:flex;flex-direction:column;height:100%}
+    .promoCenter{flex:1;display:flex;align-items:center;justify-content:center}
+    .promoBadge{width:140px;height:140px;border-radius:999px;background:radial-gradient(circle at 30% 30%, #ff9fb0, #e11d2a 58%, #8a0c16 100%);box-shadow:0 10px 28px rgba(225,29,42,.35)}
+    .promoFlag{width:0;height:0;border-top:70px solid transparent;border-bottom:70px solid transparent;border-left:140px solid #e11d2a;filter:drop-shadow(0 10px 18px rgba(225,29,42,.35))}
+    .subtle{color:var(--muted);font-size:13px}
+
+    /* Big 2x2 layout */
     .gridTop{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
     .gridBottom{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
     .bigPane{min-height:68vh;display:flex;flex-direction:column}
     .smallPane{min-height:48vh;display:flex;flex-direction:column}
-
-    /* NEW: Promo row (above Live Stream row) */
-    .promoRow{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
-    .promoLeft{display:flex;flex-direction:column;gap:18px;min-height:68vh}
-    .promoLeft .card{flex:1;display:flex;flex-direction:column}
-    .promoRight{min-height:68vh;display:flex;flex-direction:column}
-
-    /* Make the whole card body clickable for Badges / Red Flags */
-    .block-link{display:block;width:100%;height:100%;text-decoration:none}
-    .block-link .centered{
-      height:100%;display:flex;align-items:center;justify-content:center;
-      font-weight:1000;letter-spacing:.04em
-    }
 
     /* Live stream */
     .live-box{height:100%;min-height:52vh;background:#000;border-radius:14px;display:flex;align-items:center;justify-content:center}
@@ -72,10 +70,10 @@
     .modal h3{margin:0 0 8px}
     .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 
+    /* IMPORTANT: keep Live/Chat responsive but DO NOT collapse promoRow */
     @media (max-width:960px){
-      .promoRow,.gridTop,.gridBottom{grid-template-columns:1fr}
-      .promoLeft{min-height:auto}
-      .promoRight{min-height:auto}
+      .gridTop,.gridBottom{grid-template-columns:1fr}
+      /* .promoRow intentionally NOT changed, it stays 2 columns */
     }
   </style>
 </head>
@@ -93,58 +91,54 @@
 
   <main class="wrap">
 
-    <!-- ===== NEW PROMO ROW (above Live Stream row) ===== -->
+    <!-- NEW: THREE-BOX ROW ABOVE LIVE STREAM -->
     <div class="promoRow">
-      <!-- Left: two stacked cards (Badges, Red Flags) -->
+      <!-- Left: two stacked cards -->
       <div class="promoLeft">
-        <!-- Badges (big single badge, full-card link) -->
-        <section class="card">
-          <h2>Badges</h2>
-          <a class="block-link" href="./badges.html" aria-label="View all badges">
-            <div class="card-body centered">
-              <div style="text-align:center">
-                <div style="font-size:44px;line-height:1">🏅</div>
-                <div style="margin-top:6px;opacity:.9">Tap to view all badges</div>
-              </div>
+        <!-- Badges (big single badge, clickable to public/badges.html) -->
+        <a class="promoCardLink" href="./public/badges.html">
+          <section class="card promoBig">
+            <h2>Badges</h2>
+            <div class="card-body promoCenter">
+              <div class="promoBadge" aria-hidden="true"></div>
             </div>
-          </a>
-        </section>
+            <div class="card-body" style="border-top:1px solid rgba(255,255,255,.06)">
+              <div class="subtle">Tap to view all badges</div>
+            </div>
+          </section>
+        </a>
 
-        <!-- Red Flags (big single flag, full-card link) -->
-        <section class="card">
-          <h2>Red Flags</h2>
-          <a class="block-link" href="./redflags.html" aria-label="View all red flags">
-            <div class="card-body centered">
-              <div style="text-align:center">
-                <div style="font-size:44px;line-height:1">🚩</div>
-                <div style="margin-top:6px;opacity:.9">Tap to view all red flags</div>
-              </div>
+        <!-- Red Flags (big flag, clickable to public/redflags.html) -->
+        <a class="promoCardLink" href="./public/redflags.html">
+          <section class="card promoBig">
+            <h2>Red Flags</h2>
+            <div class="card-body promoCenter">
+              <div class="promoFlag" aria-hidden="true"></div>
             </div>
-          </a>
-        </section>
+            <div class="card-body" style="border-top:1px solid rgba(255,255,255,.06)">
+              <div class="subtle">Tap to view all flags</div>
+            </div>
+          </section>
+        </a>
       </div>
 
-      <!-- Right: one tall card (Casualties of Modern Dating) -->
+      <!-- Right: tall card (same total height as two left stacked) -->
       <section class="card promoRight">
         <h2>Casualties of Modern Dating</h2>
-        <div class="card-body" style="display:flex;flex-direction:column;gap:12px;flex:1">
-          <div class="muted">Share a short video story. (Upload spot placeholder)</div>
-          <div style="flex:1;border:1px dashed #2a2c39;border-radius:12px;display:flex;align-items:center;justify-content:center;opacity:.8">
-            <div style="text-align:center">
-              <div style="font-size:28px;margin-bottom:6px">⬆️</div>
-              <div>Upload your video</div>
-            </div>
-          </div>
-          <div style="display:flex;gap:8px;justify-content:flex-end">
-            <button class="btn">Choose File</button>
-            <button class="btn primary">Upload</button>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:10px;flex:1">
+          <div class="muted">Upload a short video (test placeholder).</div>
+          <input type="file" id="codVideo" accept="video/*" />
+          <button class="btn primary" id="codUpload">Upload</button>
+          <div id="codStatus" class="muted"></div>
+          <div style="flex:1;border:1px dashed #2a2c39;border-radius:12px;display:flex;align-items:center;justify-content:center;opacity:.7">
+            <span>Preview area</span>
           </div>
         </div>
       </section>
     </div>
-    <!-- ===== /NEW PROMO ROW ===== -->
+    <!-- /NEW: THREE-BOX ROW -->
 
-    <!-- TOP ROW (unchanged) -->
+    <!-- TOP ROW -->
     <div class="gridTop">
       <!-- Live Stream (big) -->
       <section class="card bigPane">
@@ -185,7 +179,7 @@
       </section>
     </div>
 
-    <!-- BOTTOM ROW (unchanged) -->
+    <!-- BOTTOM ROW -->
     <div class="gridBottom">
       <!-- Chaos Board -->
       <section class="card smallPane">
@@ -260,28 +254,24 @@
   </div>
 
   <script type="module">
-    /* ==== Firebase ==== */
+    /* ===== Firebase Imports ===== */
     import { auth, db } from "./js/firebase.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import {
-      collection, addDoc, serverTimestamp, onSnapshot,
-      query, orderBy, limit, getDoc, doc
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    /* ==== Chat config (Firestore only) ==== */
+    /* ===== Chat (Firestore) ===== */
     const ROOMS = [
       { id: "general",      label: "#general" },
       { id: "first-dates",  label: "#first-dates" },
       { id: "gym-rats",     label: "#gym-rats" },
       { id: "chaos-lounge", label: "#chaos-lounge" },
     ];
-
     let me = null;
     let myDisplayName = ""; // from users/{uid}
     let currentRoom = ROOMS[0].id;
     let unsubFeed = null;
 
-    /* ==== DOM (chat) ==== */
+    // DOM: chat
     const meTag = document.getElementById("meTag");
     const enterChatBtn = document.getElementById("enterChatBtn");
     const leaveChatBtn = document.getElementById("leaveChatBtn");
@@ -292,7 +282,7 @@
     const chatInput = document.getElementById("chatInput");
     const chatSend = document.getElementById("chatSend");
 
-    /* ==== Boards DOM ==== */
+    // Boards DOM
     const chaosList = document.getElementById("chaosList");
     const reviewList = document.getElementById("reviewList");
     const chaosModal = document.getElementById("chaosModal");
@@ -314,11 +304,11 @@
     const detailBody  = document.getElementById("detailBody");
     const detailClose = document.getElementById("detailClose");
 
-    /* ==== UI helpers ==== */
+    /* ===== Helpers ===== */
     function open(el){ el.style.display = "flex"; }
     function close(el){ el.style.display = "none"; }
     function setSigned(on){
-      const label = ROOMS.find(r=>r.id===currentRoom)?.label || "#general";
+      const label = (ROOMS.find(r=>r.id===currentRoom)?.label) || "#general";
       meTag.textContent = on ? `In ${label} as ${myDisplayName}` : "(not in chat)";
       enterChatBtn.style.display = on ? "none" : "inline-flex";
       leaveChatBtn.style.display = on ? "inline-flex" : "none";
@@ -361,7 +351,7 @@
       const text = chatInput.value.trim();
       if (!text) return;
       if (!me){ location.href = "./login.html"; return; }
-      if (!myDisplayName){ alert("Profile name missing."); return; }
+      if (!myDisplayName){ alert("Your profile needs a username/display name."); return; }
       const col = collection(db, "rooms", currentRoom, "messages");
       await addDoc(col, { from: myDisplayName, text, createdAt: serverTimestamp(), uid: me.uid });
       chatInput.value = "";
@@ -375,7 +365,7 @@
       return "";
     }
 
-    /* ==== Boards (simple in-memory with 1 example each) ==== */
+    /* ===== Boards (simple in-memory with 1 example each) ===== */
     const chaosItems = [{
       title: "Walked Out on the Check",
       author: "@Rae25",
@@ -410,14 +400,7 @@
     function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
     // Submit handlers (still in-memory for now)
-    document.getElementById("uploadChaos").addEventListener("click", ()=> open(chaosModal));
-    document.getElementById("uploadReview").addEventListener("click", ()=> open(reviewModal));
-    cCancel.addEventListener("click", ()=> close(chaosModal));
-    rCancel.addEventListener("click", ()=> close(reviewModal));
-    chaosModal.addEventListener("click", (e)=>{ if(e.target===chaosModal) close(chaosModal); });
-    reviewModal.addEventListener("click", (e)=>{ if(e.target===reviewModal) close(reviewModal); });
-
-    document.getElementById("cSave").addEventListener("click", ()=>{
+    cSave.addEventListener("click", ()=>{
       const title = (cTitle.value||"").trim().slice(0,60);
       const about = (cAbout.value||"").trim();
       const body  = (cBody.value||"").trim();
@@ -428,7 +411,7 @@
       cTitle.value = ""; cAbout.value = ""; cBody.value = "";
       close(chaosModal);
     });
-    document.getElementById("rSave").addEventListener("click", ()=>{
+    rSave.addEventListener("click", ()=>{
       const title = (rTitle.value||"").trim().slice(0,60);
       const about = (rAbout.value||"").trim();
       const body  = (rBody.value||"").trim();
@@ -440,11 +423,17 @@
       close(reviewModal);
     });
 
-    // Detail modal
-    detailClose.addEventListener("click", ()=> close(detailModal));
+    // Modal toggles (chaos/reviews/details)
+    document.getElementById("uploadChaos").addEventListener("click", ()=> open(chaosModal));
+    document.getElementById("uploadReview").addEventListener("click", ()=> open(reviewModal));
+    document.getElementById("cCancel").addEventListener("click", ()=> close(chaosModal));
+    document.getElementById("rCancel").addEventListener("click", ()=> close(reviewModal));
+    chaosModal.addEventListener("click", (e)=>{ if(e.target===chaosModal) close(chaosModal); });
+    reviewModal.addEventListener("click", (e)=>{ if(e.target===reviewModal) close(reviewModal); });
+    document.getElementById("detailClose").addEventListener("click", ()=> close(detailModal));
     detailModal.addEventListener("click", (e)=>{ if(e.target===detailModal) close(detailModal); });
 
-    /* ==== Chat controls (no anonymous) ==== */
+    /* ===== Chat controls (no anonymous) ===== */
     enterChatBtn.addEventListener("click", async ()=>{
       if (!me) { location.href = "./login.html"; return; }
       if (!myDisplayName){ alert("Your profile needs a username/display name."); return; }
@@ -464,7 +453,7 @@
     chatSend.addEventListener("click", sendMessage);
     chatInput.addEventListener("keydown", (e)=>{ if(e.key==="Enter") sendMessage(); });
 
-    /* ==== Auth: get visible name from users/{uid} ==== */
+    /* ===== Auth: derive visible name from users/{uid} ===== */
     onAuthStateChanged(auth, async (user)=>{
       me = user || null;
       myDisplayName = "";
@@ -485,7 +474,16 @@
       setSigned(false);
     });
 
-    /* ==== Init ==== */
+    /* ===== Casualties upload (placeholder UI only) ===== */
+    const codVideo = document.getElementById("codVideo");
+    const codUpload = document.getElementById("codUpload");
+    const codStatus = document.getElementById("codStatus");
+    codUpload?.addEventListener("click", ()=>{
+      const f = codVideo.files?.[0];
+      codStatus.textContent = f ? `Ready: ${f.name}` : "Select a video first.";
+    });
+
+    /* ===== Init ===== */
     (function init(){
       renderRooms();
       renderBoard(chaosList, chaosItems);
@@ -494,4 +492,3 @@
   </script>
 </body>
 </html>
-```0
