@@ -642,7 +642,7 @@
     mainPhoto.addEventListener("click", () => {
       const p = matches[currentIndex];
       if (!p || !p.uid) return; // requires uid
-      location.href = `./user.html?uid=${encodeURIComponent(p.uid)}`;
+      location.href = `./profile.html?uid=${encodeURIComponent(p.uid)}`;
     });
 
     /* ===== SECTION: Data Layer (Load/Create/Save) ===== */
@@ -836,8 +836,8 @@
         }
         const card = userCard(u, { locked, trailing });
         if (!locked){
-          card.querySelector("img")?.addEventListener("click", ()=> location.href = `./user.html?uid=${encodeURIComponent(u.uid)}`);
-          card.querySelector(`[data-open="${u.uid}"]`)?.addEventListener("click", ()=> location.href = `./user.html?uid=${encodeURIComponent(u.uid)}`);
+          card.querySelector("img")?.addEventListener("click", ()=> location.href = `./profile.html?uid=${encodeURIComponent(u.uid)}`);
+          card.querySelector(`[data-open="${u.uid}"]`)?.addEventListener("click", ()=> location.href = `./profile.html?uid=${encodeURIComponent(u.uid)}`);
           card.querySelector(`[data-chat="${u.uid}"]`)?.addEventListener("click", ()=> openChatWith(u));
         }
         inboxList.appendChild(card);
