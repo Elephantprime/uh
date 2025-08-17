@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html><html lang="en">
 <head>
   <!-- ===== SECTION: Head / Meta ===== -->
@@ -452,10 +453,8 @@
   if (!browseBtn) return;
   browseBtn.addEventListener("click", () => {
     try {
-      if (!me || !myDocCached) return;
-      // Always open Matches; free users will still see cards (we gate Likes/Views elsewhere)
-      openInbox();
-      renderInbox("matches");
+      // Show swipeable matches on the main card instead of opening the inbox
+      browseMembers();
     } catch (err) {
       console.error("Browse Matches handler failed:", err);
     }
@@ -639,16 +638,11 @@
     
 mainPhoto.addEventListener("click", () => {
   try {
-    let target = (Array.isArray(matches) && matches[currentIndex] && matches[currentIndex].uid)
-      ? matches[currentIndex].uid
-      : null;
-    if (!target) {
-      const params = new URLSearchParams(location.search);
-      const uidParam = params.get("uid");
-      if (uidParam) target = uidParam;
+    // When clicking the main swipe photo, show a minimal profile overlay instead of navigating away
+    const p = Array.isArray(matches) ? matches[currentIndex] : null;
+    if (p) {
+      showPublicProfile(p);
     }
-    if (!target && me?.uid) target = me.uid;
-    if (target) location.href = `./profile.html?uid=${encodeURIComponent(target)}`;
   } catch (e) { console.error(e); }
 });
 /* ===== SECTION: Data Layer (Load/Create/Save) ===== */
@@ -868,9 +862,11 @@ async function getThreads(uid){
         }
         const card = userCard(u, { locked, trailing });
         if (!locked){
-          card.querySelector("img")?.addEventListener("click", ()=> location.href = `./profile.html?uid=${encodeURIComponent(u.uid)}`);
-          card.querySelector(`[data-open="${u.uid}"]`)?.addEventListener("click", ()=> location.href = `./profile.html?uid=${encodeURIComponent(u.uid)}`);
-          card.querySelector(`[data-chat="${u.uid}"]`)?.addEventListener("click", ()=> openChatWith(u));
+          // clicking the image or "View" shows a minimal public profile overlay
+          card.querySelector("img")?.addEventListener("click", () => showPublicProfile(u));
+          card.querySelector(`[data-open="${u.uid}"]`)?.addEventListener("click", () => showPublicProfile(u));
+          // message button opens the chat
+          card.querySelector(`[data-chat="${u.uid}"]`)?.addEventListener("click", () => openChatWith(u));
         }
         inboxList.appendChild(card);
       }
@@ -963,6 +959,20 @@ async function findOrCreateChat(uidA, uidB){
       let list = Array.isArray(allUsers) ? allUsers.slice() : [];
       list = list.filter(u => _ageOK(u, currentFilters.min, currentFilters.max) && _locOK(u, currentFilters.location));
       matches = list.length ? list : [myDocCached];
+      currentIndex = 0;
+      renderProfile(matches[currentIndex] || null);
+    }
+
+    /**
+     * Show all potential matches in the swipe card. This is triggered by the
+     * Browse Matches button. It resets the matches array to all other users
+     * (or just the current user if no others exist) and shows the first profile.
+     */
+    function browseMembers(){
+      if (!me || !myDocCached) return;
+      // Use the already-loaded user list (excluding me). If not loaded yet, fall back to myDoc.
+      const others = Array.isArray(allUsers) ? allUsers.filter(u => u.uid !== me.uid) : [];
+      matches = others.length ? others : [myDocCached];
       currentIndex = 0;
       renderProfile(matches[currentIndex] || null);
     }
@@ -1147,7 +1157,7 @@ onAuthStateChanged(auth, async (user)=>{
     const bind = (el, type, fn) => { if (el && !el.dataset.bound) { el.addEventListener(type, fn); el.dataset.bound = "1"; } };
 
     bind($("inboxBtn"), "click", () => { try { openInbox(); renderInbox("likes"); } catch (e) { console.error(e); } });
-    bind($("browseBtn"), "click", () => { try { openInbox(); renderInbox("matches"); } catch (e) { console.error(e); } });
+    bind($("browseBtn"), "click", () => { try { browseMembers(); } catch (e) { console.error(e); } });
     bind($("editBtn"), "click", () => { try { document.getElementById("editModal").style.display = "flex"; } catch (e) { console.error(e); } });
     bind($("logoutBtn"), "click", async () => { try { await signOut(auth); location.replace("./login.html"); } catch (e) { console.error(e); } });
     bind($("pass-btn"), "click", () => { try { showIndicator("pass"); setTimeout(() => { showIndicator(null); nextProfile(); }, 120); } catch (e) { console.error(e); } });
@@ -1168,17 +1178,13 @@ onAuthStateChanged(auth, async (user)=>{
     if (mainPhoto && !mainPhoto.dataset.bound) {
       mainPhoto.addEventListener("click", () => {
         try {
-          let target = (Array.isArray(matches) && matches[currentIndex] && matches[currentIndex].uid)
-            ? matches[currentIndex].uid
-            : null;
-          if (!target) {
-            const params = new URLSearchParams(location.search);
-            const uidParam = params.get("uid");
-            if (uidParam) target = uidParam;
+          const p = Array.isArray(matches) ? matches[currentIndex] : null;
+          if (p) {
+            showPublicProfile(p);
           }
-          if (!target && me?.uid) target = me.uid;
-          if (target) location.href = `./profile.html?uid=${encodeURIComponent(target)}`;
-        } catch (e) { console.error(e); }
+        } catch (e) {
+          console.error(e);
+        }
       });
       mainPhoto.dataset.bound = "1";
     }
