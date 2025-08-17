@@ -357,6 +357,7 @@
   }
 
   /* ===== SECTION: Button Wiring for Membership Gating ===== */
+const browseBtn = document.getElementById("browseBtn");
   // gate “Browse Matches” behind membership and open inbox for members
   browseBtn?.addEventListener("click", () => {
     if (!me || !myDocCached) return;
