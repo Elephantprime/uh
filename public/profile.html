@@ -445,25 +445,22 @@
 
     
 /* ===== SECTION: Button Wiring for Membership Gating (rewired below DOM refs) ===== */
+
 (function () {
   const browseBtn = document.getElementById("browseBtn");
   if (!browseBtn) return;
   browseBtn.addEventListener("click", () => {
     try {
       if (!me || !myDocCached) return;
-      if ((myDocCached?.membership?.tier || "free") !== "free") {
-        openInbox();
-        renderInbox("matches");
-      } else {
-        upgradeBtn?.click();
-      }
+      // Always open Matches; free users will still see cards (we gate Likes/Views elsewhere)
+      openInbox();
+      renderInbox("matches");
     } catch (err) {
       console.error("Browse Matches handler failed:", err);
     }
   });
 })();
-
-    /* ===== SECTION: View Params ===== */
+/* ===== SECTION: View Params ===== */
     const _params = new URLSearchParams(location.search);
     const viewUidParam = _params.get("uid"); // if present, force showing that user's profile
 
@@ -738,36 +735,59 @@
       }
       return out;
     }
-    async function getLikesForMe(uid){
-      const qy = query(collection(db,"likes"), where("toUid","==",uid), orderBy("createdAt","desc"), limit(50));
-      const snap = await getDocs(qy);
-      const ids = []; snap.forEach(d=>ids.push(d.data().fromUid));
-      return fetchUsersByIds(ids);
-    }
-    async function getViewsForMe(uid){
-      const qy = query(collection(db,"views"), where("viewedUid","==",uid), orderBy("createdAt","desc"), limit(50));
-      const snap = await getDocs(qy);
-      const ids = []; snap.forEach(d=>ids.push(d.data().viewerUid));
-      return fetchUsersByIds(ids);
-    }
-    async function getMatchesForMe(uid){
-      const qy = query(collection(db,"matches"), where("uids","array-contains",uid), orderBy("createdAt","desc"), limit(50));
-      const snap = await getDocs(qy);
-      const partnerIds = [];
-      snap.forEach(d=>{
-        const arr = d.data().uids||[];
-        const other = arr.find(x=>x!==uid);
-        if (other) partnerIds.push(other);
-      });
+    
+async function getLikesForMe(uid){
+  const qy = query(collection(db,"likes"), where("toUid","==",uid)); // no orderBy -> no composite index required
+  const snap = await getDocs(qy);
+  const rows = []; snap.forEach(d=>rows.push(d.data()));
+  // newest first if field present
+  rows.sort((a,b)=> (b.createdAt?.toMillis?.()||0) - (a.createdAt?.toMillis?.()||0));
+  const ids = rows.map(r=>r.fromUid).filter(Boolean);
+  return fetchUsersByIds(ids);
+}
+
+    
+async function getViewsForMe(uid){
+  const qy = query(collection(db,"views"), where("viewedUid","==",uid));
+  const snap = await getDocs(qy);
+  const rows = []; snap.forEach(d=>rows.push(d.data()));
+  rows.sort((a,b)=> (b.createdAt?.toMillis?.()||0) - (a.createdAt?.toMillis?.()||0));
+  const ids = rows.map(r=>r.viewerUid).filter(Boolean);
+  return fetchUsersByIds(ids);
+}
+
+    
+async function getMatchesForMe(uid){
+  const qy = query(collection(db,"matches"), where("uids","array-contains",uid));
+  const snap = await getDocs(qy);
+  const rows = []; snap.forEach(d=>rows.push({ id:d.id, ...d.data() }));
+  rows.sort((a,b)=> (b.createdAt?.toMillis?.()||0) - (a.createdAt?.toMillis?.()||0));
+  const partnerIds = [];
+  rows.forEach(d=>{
+    const arr = d.uids||[];
+    const other = arr.find(x=>x!==uid);
+    if (other) partnerIds.push(other);
+  });
+  return fetchUsersByIds(partnerIds);
+}
+);
       return fetchUsersByIds(partnerIds);
     }
-    async function getThreads(uid){
-      const qy = query(collection(db,"chats"), where("uids","array-contains",uid), orderBy("lastMessageAt","desc"), limit(50));
-      const snap = await getDocs(qy);
-      const map = new Map();
-      snap.forEach(d=>{
-        const data = d.data(); const other = (data.uids||[]).find(x=>x!==uid);
-        if (other) map.set(other, { chatId:d.id, ...data });
+    
+async function getThreads(uid){
+  const qy = query(collection(db,"chats"), where("uids","array-contains",uid));
+  const snap = await getDocs(qy);
+  const rows = []; snap.forEach(d=>rows.push({ id:d.id, ...d.data() }));
+  rows.sort((a,b)=> (b.lastMessageAt?.toMillis?.()||0) - (a.lastMessageAt?.toMillis?.()||0));
+  const map = new Map();
+  rows.forEach(d=>{
+    const other = (d.uids||[]).find(x=>x!==uid);
+    if (other && !map.has(other)) map.set(other, { chatId:d.id, ...d });
+  });
+  const users = await fetchUsersByIds([...map.keys()]);
+  return users.map(u => ({ ...u, chatId: map.get(u.uid)?.chatId || null }));
+}
+);
       });
       const users = await fetchUsersByIds([...map.keys()]);
       return users.map(u => ({ ...u, chatId: map.get(u.uid)?.chatId || null }));
@@ -986,32 +1006,41 @@
         }catch(e){ console.warn(`Cleanup ${cfg.name} skip:`, e.message); }
       }
     }
-    async function handleDeleteAccount(){
-      if (!me) return;
-      const confirmText = prompt("Type DELETE to permanently remove your account (this cannot be undone).");
-      if (confirmText !== "DELETE") return;
-      try{
-        const lastSignIn = me.metadata?.lastSignInTime ? new Date(me.metadata.lastSignInTime).getTime() : 0;
-        const needsReauth = (Date.now() - lastSignIn) > (5*60*1000);
-        if (needsReauth && me.providerData.some(p=>p.providerId==="password")){
-          const email = me.email;
-          const pwd = prompt("Re-enter your password to confirm delete:");
-          if (!pwd) return alert("Deletion cancelled.");
-          const cred = EmailAuthProvider.credential(email, pwd);
-          await reauthenticateWithCredential(me, cred);
-        }
-      }catch(e){ alert("Re-auth failed. Cannot delete account."); return; }
-
-      try{ await deleteDoc(doc(db,"users", me.uid)); }catch(e){ console.warn("User doc delete:", e.message); }
-      try{ await deleteStorageFolder(`avatars/${me.uid}`); }catch(e){ console.warn("Storage delete:", e.message); }
-      try{ await deleteRelatedDocs(me.uid); }catch(e){ console.warn("Related cleanup:", e.message); }
-      try{ await deleteUser(me); }catch(e){ alert("Could not delete the auth account. Sign in again and retry."); return; }
-
-      alert("Your account has been deleted."); location.replace("./signup.html");
+    
+async function handleDeleteAccount(){
+  if (!me) return;
+  const confirmText = prompt("Type DELETE to permanently remove your account (this cannot be undone).");
+  if (confirmText !== "DELETE") return;
+  try{
+    const lastSignIn = me.metadata?.lastSignInTime ? new Date(me.metadata.lastSignInTime).getTime() : 0;
+    const needsReauth = (Date.now() - lastSignIn) > (5*60*1000);
+    if (needsReauth && me.providerData.some(p=>p.providerId==="password")){
+      const email = me.email;
+      const pwd = prompt("Re-enter your password to confirm delete:");
+      if (!pwd) return alert("Deletion cancelled.");
+      const cred = EmailAuthProvider.credential(email, pwd);
+      await reauthenticateWithCredential(me, cred);
     }
-    deleteBtn?.addEventListener("click", handleDeleteAccount);
+  }catch(e){ alert("Re-auth failed. Cannot delete account."); return; }
 
-    /* ===== SECTION: Modal Controls (Edit/Inbox/Chat) ===== */
+  // Try to delete Firestore + Storage regardless
+  try{ await deleteDoc(doc(db,"users", me.uid)); }catch(e){ console.warn("User doc delete:", e.message); }
+  try{ await deleteStorageFolder(`avatars/${me.uid}`); }catch(e){ console.warn("Storage delete:", e.message); }
+  try{ await deleteRelatedDocs(me.uid); }catch(e){ console.warn("Related cleanup:", e.message); }
+
+  try{
+    await deleteUser(me);
+    alert("Your account has been deleted.");
+    location.replace("./signup.html");
+  }catch(e){
+    console.warn("Auth delete failed:", e?.code || e?.message);
+    alert("Your data has been removed. Please sign in again to fully remove the auth account.");
+    try{ await signOut(auth); }catch{}
+    location.replace("./login.html");
+  }
+}
+deleteBtn?.addEventListener("click", handleDeleteAccount);
+/* ===== SECTION: Modal Controls (Edit/Inbox/Chat) ===== */
     function openEdit(){ editModal.style.display="flex"; }
     function closeEdit(){ editModal.style.display="none"; }
     editBtn.addEventListener("click", (e)=>{ e.preventDefault(); openEdit(); });
