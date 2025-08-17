@@ -3,7 +3,7 @@
   <!-- ===== SECTION: Head / Meta ===== -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Unhinged — Profile</title>
+  <title>Unhinged â€” Profile</title>
 
   <!-- ===== SECTION: Styles (Design System) ===== -->
   <style>
@@ -147,9 +147,9 @@
 
     <!-- ===== SECTION: Bottom Actions ===== -->
     <div class="actions">
-      <button class="action-btn pass-btn" id="pass-btn" aria-label="Pass">✖</button>
+      <button class="action-btn pass-btn" id="pass-btn" aria-label="Pass">âœ–</button>
       <button class="chaos-btn" onclick="location.href='./app.html'">Community Chaos</button>
-      <button class="action-btn like-btn" id="like-btn" aria-label="Like">❤</button>
+      <button class="action-btn like-btn" id="like-btn" aria-label="Like">â¤</button>
     </div>
   </div>
 
@@ -207,7 +207,7 @@
       </div>
 
       <label for="bio">Bio</label>
-      <textarea id="bio" rows="3" placeholder="Say something…"></textarea>
+      <textarea id="bio" rows="3" placeholder="Say somethingâ€¦"></textarea>
 
       <!-- Subsection: Photos -->
       <label for="avatar" style="margin-top:.5rem;">Add photos (you can select multiple) <span class="req" id="reqPhoto" hidden>*</span></label>
@@ -260,7 +260,7 @@
       </div>
       <div class="chat-scroll" id="chatScroll"></div>
       <div class="chat-send">
-        <input id="chatInput" type="text" placeholder="Type a message…" />
+        <input id="chatInput" type="text" placeholder="Type a messageâ€¦" />
         <button class="btn" id="chatSend" type="button">Send</button>
       </div>
     </div>
@@ -356,20 +356,6 @@
     });
   }
 
-  /* ===== SECTION: Button Wiring for Membership Gating ===== */
-const browseBtn = document.getElementById("browseBtn");
-  // gate “Browse Matches” behind membership and open inbox for members
-  browseBtn?.addEventListener("click", () => {
-    if (!me || !myDocCached) return;
-    if (isMember(myDocCached)) {
-      openInbox();
-      renderInbox("matches");
-    } else {
-      // show paywall by delegating to existing upgrade button
-      upgradeBtn?.click();
-    }
-  });
-
   /* ===== SECTION: Inbox Card Construction ===== */
   // return a card element for a user in inbox; attach profile overlay on click
   function userCard(u, { locked = false, trailing = null } = {}) {
@@ -417,13 +403,13 @@ const browseBtn = document.getElementById("browseBtn");
   }
 
   /* ===== SECTION: Inbox Rendering ===== */
-  // update renderInbox so that the “view” and image click open minimal profiles
+  // update renderInbox so that the â€œviewâ€ and image click open minimal profiles
   async function renderInbox(tab) {
     if (!me || !myDocCached) return;
     [...inboxTabs.querySelectorAll(".inbox-tab")].forEach((b) =>
       b.classList.toggle("active", b.dataset.tab === tab)
     );
-    inboxList.innerHTML = "<div class='muted'>Loading…</div>";
+    inboxList.innerHTML = "<div class='muted'>Loadingâ€¦</div>";
 
     let items = [];
     try {
@@ -453,7 +439,7 @@ const browseBtn = document.getElementById("browseBtn");
       if (!locked) {
         // image click shows minimal profile instead of navigating away
         card.querySelector("img")?.addEventListener("click", () => showPublicProfile(u));
-        // “View” button shows minimal profile
+        // â€œViewâ€ button shows minimal profile
         card.querySelector(`[data-open="${u.uid}"]`)?.addEventListener("click", () => showPublicProfile(u));
         // message button behaves as before
         card.querySelector(`[data-chat="${u.uid}"]`)?.addEventListener("click", () => openChatWith(u));
@@ -550,6 +536,26 @@ const browseBtn = document.getElementById("browseBtn");
     let activeChat = { chatId: null, partner: null, unsub: null };
     let currentFilters = { location: "", min: null, max: null };
 
+    
+/* ===== SECTION: Button Wiring for Membership Gating (rewired below DOM refs) ===== */
+(function () {
+  const browseBtn = document.getElementById("browseBtn");
+  if (!browseBtn) return;
+  browseBtn.addEventListener("click", () => {
+    try {
+      if (!me || !myDocCached) return;
+      if ((myDocCached?.membership?.tier || "free") !== "free") {
+        openInbox();
+        renderInbox("matches");
+      } else {
+        upgradeBtn?.click();
+      }
+    } catch (err) {
+      console.error("Browse Matches handler failed:", err);
+    }
+  });
+})();
+
     /* ===== SECTION: View Params ===== */
     const _params = new URLSearchParams(location.search);
     const viewUidParam = _params.get("uid"); // if present, force showing that user's profile
@@ -565,11 +571,11 @@ const browseBtn = document.getElementById("browseBtn");
     reqLocation.hidden = !REQUIRED.LOCATION;
     reqPhoto.hidden = !REQUIRED.PHOTO;
 
-    /* ===== SECTION: Helper – UI Feedback ===== */
+    /* ===== SECTION: Helper â€“ UI Feedback ===== */
     function showError(msg){ uploadStatus.innerHTML = `<span class="err">${msg}</span>`; }
     function showOK(msg){ uploadStatus.innerHTML = `<span class="ok">${msg}</span>`; }
 
-    /* ===== SECTION: Helper – Renderers ===== */
+    /* ===== SECTION: Helper â€“ Renderers ===== */
     function isMember(userDoc){ return (userDoc?.membership?.tier || "free") !== "free"; }
 
     // FIXED: no malformed regex
@@ -633,8 +639,8 @@ const browseBtn = document.getElementById("browseBtn");
 
       const hobbyRaw = (p.hobbies || "").trim();
       const interestRaw = (p.interests || "").trim();
-      const hobbyHint = hobbyRaw ? ` • ${hobbyRaw.slice(0,20)}${hobbyRaw.length>20?'…':''}` : "";
-      const interestHint = interestRaw ? ` • ${interestRaw.slice(0,20)}${interestRaw.length>20?'…':''}` : "";
+      const hobbyHint = hobbyRaw ? ` â€¢ ${hobbyRaw.slice(0,20)}${hobbyRaw.length>20?'â€¦':''}` : "";
+      const interestHint = interestRaw ? ` â€¢ ${interestRaw.slice(0,20)}${interestRaw.length>20?'â€¦':''}` : "";
       subInfo.textContent = (p.location || "") + hobbyHint + interestHint;
 
       renderBadges(p.badges||[]);
@@ -689,7 +695,7 @@ const browseBtn = document.getElementById("browseBtn");
       if(REQUIRED.PHOTO && !hasPhoto) return {ok:false, message:"Add at least one photo before saving.", focus:"photo"};
       const loc=(locationInput.value||"").trim(); if(REQUIRED.LOCATION && !loc) return {ok:false, message:"Please enter your location before saving.", focus:"location"};
       const dn=(displayNameInput.value||"").trim(); if(REQUIRED.DISPLAY_NAME && !dn) return {ok:false, message:"Please enter your display name before saving.", focus:"displayName"};
-      if(REQUIRED.AGE){ const a=Number(ageInput.value); if(!Number.isFinite(a)||a<18||a>100) return {ok:false, message:"Please enter a valid age (18–100).", focus:"age"} }
+      if(REQUIRED.AGE){ const a=Number(ageInput.value); if(!Number.isFinite(a)||a<18||a>100) return {ok:false, message:"Please enter a valid age (18â€“100).", focus:"age"} }
       return {ok:true};
     }
     function refreshSaveButtonState(currentDoc){
@@ -758,7 +764,7 @@ const browseBtn = document.getElementById("browseBtn");
 
     async function saveEdits(){
       if(!me) return;
-      saveEdit.disabled = true; uploadStatus.innerHTML = `<span class="prog">Saving…</span>`;
+      saveEdit.disabled = true; uploadStatus.innerHTML = `<span class="prog">Savingâ€¦</span>`;
       try{
         const uref = doc(db,"users",me.uid);
         const pre = await getDoc(uref); const currentDoc = pre.data()||{};
@@ -767,7 +773,7 @@ const browseBtn = document.getElementById("browseBtn");
         if(!check.ok){ showError(check.message); focusInvalid(check.focus); saveEdit.disabled=false; return; }
 
         let photos = Array.isArray(currentDoc.photos)?[...currentDoc.photos]:[];
-        if(files.length){ uploadStatus.innerHTML = `<span class="prog">Uploading ${files.length} photo(s)…</span>`; }
+        if(files.length){ uploadStatus.innerHTML = `<span class="prog">Uploading ${files.length} photo(s)â€¦</span>`; }
         for(const f of files){
           const safeName = (f.name||"photo").replace(/[^\w.\-]+/g,"_");
           const path=`avatars/${me.uid}/${Date.now()}_${safeName}`;
@@ -902,7 +908,7 @@ const browseBtn = document.getElementById("browseBtn");
     async function renderInbox(tab){
       if (!me || !myDocCached) return;
       [...inboxTabs.querySelectorAll(".inbox-tab")].forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
-      inboxList.innerHTML = "<div class='muted'>Loading…</div>";
+      inboxList.innerHTML = "<div class='muted'>Loadingâ€¦</div>";
 
       let items = [];
       try{ items = await TAB_FUNCS[tab](me.uid); }
