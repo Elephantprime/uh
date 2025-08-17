@@ -4,7 +4,7 @@
   <!-- ===== SECTION: Head / Meta ===== -->
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Unhinged Ã¢â‚¬â€ Profile</title>
+  <title>Unhinged - Profile</title>
 
   <!-- ===== SECTION: Styles (Design System) ===== -->
   <style>
@@ -131,6 +131,9 @@
               onclick="document.getElementById('inboxModal').style.display='flex'">Inbox</button>
       <button class="btn danger" id="browseBtn" type="button">Browse Matches</button>
 
+      <!-- Casualties of Modern Dating upload button -->
+      <button class="btn secondary" id="casualtiesBtn" type="button">Casualties Upload</button>
+
       <a class="chaos-btn" href="./app.html">Community Chaos</a>
 
       <button class="btn secondary" id="myProfileBtn" type="button">My Profile</button>
@@ -141,6 +144,26 @@
 
       <button class="btn secondary" id="logoutBtn" type="button">Logout</button>
       <button class="btn ghost" id="deleteBtn" type="button" title="Delete my account">Delete</button>
+    </div>
+  </div>
+
+  <!-- ===== CASUALTIES MODAL ===== -->
+  <div class="modal-backdrop" id="casualtiesModal">
+    <div class="modal">
+      <h3>Casualties of Modern Dating</h3>
+      <div id="casualtiesPwdSection">
+        <label for="casualtiesPassword">Enter password:</label>
+        <input id="casualtiesPassword" type="password" />
+        <button class="btn" id="casualtiesCheckBtn" type="button">Check</button>
+      </div>
+      <div id="casualtiesUploadSection" style="display:none;">
+        <label for="casualtiesFile">Upload image:</label>
+        <input id="casualtiesFile" type="file" accept="image/*" />
+        <label for="casualtiesCaption">Caption (optional):</label>
+        <input id="casualtiesCaption" type="text" placeholder="Caption" />
+        <button class="btn" id="casualtiesSubmit" type="button">Upload</button>
+      </div>
+      <button class="btn secondary" id="closeCasualties" type="button">Close</button>
     </div>
   </div>
 
@@ -223,7 +246,7 @@
       </div>
 
       <label for="bio">Bio</label>
-      <textarea id="bio" rows="3" placeholder="Say somethingÃ¢â‚¬Â¦"></textarea>
+      <textarea id="bio" rows="3" placeholder="Say something..."></textarea>
 
       <!-- Subsection: Photos -->
       <label for="avatar" style="margin-top:.5rem;">Add photos (you can select multiple) <span class="req" id="reqPhoto" hidden>*</span></label>
@@ -274,7 +297,7 @@
       </div>
       <div class="chat-scroll" id="chatScroll"></div>
       <div class="chat-send">
-        <input id="chatInput" type="text" placeholder="Type a messageÃ¢â‚¬Â¦" />
+        <input id="chatInput" type="text" placeholder="Type a message..." />
         <button class="btn" id="chatSend" type="button">Send</button>
       </div>
     </div>
@@ -520,6 +543,18 @@
     const filterAgeMin  = document.getElementById("filterAgeMin");
     const filterAgeMax  = document.getElementById("filterAgeMax");
 
+    // Casualties upload modal refs
+    const casualtiesBtn = document.getElementById("casualtiesBtn");
+    const casualtiesModal = document.getElementById("casualtiesModal");
+    const casualtiesPassword = document.getElementById("casualtiesPassword");
+    const casualtiesCheckBtn = document.getElementById("casualtiesCheckBtn");
+    const casualtiesUploadSection = document.getElementById("casualtiesUploadSection");
+    const casualtiesFile = document.getElementById("casualtiesFile");
+    const casualtiesCaption = document.getElementById("casualtiesCaption");
+    const casualtiesSubmit = document.getElementById("casualtiesSubmit");
+    const closeCasualties = document.getElementById("closeCasualties");
+    const casualtiesPwdSection = document.getElementById("casualtiesPwdSection");
+
     /* ===== SECTION: State ===== */
     let me = null;
     let myDocCached = null;
@@ -567,11 +602,11 @@
     reqLocation.hidden = !REQUIRED.LOCATION;
     reqPhoto.hidden = !REQUIRED.PHOTO;
 
-    /* ===== SECTION: Helper Ã¢â‚¬â€œ UI Feedback ===== */
+    /* ===== SECTION: Helper â€“ UI Feedback ===== */
     function showError(msg){ uploadStatus.innerHTML = `<span class="err">${msg}</span>`; }
     function showOK(msg){ uploadStatus.innerHTML = `<span class="ok">${msg}</span>`; }
 
-    /* ===== SECTION: Helper Ã¢â‚¬â€œ Renderers ===== */
+    /* ===== SECTION: Helper â€“ Renderers ===== */
     function isMember(userDoc){ return (userDoc?.membership?.tier || "free") !== "free"; }
 
     // FIXED: no malformed regex
@@ -635,8 +670,9 @@
 
       const hobbyRaw = (p.hobbies || "").trim();
       const interestRaw = (p.interests || "").trim();
-      const hobbyHint = hobbyRaw ? ` Ã¢â‚¬Â¢ ${hobbyRaw.slice(0,20)}${hobbyRaw.length>20?'Ã¢â‚¬Â¦':''}` : "";
-      const interestHint = interestRaw ? ` Ã¢â‚¬Â¢ ${interestRaw.slice(0,20)}${interestRaw.length>20?'Ã¢â‚¬Â¦':''}` : "";
+      // Use bullet and three dots for truncated hobbies/interests
+      const hobbyHint = hobbyRaw ? ` â€¢ ${hobbyRaw.slice(0,20)}${hobbyRaw.length>20?'...':''}` : "";
+      const interestHint = interestRaw ? ` â€¢ ${interestRaw.slice(0,20)}${interestRaw.length>20?'...':''}` : "";
       subInfo.textContent = (p.location || "") + hobbyHint + interestHint;
 
       renderBadges(p.badges||[]);
@@ -691,7 +727,7 @@
       if(REQUIRED.PHOTO && !hasPhoto) return {ok:false, message:"Add at least one photo before saving.", focus:"photo"};
       const loc=(locationInput.value||"").trim(); if(REQUIRED.LOCATION && !loc) return {ok:false, message:"Please enter your location before saving.", focus:"location"};
       const dn=(displayNameInput.value||"").trim(); if(REQUIRED.DISPLAY_NAME && !dn) return {ok:false, message:"Please enter your display name before saving.", focus:"displayName"};
-      if(REQUIRED.AGE){ const a=Number(ageInput.value); if(!Number.isFinite(a)||a<18||a>100) return {ok:false, message:"Please enter a valid age (18Ã¢â‚¬â€œ100).", focus:"age"} }
+       if(REQUIRED.AGE){ const a=Number(ageInput.value); if(!Number.isFinite(a)||a<18||a>100) return {ok:false, message:"Please enter a valid age (18-100).", focus:"age"} }
       return {ok:true};
     }
     function refreshSaveButtonState(currentDoc){
@@ -762,7 +798,7 @@
 
     async function saveEdits(){
       if(!me) return;
-      saveEdit.disabled = true; uploadStatus.innerHTML = `<span class="prog">SavingÃ¢â‚¬Â¦</span>`;
+       saveEdit.disabled = true; uploadStatus.innerHTML = `<span class="prog">Saving...</span>`;
       try{
         const uref = doc(db,"users",me.uid);
         const pre = await getDoc(uref); const currentDoc = pre.data()||{};
@@ -771,7 +807,7 @@
         if(!check.ok){ showError(check.message); focusInvalid(check.focus); saveEdit.disabled=false; return; }
 
         let photos = Array.isArray(currentDoc.photos)?[...currentDoc.photos]:[];
-        if(files.length){ uploadStatus.innerHTML = `<span class="prog">Uploading ${files.length} photo(s)Ã¢â‚¬Â¦</span>`; }
+         if(files.length){ uploadStatus.innerHTML = `<span class="prog">Uploading ${files.length} photo(s)...</span>`; }
         for(const f of files){
           const safeName = (f.name||"photo").replace(/[^\w.\-]+/g,"_");
           const path=`avatars/${me.uid}/${Date.now()}_${safeName}`;
@@ -940,7 +976,7 @@ async function getThreads(uid){
     async function renderInbox(tab){
       if (!me || !myDocCached) return;
       [...inboxTabs.querySelectorAll(".inbox-tab")].forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
-      inboxList.innerHTML = "<div class='muted'>LoadingÃ¢â‚¬Â¦</div>";
+    inboxList.innerHTML = "<div class='muted'>Loading...</div>";
 
       let items = [];
       try{ items = await TAB_FUNCS[tab](me.uid); }
@@ -1179,6 +1215,67 @@ deleteBtn?.addEventListener("click", handleDeleteAccount);
     alert("Network issue starting checkout. Please try again.");
   }
 });
+
+    /* ===== SECTION: Casualties Modal Events ===== */
+    // Show casualties password prompt
+    casualtiesBtn?.addEventListener('click', () => {
+      if (casualtiesModal) {
+        casualtiesModal.style.display = 'flex';
+      }
+      if (casualtiesPassword) casualtiesPassword.value = '';
+      if (casualtiesUploadSection) casualtiesUploadSection.style.display = 'none';
+      if (casualtiesPwdSection) casualtiesPwdSection.style.display = 'block';
+    });
+
+    // Check password and show upload section if correct
+    casualtiesCheckBtn?.addEventListener('click', () => {
+      if (!casualtiesPassword || !casualtiesPwdSection || !casualtiesUploadSection) return;
+      if (casualtiesPassword.value === 'SPARK') {
+        casualtiesPwdSection.style.display = 'none';
+        casualtiesUploadSection.style.display = 'block';
+      } else {
+        alert('Incorrect password.');
+      }
+    });
+
+    // Upload the casualty image and save to Firestore
+    casualtiesSubmit?.addEventListener('click', async () => {
+      try {
+        if (!me) {
+          alert('You must be logged in to upload.');
+          return;
+        }
+        const file = casualtiesFile?.files?.[0];
+        if (!file) {
+          alert('Please select an image.');
+          return;
+        }
+        const safeName = (file.name || 'photo').replace(/[^\w.\-]+/g, '_');
+        const path = `casualties/${me.uid}/${Date.now()}_${safeName}`;
+        const ref = sRef(storage, path);
+        await uploadBytes(ref, file);
+        const url = await getDownloadURL(ref);
+        const caption = casualtiesCaption?.value || '';
+        await addDoc(collection(db, 'casualties'), {
+          uid: me.uid,
+          url,
+          caption,
+          createdAt: serverTimestamp()
+        });
+        if (casualtiesModal) casualtiesModal.style.display = 'none';
+        if (casualtiesFile) casualtiesFile.value = '';
+        if (casualtiesCaption) casualtiesCaption.value = '';
+        alert('Photo uploaded successfully.');
+      } catch (err) {
+        console.error(err);
+        alert('Upload failed: ' + (err?.message || err));
+      }
+    });
+
+    // Close the casualties modal
+    closeCasualties?.addEventListener('click', () => {
+      if (casualtiesModal) casualtiesModal.style.display = 'none';
+    });
 onAuthStateChanged(auth, async (user)=>{
       if(!user){
         if(!_profileNavGuard){ _profileNavGuard=true; location.replace("./login.html"); }
