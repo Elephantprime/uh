@@ -1,3 +1,4 @@
+
 <!DOCTYPE html><html lang="en">
 <head>
   <!-- ===== SECTION: Head / Meta ===== -->
@@ -789,21 +790,7 @@ async function getThreads(uid){
   return users.map(u => ({ ...u, chatId: map.get(u.uid)?.chatId || null }));
 }
 
-));
-  rows.sort((a,b)=> (b.lastMessageAt?.toMillis?.()||0) - (a.lastMessageAt?.toMillis?.()||0));
-  const map = new Map();
-  rows.forEach(d=>{
-    const other = (d.uids||[]).find(x=>x!==uid);
-    if (other && !map.has(other)) map.set(other, { chatId:d.id, ...d });
-  });
-  const users = await fetchUsersByIds([...map.keys()]);
-  return users.map(u => ({ ...u, chatId: map.get(u.uid)?.chatId || null }));
-}
-);
-      });
-      const users = await fetchUsersByIds([...map.keys()]);
-      return users.map(u => ({ ...u, chatId: map.get(u.uid)?.chatId || null }));
-    }
+/* Removed duplicate, truncated code block after getThreads */
 
     /* ===== SECTION: Inbox UI ===== */
     function userCard(u, { locked=false, trailing=null } = {}){
@@ -921,17 +908,7 @@ async function findOrCreateChat(uidA, uidB){
   return ref.id;
 }
 
-;
-      });
-      if (existing) return existing.id;
-      const ref = await addDoc(collection(db,"chats"), {
-        uids:[uidA, uidB],
-        createdAt: serverTimestamp(),
-        lastMessage: "",
-        lastMessageAt: serverTimestamp()
-      });
-      return ref.id;
-    }
+/* Removed duplicate, truncated code block after findOrCreateChat */
 
     async function openChatWith(user){
       if (!me) return;
