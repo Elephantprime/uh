@@ -5,11 +5,12 @@ module.exports = (req, res) => {
     "http://localhost:5173",
     "https://unhinged-8c6da.web.app",
     "https://unhinged-8c6da.firebaseapp.com",
-    "https://unhinged.app"
+    "https://unhinged.app",
+    "https://uh-iota.vercel.app"
   ]);
 
   const origin = req.headers.origin;
-  const allowOrigin = origin && allowed.has(origin) ? origin : "https://unhinged.app";
+  const allowOrigin = origin && allowed.has(origin) ? origin : "https://uh-iota.vercel.app";
 
   res.setHeader("Access-Control-Allow-Origin", allowOrigin);
   res.setHeader("Vary", "Origin");
