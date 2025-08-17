@@ -1,14 +1,10 @@
 
-
-
-
-
 <!DOCTYPE html><html lang="en">
 <head>
   <!-- ===== SECTION: Head / Meta ===== -->
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Unhinged â€” Profile</title>
+  <title>Unhinged Ã¢â‚¬â€ Profile</title>
 
   <!-- ===== SECTION: Styles (Design System) ===== -->
   <style>
@@ -18,8 +14,10 @@
 
     /* Buttons */
     .btn{border:none;background:var(--red);color:#fff;padding:.5rem .9rem;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
-    .btn.secondary{background:#2a2a2a}
-    .btn.ghost{background:transparent;border:1px solid #2a2a2a}
+    /* Lighten the secondary buttons for better contrast */
+    .btn.secondary{background:#3a3a3a;color:#fff}
+    /* Lighten ghost button border for contrast */
+    .btn.ghost{background:transparent;border:1px solid #444}
     .btn.pill{border-radius:16px;padding:.55rem 1rem}
     .btn.small{padding:.35rem .7rem;font-size:.9rem}
     .chaos-btn{background:var(--red);color:#fff;border:none;border-radius:16px;padding:8px 16px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
@@ -81,8 +79,20 @@
     .inbox-modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:12px;z-index:80}
     .inbox-card{width:100%;max-width:900px;background:var(--panel);border:1px solid #2a2a2a;border-radius:12px;padding:12px}
     .inbox-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
-    .inbox-tab{border:1px solid #2a2a2a;background:#14151a;border-radius:999px;padding:.45rem .8rem;cursor:pointer}
-    .inbox-tab.active{border-color:var(--red);box-shadow:0 0 0 2px #E11D2A33 inset}
+    /* Lighten the inbox tab colours for readability */
+    .inbox-tab{
+      border:1px solid #444;
+      background:#3a3a3a;
+      border-radius:999px;
+      padding:.45rem .8rem;
+      cursor:pointer;
+      color:#fff;
+    }
+    .inbox-tab.active{
+      border-color:var(--red);
+      background:#4a4a4a;
+      box-shadow:0 0 0 2px #E11D2A33 inset;
+    }
     .inbox-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;min-height:160px}
     .inbox-item{position:relative;border:1px solid #2a2a2a;border-radius:10px;overflow:hidden;background:#111}
     .inbox-item img{width:100%;height:160px;object-fit:cover;display:block}
@@ -213,7 +223,7 @@
       </div>
 
       <label for="bio">Bio</label>
-      <textarea id="bio" rows="3" placeholder="Say somethingâ€¦"></textarea>
+      <textarea id="bio" rows="3" placeholder="Say somethingÃ¢â‚¬Â¦"></textarea>
 
       <!-- Subsection: Photos -->
       <label for="avatar" style="margin-top:.5rem;">Add photos (you can select multiple) <span class="req" id="reqPhoto" hidden>*</span></label>
@@ -264,7 +274,7 @@
       </div>
       <div class="chat-scroll" id="chatScroll"></div>
       <div class="chat-send">
-        <input id="chatInput" type="text" placeholder="Type a messageâ€¦" />
+        <input id="chatInput" type="text" placeholder="Type a messageÃ¢â‚¬Â¦" />
         <button class="btn" id="chatSend" type="button">Send</button>
       </div>
     </div>
@@ -312,14 +322,9 @@
   window.addEventListener("unhandledrejection", (e) => { console.error("Unhandled rejection", e); });
 
   /* ===== SECTION: Config (Requirements & Membership) ===== */
-    // ===== Adjust membership and required field gating =====
-    // Relax the required fields so users can browse and interact without having to upload a
-    // photo or enter a location.  All fields are optional by default.  If you want to
-    // enforce any field before allowing edits, set the corresponding property to true.
-    const REQUIRED = { PHOTO: false, LOCATION: false, DISPLAY_NAME: false, AGE: false };
-    // Likewise, free users can now view who liked them and who viewed them.  Set these
-    // flags to true if you want to gate likes or views behind a paid membership.
-    const MEMBERSHIP = { requiredForViews: false, requiredForLikes: false };
+  // Relax required fields and remove likes/views gating so users can browse freely
+  const REQUIRED = { PHOTO: false, LOCATION: false, DISPLAY_NAME: false, AGE: false };
+  const MEMBERSHIP = { requiredForViews: false, requiredForLikes: false };
 
   /* ===== SECTION: Public Profile Modal ===== */
   // helper to render a public profile overlay with more detail
@@ -338,7 +343,8 @@
     card.style.color = "#fff";
     card.style.padding = "1rem";
     card.style.borderRadius = "10px";
-    card.style.maxWidth = "340px";
+    // widen the modal for better photo display
+    card.style.maxWidth = "400px";
     card.style.textAlign = "left";
 
     // gather profile fields with fallbacks
@@ -351,8 +357,31 @@
     const interests = user.interests || "";
     const bio = user.bio || "";
 
-    // build HTML content
+    // Prepare an array of photos; ensure the primary photo is at index 0
+    const photosList = Array.isArray(user.photos) ? user.photos.slice() : [];
+    const fallbackPrimary = safePrimaryPhoto(user) || (photosList[0] || NEUTRAL_PHOTO);
+    if (photosList.length === 0 || photosList[0] !== fallbackPrimary) {
+      photosList.unshift(fallbackPrimary);
+    }
+    let currentPhotoIndex = 0;
+    // Build HTML with navigation and thumbnails
+    let photoHtml = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:.75rem;">
+        <button id="photoPrev" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer">&lt;</button>
+        <img id="modalPrimaryPhoto" src="${photosList[0]}" style="flex:1;max-height:360px;object-fit:cover;border-radius:8px;" alt="Profile photo">
+        <button id="photoNext" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer">&gt;</button>
+      </div>`;
+    if (photosList.length > 1) {
+      photoHtml += `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.75rem">`;
+      for (let i = 0; i < photosList.length; i++) {
+        const url = photosList[i];
+        const border = i === 0 ? '2px solid var(--red)' : '2px solid transparent';
+        photoHtml += `<img class="modal-photo-thumb" data-index="${i}" src="${url}" style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:${border};cursor:pointer;" alt="Photo ${i+1}">`;
+      }
+      photoHtml += `</div>`;
+    }
+    // build HTML content combining photos and details
     card.innerHTML = `
+      ${photoHtml}
       <h2 style="margin-top:0;margin-bottom:0">${name}</h2>
       ${username ? `<div style="font-size:.9rem;color:var(--muted);margin-bottom:.25rem">${username}</div>` : ""}
       ${ageText || location ? `<div style="font-size:.9rem;color:var(--muted);margin-bottom:.25rem">${[ageText, location].filter(Boolean).join(' â€¢ ')}</div>` : ""}
@@ -374,6 +403,44 @@
     modal.addEventListener("click", (ev) => {
       if (ev.target === modal) document.body.removeChild(modal);
     });
+
+    // --- Photo gallery interactions ---
+    try {
+      const modalPrimary = modal.querySelector('#modalPrimaryPhoto');
+      const thumbElems = modal.querySelectorAll('.modal-photo-thumb');
+      // Reset border highlighting function
+      const highlight = (index) => {
+        thumbElems.forEach(t => t.style.border = '2px solid transparent');
+        const currentThumb = modal.querySelector(`.modal-photo-thumb[data-index="${index}"]`);
+        if (currentThumb) currentThumb.style.border = '2px solid var(--red)';
+      };
+      thumbElems.forEach(imgThumb => {
+        imgThumb.addEventListener('click', () => {
+          const idx = Number(imgThumb.dataset.index);
+          if (!Number.isNaN(idx)) {
+            currentPhotoIndex = idx;
+            modalPrimary.src = photosList[idx];
+            highlight(idx);
+          }
+        });
+      });
+      const prevBtn = modal.querySelector('#photoPrev');
+      const nextBtn = modal.querySelector('#photoNext');
+      prevBtn.addEventListener('click', () => {
+        if (photosList.length < 2) return;
+        currentPhotoIndex = (currentPhotoIndex - 1 + photosList.length) % photosList.length;
+        modalPrimary.src = photosList[currentPhotoIndex];
+        highlight(currentPhotoIndex);
+      });
+      nextBtn.addEventListener('click', () => {
+        if (photosList.length < 2) return;
+        currentPhotoIndex = (currentPhotoIndex + 1) % photosList.length;
+        modalPrimary.src = photosList[currentPhotoIndex];
+        highlight(currentPhotoIndex);
+      });
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   /* ===== SECTION: DOM Refs ===== */
@@ -471,12 +538,15 @@
 (function () {
   const browseBtn = document.getElementById("browseBtn");
   if (!browseBtn) return;
-  browseBtn.addEventListener("click", () => {
+  browseBtn.addEventListener("click", async () => {
     try {
-      // If the user is authenticated and their document loaded, open the inbox to the matches tab.
+      // Ensure we have an authenticated user and their document loaded
       if (!me || !myDocCached) return;
-      openInbox();
-      renderInbox("matches");
+      // Fetch your matches and show them in the swipe card area
+      const list = await getMatchesForMe(me.uid);
+      matches = Array.isArray(list) && list.length ? list : [myDocCached];
+      currentIndex = 0;
+      renderProfile(matches[currentIndex] || null);
     } catch (err) {
       console.error("Browse Matches handler failed:", err);
     }
@@ -497,11 +567,11 @@
     reqLocation.hidden = !REQUIRED.LOCATION;
     reqPhoto.hidden = !REQUIRED.PHOTO;
 
-    /* ===== SECTION: Helper â€“ UI Feedback ===== */
+    /* ===== SECTION: Helper Ã¢â‚¬â€œ UI Feedback ===== */
     function showError(msg){ uploadStatus.innerHTML = `<span class="err">${msg}</span>`; }
     function showOK(msg){ uploadStatus.innerHTML = `<span class="ok">${msg}</span>`; }
 
-    /* ===== SECTION: Helper â€“ Renderers ===== */
+    /* ===== SECTION: Helper Ã¢â‚¬â€œ Renderers ===== */
     function isMember(userDoc){ return (userDoc?.membership?.tier || "free") !== "free"; }
 
     // FIXED: no malformed regex
@@ -565,8 +635,8 @@
 
       const hobbyRaw = (p.hobbies || "").trim();
       const interestRaw = (p.interests || "").trim();
-      const hobbyHint = hobbyRaw ? ` â€¢ ${hobbyRaw.slice(0,20)}${hobbyRaw.length>20?'â€¦':''}` : "";
-      const interestHint = interestRaw ? ` â€¢ ${interestRaw.slice(0,20)}${interestRaw.length>20?'â€¦':''}` : "";
+      const hobbyHint = hobbyRaw ? ` Ã¢â‚¬Â¢ ${hobbyRaw.slice(0,20)}${hobbyRaw.length>20?'Ã¢â‚¬Â¦':''}` : "";
+      const interestHint = interestRaw ? ` Ã¢â‚¬Â¢ ${interestRaw.slice(0,20)}${interestRaw.length>20?'Ã¢â‚¬Â¦':''}` : "";
       subInfo.textContent = (p.location || "") + hobbyHint + interestHint;
 
       renderBadges(p.badges||[]);
@@ -621,7 +691,7 @@
       if(REQUIRED.PHOTO && !hasPhoto) return {ok:false, message:"Add at least one photo before saving.", focus:"photo"};
       const loc=(locationInput.value||"").trim(); if(REQUIRED.LOCATION && !loc) return {ok:false, message:"Please enter your location before saving.", focus:"location"};
       const dn=(displayNameInput.value||"").trim(); if(REQUIRED.DISPLAY_NAME && !dn) return {ok:false, message:"Please enter your display name before saving.", focus:"displayName"};
-      if(REQUIRED.AGE){ const a=Number(ageInput.value); if(!Number.isFinite(a)||a<18||a>100) return {ok:false, message:"Please enter a valid age (18â€“100).", focus:"age"} }
+      if(REQUIRED.AGE){ const a=Number(ageInput.value); if(!Number.isFinite(a)||a<18||a>100) return {ok:false, message:"Please enter a valid age (18Ã¢â‚¬â€œ100).", focus:"age"} }
       return {ok:true};
     }
     function refreshSaveButtonState(currentDoc){
@@ -657,12 +727,9 @@
     likeBtn.addEventListener("click", () => { showIndicator("like"); setTimeout(()=>{ showIndicator(null); nextProfile(); }, 120); });
 
     // --- Show a public profile overlay when you click the photo ---
-    // Clicking the main photo will show the public profile of the current card.  If the
-    // current index is out of range (e.g. you have swiped past the end), fall back to
-    // showing your own profile so the click always does something.
     mainPhoto.addEventListener("click", () => {
       try {
-        const p = (Array.isArray(matches) && matches[currentIndex]) || myDocCached;
+        const p = Array.isArray(matches) ? matches[currentIndex] : null;
         if (p) {
           showPublicProfile(p);
         }
@@ -695,7 +762,7 @@
 
     async function saveEdits(){
       if(!me) return;
-      saveEdit.disabled = true; uploadStatus.innerHTML = `<span class="prog">Savingâ€¦</span>`;
+      saveEdit.disabled = true; uploadStatus.innerHTML = `<span class="prog">SavingÃ¢â‚¬Â¦</span>`;
       try{
         const uref = doc(db,"users",me.uid);
         const pre = await getDoc(uref); const currentDoc = pre.data()||{};
@@ -704,7 +771,7 @@
         if(!check.ok){ showError(check.message); focusInvalid(check.focus); saveEdit.disabled=false; return; }
 
         let photos = Array.isArray(currentDoc.photos)?[...currentDoc.photos]:[];
-        if(files.length){ uploadStatus.innerHTML = `<span class="prog">Uploading ${files.length} photo(s)â€¦</span>`; }
+        if(files.length){ uploadStatus.innerHTML = `<span class="prog">Uploading ${files.length} photo(s)Ã¢â‚¬Â¦</span>`; }
         for(const f of files){
           const safeName = (f.name||"photo").replace(/[^\w.\-]+/g,"_");
           const path=`avatars/${me.uid}/${Date.now()}_${safeName}`;
@@ -742,11 +809,9 @@
     saveEdit.addEventListener("click", saveEdits);
 
     /* ===== SECTION: Membership Gating ===== */
-    // Determine whether the Likes/Views tab should be locked behind a paid membership.
-    // Only gate the tab if the user is not a member and the corresponding flag in
-    // MEMBERSHIP is set to true.  If MEMBERSHIP.requiredForLikes or
-    // MEMBERSHIP.requiredForViews is false, free users can see the likes/views tabs.
-    function gateLikesViewsLocked(tab){
+    // Determine if Likes or Views tabs should be locked based on membership flags
+    function gateLikesViewsLocked(tab) {
+      // Only free users can be gated; paid members can view all tabs
       if (!isMember(myDocCached)) {
         if (tab === "likes" && MEMBERSHIP.requiredForLikes) return true;
         if (tab === "views" && MEMBERSHIP.requiredForViews) return true;
@@ -875,7 +940,7 @@ async function getThreads(uid){
     async function renderInbox(tab){
       if (!me || !myDocCached) return;
       [...inboxTabs.querySelectorAll(".inbox-tab")].forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
-      inboxList.innerHTML = "<div class='muted'>Loadingâ€¦</div>";
+      inboxList.innerHTML = "<div class='muted'>LoadingÃ¢â‚¬Â¦</div>";
 
       let items = [];
       try{ items = await TAB_FUNCS[tab](me.uid); }
@@ -888,9 +953,10 @@ async function getThreads(uid){
       for (const u of items){
         let trailing = "";
         if (tab==="matches" || tab==="messages"){
+          // Use red buttons for better contrast in the inbox
           trailing = `<div style="margin-top:6px;display:flex;gap:6px">
                         <button class="btn small" data-chat="${u.uid}">Message</button>
-                        <button class="btn secondary small" data-open="${u.uid}">View</button>
+                        <button class="btn danger small" data-open="${u.uid}">View</button>
                       </div>`;
         }
         const card = userCard(u, { locked, trailing });
@@ -1182,12 +1248,15 @@ onAuthStateChanged(auth, async (user)=>{
     const bind = (el, type, fn) => { if (el && !el.dataset.bound) { el.addEventListener(type, fn); el.dataset.bound = "1"; } };
 
     bind($("inboxBtn"), "click", () => { try { openInbox(); renderInbox("likes"); } catch (e) { console.error(e); } });
-        // Bind the browse button to open the inbox and render the matches tab
+        // Bind the browse button to fetch and show matches in the swipe card area instead of opening Inbox
         bind($("browseBtn"), "click", () => {
           try {
             if (!me || !myDocCached) return;
-            openInbox();
-            renderInbox("matches");
+            getMatchesForMe(me.uid).then(list => {
+              matches = Array.isArray(list) && list.length ? list : [myDocCached];
+              currentIndex = 0;
+              renderProfile(matches[currentIndex] || null);
+            }).catch(err => { console.error("Browse Matches handler failed:", err); });
           } catch (e) {
             console.error(e);
           }
