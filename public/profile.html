@@ -118,6 +118,18 @@
     .chat-send input{flex:1;padding:10px;border-radius:10px;background:#12131a;border:1px solid #2a2a2a;color:#fff}
   </style>
 </head>
+  <div id="matches-box"></div>
+  <script src="/cmd.js"></script>
+<script>
+  // Replace with the actual signed-in user’s ID
+  const CURRENT_USER_ID = "userA";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    renderMatches(CURRENT_USER_ID, "matches-box");
+    attachLikeButtons(CURRENT_USER_ID);
+  });
+</script>
+</body>
 <body>
 
   <!-- ===== SECTION: Top Bar ===== -->
