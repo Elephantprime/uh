@@ -635,19 +635,20 @@
     likeBtn.addEventListener("click", () => { showIndicator("like"); setTimeout(()=>{ showIndicator(null); nextProfile(); }, 120); });
 
     // --- Open public profile when you click the photo ---
-    mainPhoto.addEventListener("click", () => {
-  let target = (Array.isArray(matches) && matches[currentIndex] && matches[currentIndex].uid)
-    ? matches[currentIndex].uid
-    : null;
-  if (!target) {
-    const params = new URLSearchParams(location.search);
-    const uidParam = params.get("uid");
-    if (uidParam) target = uidParam;
-  }
-  if (!target && me?.uid) target = me.uid;
-  if (target) {
-    location.href = `./profile.html?uid=${encodeURIComponent(target)}`;
-  }
+    
+mainPhoto.addEventListener("click", () => {
+  try {
+    let target = (Array.isArray(matches) && matches[currentIndex] && matches[currentIndex].uid)
+      ? matches[currentIndex].uid
+      : null;
+    if (!target) {
+      const params = new URLSearchParams(location.search);
+      const uidParam = params.get("uid");
+      if (uidParam) target = uidParam;
+    }
+    if (!target && me?.uid) target = me.uid;
+    if (target) location.href = `./profile.html?uid=${encodeURIComponent(target)}`;
+  } catch (e) { console.error(e); }
 });
 /* ===== SECTION: Data Layer (Load/Create/Save) ===== */
     async function loadOrCreateUserDoc(uid, userObj){
@@ -770,14 +771,25 @@ async function getMatchesForMe(uid){
   });
   return fetchUsersByIds(partnerIds);
 }
-);
-      return fetchUsersByIds(partnerIds);
-    }
-    
+
+
 async function getThreads(uid){
+  // Avoid composite index requirement: no orderBy with array-contains
   const qy = query(collection(db,"chats"), where("uids","array-contains",uid));
   const snap = await getDocs(qy);
   const rows = []; snap.forEach(d=>rows.push({ id:d.id, ...d.data() }));
+  // Sort client-side by lastMessageAt if present
+  rows.sort((a,b)=> (b.lastMessageAt?.toMillis?.()||0) - (a.lastMessageAt?.toMillis?.()||0));
+  const map = new Map();
+  rows.forEach(d=>{
+    const other = (d.uids||[]).find(x=>x!==uid);
+    if (other && !map.has(other)) map.set(other, { chatId:d.id, ...d });
+  });
+  const users = await fetchUsersByIds([...map.keys()]);
+  return users.map(u => ({ ...u, chatId: map.get(u.uid)?.chatId || null }));
+}
+
+));
   rows.sort((a,b)=> (b.lastMessageAt?.toMillis?.()||0) - (a.lastMessageAt?.toMillis?.()||0));
   const map = new Map();
   rows.forEach(d=>{
@@ -846,7 +858,6 @@ async function getThreads(uid){
       if (!b) return;
       renderInbox(b.dataset.tab);
     });
-
     async function renderInbox(tab){
       if (!me || !myDocCached) return;
       [...inboxTabs.querySelectorAll(".inbox-tab")].forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
@@ -891,13 +902,26 @@ async function getThreads(uid){
     closeChat?.addEventListener("click", closeChatModal);
     chatModal?.addEventListener("click", e=>{ if(e.target===chatModal) closeChatModal(); });
 
-    async function findOrCreateChat(uidA, uidB){
-      const qy = query(collection(db,"chats"), where("uids","array-contains", uidA), orderBy("createdAt","desc"), limit(50));
-      const snap = await getDocs(qy);
-      let existing = null;
-      snap.forEach(d=>{
-        const arr = d.data().uids||[];
-        if (arr.includes(uidB)) existing = { id:d.id, ...d.data() };
+    
+async function findOrCreateChat(uidA, uidB){
+  // Scan recent chats for existing thread without orderBy to avoid index
+  const snap = await getDocs(query(collection(db,"chats"), where("uids","array-contains", uidA)));
+  let existing = null;
+  snap.forEach(d=>{
+    const arr = d.data().uids||[];
+    if (arr.includes(uidB)) existing = { id:d.id, ...d.data() };
+  });
+  if (existing) return existing.id;
+  const ref = await addDoc(collection(db,"chats"), {
+    uids:[uidA, uidB],
+    createdAt: serverTimestamp(),
+    lastMessage: "",
+    lastMessageAt: serverTimestamp()
+  });
+  return ref.id;
+}
+
+;
       });
       if (existing) return existing.id;
       const ref = await addDoc(collection(db,"chats"), {
@@ -1139,34 +1163,19 @@ onAuthStateChanged(auth, async (user)=>{
     });
   
 /* ===== SECTION: Safety Harness (defensive rebinds) ===== */
+
 (function () {
   try {
     const $ = (id) => document.getElementById(id);
     const bind = (el, type, fn) => { if (el && !el.dataset.bound) { el.addEventListener(type, fn); el.dataset.bound = "1"; } };
 
-    // Open Inbox (default Likes)
     bind($("inboxBtn"), "click", () => { try { openInbox(); renderInbox("likes"); } catch (e) { console.error(e); } });
-
-    // Browse Matches (no checkout)
     bind($("browseBtn"), "click", () => { try { openInbox(); renderInbox("matches"); } catch (e) { console.error(e); } });
-
-    // Edit modal open
     bind($("editBtn"), "click", () => { try { document.getElementById("editModal").style.display = "flex"; } catch (e) { console.error(e); } });
+    bind($("logoutBtn"), "click", async () => { try { await signOut(auth); location.replace("./login.html"); } catch (e) { console.error(e); } });
+    bind($("pass-btn"), "click", () => { try { showIndicator("pass"); setTimeout(() => { showIndicator(null); nextProfile(); }, 120); } catch (e) { console.error(e); } });
+    bind($("like-btn"), "click", () => { try { showIndicator("like"); setTimeout(() => { showIndicator(null); nextProfile(); }, 120); } catch (e) { console.error(e); } });
 
-    // Logout
-    bind($("logoutBtn"), "click", async () => {
-      try { await signOut(auth); location.replace("./login.html"); } catch (e) { console.error(e); }
-    });
-
-    // Pass/Like with flash
-    bind($("pass-btn"), "click", () => {
-      try { showIndicator("pass"); setTimeout(() => { showIndicator(null); nextProfile(); }, 120); } catch (e) { console.error(e); }
-    });
-    bind($("like-btn"), "click", () => {
-      try { showIndicator("like"); setTimeout(() => { showIndicator(null); nextProfile(); }, 120); } catch (e) { console.error(e); }
-    });
-
-    // Inbox tab switching (event delegation)
     const inboxTabs = $("inboxTabs");
     if (inboxTabs && !inboxTabs.dataset.bound) {
       inboxTabs.addEventListener("click", (e) => {
@@ -1178,7 +1187,6 @@ onAuthStateChanged(auth, async (user)=>{
       inboxTabs.dataset.bound = "1";
     }
 
-    // Profile photo -> profile.html?uid=...
     const mainPhoto = document.getElementById("main-photo");
     if (mainPhoto && !mainPhoto.dataset.bound) {
       mainPhoto.addEventListener("click", () => {
