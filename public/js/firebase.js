@@ -17,7 +17,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyDHqhU5fDxG-GW2hfUVrcHCCxBzPdHd5-M",
   authDomain: "unhinged-8c6da.firebaseapp.com",
   projectId: "unhinged-8c6da",
-  storageBucket: "unhinged-8c6da.appspot.com",
+  storageBucket: "unhinged-8c6da.firebasestorage.app", // fixed bucket
   messagingSenderId: "248472796860",
   appId: "1:248472796860:web:9d8d043e7fb051acf5dab9",
   measurementId: "G-6BC5YCV33Q",
@@ -27,7 +27,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
+const storage = getStorage(app, "gs://unhinged-8c6da.firebasestorage.app"); // force correct bucket
 
 // =====================================================
 // Helpers
