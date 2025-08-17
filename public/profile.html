@@ -46,7 +46,7 @@
     .empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#ddd;font-size:1.1rem}
 
     /* ===== SECTION: Bottom Actions ===== */
-    .actions{width:100%;max-width:480px;display:flex;justify-content:space-around;align-items:center;padding:8px 0 16px}
+    .actions{width:100%;max-width:480px;display:flex;justify-content:space-around;align-items:center;padding:8px 0 16px position: relative; z-index: 20; }
     .action-btn{width:56px;height:56px;border-radius:50%;border:none;font-size:1.5rem;display:flex;align-items:center;justify-content:center;cursor:pointer}
     .pass-btn{background:#2a2a2a;color:var(--red)}
     .like-btn{background:#2a2a2a;color:var(--green)}
@@ -243,9 +243,7 @@
         <button class="inbox-tab active" data-tab="likes">Likes</button>
         <button class="inbox-tab" data-tab="views">Views</button>
         <button class="inbox-tab" data-tab="matches">Matches</button>
-        <button class="inbox-tab" data-tab="messages">Messages</button>
-        <button id="browseBtn" class="btn danger">Browse Matches</button>
-      </div>
+        <button class="inbox-tab" data-tab="messages">Messages</button></div>
       <div class="inbox-list" id="inboxList"></div>
     </div>
   </div>
@@ -635,17 +633,25 @@
       if(dx>50)showIndicator("like"); else if(dx<-50)showIndicator("pass"); else showIndicator(null);
     });
     cardFrame.addEventListener("touchend", ()=>{ if(!dragging)return; if(Math.abs(dx)>100) nextProfile(); showIndicator(null); dragging=false; dx=0; });
-    passBtn.addEventListener("click", nextProfile);
-    likeBtn.addEventListener("click", nextProfile);
+    passBtn.addEventListener("click", () => { showIndicator("pass"); setTimeout(()=>{ showIndicator(null); nextProfile(); }, 120); });
+    likeBtn.addEventListener("click", () => { showIndicator("like"); setTimeout(()=>{ showIndicator(null); nextProfile(); }, 120); });
 
     // --- Open public profile when you click the photo ---
     mainPhoto.addEventListener("click", () => {
-      const p = matches[currentIndex];
-      if (!p || !p.uid) return; // requires uid
-      location.href = `./profile.html?uid=${encodeURIComponent(p.uid)}`;
-    });
-
-    /* ===== SECTION: Data Layer (Load/Create/Save) ===== */
+  let target = (Array.isArray(matches) && matches[currentIndex] && matches[currentIndex].uid)
+    ? matches[currentIndex].uid
+    : null;
+  if (!target) {
+    const params = new URLSearchParams(location.search);
+    const uidParam = params.get("uid");
+    if (uidParam) target = uidParam;
+  }
+  if (!target && me?.uid) target = me.uid;
+  if (target) {
+    location.href = `./profile.html?uid=${encodeURIComponent(target)}`;
+  }
+});
+/* ===== SECTION: Data Layer (Load/Create/Save) ===== */
     async function loadOrCreateUserDoc(uid, userObj){
       const uref = doc(db,"users",uid);
       const snap = await getDoc(uref);
@@ -1009,20 +1015,32 @@
     logoutBtn.addEventListener("click", async ()=>{ try{ await signOut(auth); location.replace("./login.html"); }catch(e){ console.error("Logout error:", e); } });
 
     upgradeBtn.addEventListener("click", async () => {
-      if (!me) return;
-      try {
-        const resp = await fetch("/api/create-checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ uid: me.uid, email: me.email }),
-        });
-        const data = await resp.json();
-        if (data.checkoutUrl) location.href = data.checkoutUrl;
-        else alert("Could not start checkout.");
-      } catch (e) { console.error(e); alert("Checkout error"); }
+  if (!me) return;
+  try {
+    const resp = await fetch("/api/create-checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uid: me.uid, email: me.email }),
     });
-
-    onAuthStateChanged(auth, async (user)=>{
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => "");
+      console.error("Checkout HTTP error", resp.status, text);
+      alert("Unable to start checkout right now.");
+      return;
+    }
+    const data = await resp.json().catch(() => ({}));
+    if (data?.checkoutUrl) {
+      location.href = data.checkoutUrl;
+    } else {
+      console.error("Checkout JSON missing checkoutUrl", data);
+      alert("Checkout configuration error. Try again soon.");
+    }
+  } catch (e) {
+    console.error("Checkout fetch error", e);
+    alert("Network issue starting checkout. Please try again.");
+  }
+});
+onAuthStateChanged(auth, async (user)=>{
       if(!user){
         if(!_profileNavGuard){ _profileNavGuard=true; location.replace("./login.html"); }
         return;
