@@ -1137,6 +1137,71 @@ onAuthStateChanged(auth, async (user)=>{
       renderProfile(matches[currentIndex] || null);
       refreshSaveButtonState(myDocCached);
     });
-  </script>
+  
+/* ===== SECTION: Safety Harness (defensive rebinds) ===== */
+(function () {
+  try {
+    const $ = (id) => document.getElementById(id);
+    const bind = (el, type, fn) => { if (el && !el.dataset.bound) { el.addEventListener(type, fn); el.dataset.bound = "1"; } };
+
+    // Open Inbox (default Likes)
+    bind($("inboxBtn"), "click", () => { try { openInbox(); renderInbox("likes"); } catch (e) { console.error(e); } });
+
+    // Browse Matches (no checkout)
+    bind($("browseBtn"), "click", () => { try { openInbox(); renderInbox("matches"); } catch (e) { console.error(e); } });
+
+    // Edit modal open
+    bind($("editBtn"), "click", () => { try { document.getElementById("editModal").style.display = "flex"; } catch (e) { console.error(e); } });
+
+    // Logout
+    bind($("logoutBtn"), "click", async () => {
+      try { await signOut(auth); location.replace("./login.html"); } catch (e) { console.error(e); }
+    });
+
+    // Pass/Like with flash
+    bind($("pass-btn"), "click", () => {
+      try { showIndicator("pass"); setTimeout(() => { showIndicator(null); nextProfile(); }, 120); } catch (e) { console.error(e); }
+    });
+    bind($("like-btn"), "click", () => {
+      try { showIndicator("like"); setTimeout(() => { showIndicator(null); nextProfile(); }, 120); } catch (e) { console.error(e); }
+    });
+
+    // Inbox tab switching (event delegation)
+    const inboxTabs = $("inboxTabs");
+    if (inboxTabs && !inboxTabs.dataset.bound) {
+      inboxTabs.addEventListener("click", (e) => {
+        const b = e.target.closest(".inbox-tab");
+        if (b && b.dataset.tab) {
+          try { renderInbox(b.dataset.tab); } catch (e) { console.error(e); }
+        }
+      });
+      inboxTabs.dataset.bound = "1";
+    }
+
+    // Profile photo -> profile.html?uid=...
+    const mainPhoto = document.getElementById("main-photo");
+    if (mainPhoto && !mainPhoto.dataset.bound) {
+      mainPhoto.addEventListener("click", () => {
+        try {
+          let target = (Array.isArray(matches) && matches[currentIndex] && matches[currentIndex].uid)
+            ? matches[currentIndex].uid
+            : null;
+          if (!target) {
+            const params = new URLSearchParams(location.search);
+            const uidParam = params.get("uid");
+            if (uidParam) target = uidParam;
+          }
+          if (!target && me?.uid) target = me.uid;
+          if (target) location.href = `./profile.html?uid=${encodeURIComponent(target)}`;
+        } catch (e) { console.error(e); }
+      });
+      mainPhoto.dataset.bound = "1";
+    }
+  } catch (err) {
+    console.error("Safety harness failed:", err);
+  }
+})();
+
+</script>
 </body>
 </html>
