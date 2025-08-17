@@ -1,7 +1,12 @@
+
+
+
+
+
 <!DOCTYPE html><html lang="en">
 <head>
   <!-- ===== SECTION: Head / Meta ===== -->
-  <meta charset="UTF-8"/>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Unhinged â€” Profile</title>
 
@@ -307,8 +312,14 @@
   window.addEventListener("unhandledrejection", (e) => { console.error("Unhandled rejection", e); });
 
   /* ===== SECTION: Config (Requirements & Membership) ===== */
-  const REQUIRED = { PHOTO: true, LOCATION: true, DISPLAY_NAME: false, AGE: false };
-  const MEMBERSHIP = { requiredForViews: true, requiredForLikes: true }; // gate Likes/Views
+    // ===== Adjust membership and required field gating =====
+    // Relax the required fields so users can browse and interact without having to upload a
+    // photo or enter a location.  All fields are optional by default.  If you want to
+    // enforce any field before allowing edits, set the corresponding property to true.
+    const REQUIRED = { PHOTO: false, LOCATION: false, DISPLAY_NAME: false, AGE: false };
+    // Likewise, free users can now view who liked them and who viewed them.  Set these
+    // flags to true if you want to gate likes or views behind a paid membership.
+    const MEMBERSHIP = { requiredForViews: false, requiredForLikes: false };
 
   /* ===== SECTION: Public Profile Modal ===== */
   // helper to render a public profile overlay with more detail
@@ -646,9 +657,12 @@
     likeBtn.addEventListener("click", () => { showIndicator("like"); setTimeout(()=>{ showIndicator(null); nextProfile(); }, 120); });
 
     // --- Show a public profile overlay when you click the photo ---
+    // Clicking the main photo will show the public profile of the current card.  If the
+    // current index is out of range (e.g. you have swiped past the end), fall back to
+    // showing your own profile so the click always does something.
     mainPhoto.addEventListener("click", () => {
       try {
-        const p = Array.isArray(matches) ? matches[currentIndex] : null;
+        const p = (Array.isArray(matches) && matches[currentIndex]) || myDocCached;
         if (p) {
           showPublicProfile(p);
         }
@@ -728,7 +742,17 @@
     saveEdit.addEventListener("click", saveEdits);
 
     /* ===== SECTION: Membership Gating ===== */
-    function gateLikesViewsLocked(tab){ return (!isMember(myDocCached)) && (tab==="likes" || tab==="views"); }
+    // Determine whether the Likes/Views tab should be locked behind a paid membership.
+    // Only gate the tab if the user is not a member and the corresponding flag in
+    // MEMBERSHIP is set to true.  If MEMBERSHIP.requiredForLikes or
+    // MEMBERSHIP.requiredForViews is false, free users can see the likes/views tabs.
+    function gateLikesViewsLocked(tab){
+      if (!isMember(myDocCached)) {
+        if (tab === "likes" && MEMBERSHIP.requiredForLikes) return true;
+        if (tab === "views" && MEMBERSHIP.requiredForViews) return true;
+      }
+      return false;
+    }
 
     /* ===== SECTION: Inbox Data ===== */
     async function fetchUsersByIds(ids){
