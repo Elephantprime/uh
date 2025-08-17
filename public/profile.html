@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html><html lang="en">
 <head>
   <!-- ===== SECTION: Head / Meta ===== -->
@@ -1241,7 +1242,11 @@ deleteBtn?.addEventListener("click", handleDeleteAccount);
     // Upload the casualty image and save to Firestore
     casualtiesSubmit?.addEventListener('click', async () => {
       try {
-        if (!me) {
+        // Always check the currently authenticated user on click. If the page has not yet
+        // populated `me` via onAuthStateChanged, fallback to auth.currentUser. This allows
+        // the upload modal to function as soon as the user is authenticated.
+        const currentUser = (typeof auth !== 'undefined' && auth.currentUser) ? auth.currentUser : me;
+        if (!currentUser) {
           alert('You must be logged in to upload.');
           return;
         }
@@ -1251,13 +1256,13 @@ deleteBtn?.addEventListener("click", handleDeleteAccount);
           return;
         }
         const safeName = (file.name || 'photo').replace(/[^\w.\-]+/g, '_');
-        const path = `casualties/${me.uid}/${Date.now()}_${safeName}`;
+        const path = `casualties/${currentUser.uid}/${Date.now()}_${safeName}`;
         const ref = sRef(storage, path);
         await uploadBytes(ref, file);
         const url = await getDownloadURL(ref);
         const caption = casualtiesCaption?.value || '';
         await addDoc(collection(db, 'casualties'), {
-          uid: me.uid,
+          uid: currentUser.uid,
           url,
           caption,
           createdAt: serverTimestamp()
