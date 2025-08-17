@@ -286,29 +286,183 @@
     </div>
   </div>
 
-  <!-- ===== SECTION: Scripts ===== -->
-  <script type="module">
-    /* ===== SECTION: Imports ===== */
-    import { auth, db, storage } from "./js/firebase.js";
-    import {
-      onAuthStateChanged, updateProfile, signOut,
-      EmailAuthProvider, reauthenticateWithCredential, deleteUser
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import {
-      collection, getDocs, doc, getDoc, setDoc, deleteDoc, serverTimestamp,
-      query, where, orderBy, limit, addDoc, onSnapshot, updateDoc
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import {
-      ref as sRef, uploadBytes, getDownloadURL, listAll, deleteObject
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+<!-- ===== SECTION: Scripts ===== -->
+<script type="module">
+  /* ===== SECTION: Imports ===== */
+  import { auth, db, storage } from "./js/firebase.js";
+  import {
+    onAuthStateChanged, updateProfile, signOut,
+    EmailAuthProvider, reauthenticateWithCredential, deleteUser
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    collection, getDocs, doc, getDoc, setDoc, deleteDoc, serverTimestamp,
+    query, where, orderBy, limit, addDoc, onSnapshot, updateDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    ref as sRef, uploadBytes, getDownloadURL, listAll, deleteObject
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-    // ===== Global error traps so we can see what's blocking button wiring =====
-    window.addEventListener("error", (e)=>{ console.error("Script error", e); });
-    window.addEventListener("unhandledrejection", (e)=>{ console.error("Unhandled rejection", e); });
+  // ===== Global error traps so we can see what's blocking button wiring =====
+  window.addEventListener("error", (e) => { console.error("Script error", e); });
+  window.addEventListener("unhandledrejection", (e) => { console.error("Unhandled rejection", e); });
 
-    /* ===== SECTION: Config (Requirements & Membership) ===== */
-    const REQUIRED = { PHOTO: true, LOCATION: true, DISPLAY_NAME: false, AGE: false };
-    const MEMBERSHIP = { requiredForViews: true, requiredForLikes: true }; // gate Likes/Views
+  /* ===== SECTION: Config (Requirements & Membership) ===== */
+  const REQUIRED = { PHOTO: true, LOCATION: true, DISPLAY_NAME: false, AGE: false };
+  const MEMBERSHIP = { requiredForViews: true, requiredForLikes: true }; // gate Likes/Views
+
+  /* ===== SECTION: Public Profile Modal ===== */
+  // helper to render a minimal public profile (name, age, location) in a modal overlay
+  function showPublicProfile(user) {
+    const modal = document.createElement("div");
+    modal.style.position = "fixed";
+    modal.style.inset = "0";
+    modal.style.background = "rgba(0,0,0,0.65)";
+    modal.style.display = "flex";
+    modal.style.alignItems = "center";
+    modal.style.justifyContent = "center";
+    modal.style.zIndex = "100";
+
+    const card = document.createElement("div");
+    card.style.background = "var(--panel)";
+    card.style.color = "#fff";
+    card.style.padding = "1rem";
+    card.style.borderRadius = "10px";
+    card.style.maxWidth = "280px";
+    card.style.textAlign = "center";
+
+    // set up minimal profile fields
+    const name = user.displayName || "Member";
+    const ageText = (typeof user.age === "number") ? `${user.age} years old` : "";
+    const location = user.location || "";
+
+    card.innerHTML = `
+      <h2 style="margin-top:0">${name}</h2>
+      <p>${ageText}</p>
+      <p>${location}</p>
+      <button class="btn small secondary" id="closeMinimalProfile">Close</button>
+    `;
+    modal.appendChild(card);
+    document.body.appendChild(modal);
+
+    // close modal on button click
+    modal.querySelector("#closeMinimalProfile").addEventListener("click", () => {
+      document.body.removeChild(modal);
+    });
+
+    // clicking outside the card also closes the modal
+    modal.addEventListener("click", (ev) => {
+      if (ev.target === modal) document.body.removeChild(modal);
+    });
+  }
+
+  /* ===== SECTION: Button Wiring for Membership Gating ===== */
+  // gate “Browse Matches” behind membership and open inbox for members
+  browseBtn?.addEventListener("click", () => {
+    if (!me || !myDocCached) return;
+    if (isMember(myDocCached)) {
+      openInbox();
+      renderInbox("matches");
+    } else {
+      // show paywall by delegating to existing upgrade button
+      upgradeBtn?.click();
+    }
+  });
+
+  /* ===== SECTION: Inbox Card Construction ===== */
+  // return a card element for a user in inbox; attach profile overlay on click
+  function userCard(u, { locked = false, trailing = null } = {}) {
+    const primary = safePrimaryPhoto(u);
+    const img = primary || NEUTRAL_PHOTO;
+    const name = u.displayName || "Member";
+    const age = (typeof u.age === "number") ? `, ${u.age}` : "";
+    const loc = u.location || "";
+
+    const item = document.createElement("div");
+    item.className = "inbox-item" + (locked ? " locked" : "");
+    item.innerHTML = `
+      <div class="thumb">
+        <img class="${locked ? "blur" : ""}" src="${img}" alt="">
+      </div>
+      <div class="inbox-meta">
+        <div class="inbox-name">${name}${age}</div>
+        <div class="inbox-sub">${loc}</div>
+        ${trailing || ""}
+      </div>
+    `;
+
+    // if not locked, clicking anywhere on the card (except buttons/badges)
+    // shows the minimal public profile modal
+    if (!locked) {
+      item.addEventListener("click", (ev) => {
+        if (ev.target.closest(".pill, button, .lock-badge")) return;
+        showPublicProfile(u);
+      });
+    }
+
+    if (locked) {
+      const overlay = document.createElement("div");
+      overlay.className = "lock-badge";
+      overlay.innerHTML = `
+        <div>
+          <div>Members Only</div>
+          <button class="lock-msg" data-upg>Unlock</button>
+        </div>`;
+      item.appendChild(overlay);
+      overlay.querySelector("[data-upg]").addEventListener("click", () => upgradeBtn?.click());
+    }
+
+    return item;
+  }
+
+  /* ===== SECTION: Inbox Rendering ===== */
+  // update renderInbox so that the “view” and image click open minimal profiles
+  async function renderInbox(tab) {
+    if (!me || !myDocCached) return;
+    [...inboxTabs.querySelectorAll(".inbox-tab")].forEach((b) =>
+      b.classList.toggle("active", b.dataset.tab === tab)
+    );
+    inboxList.innerHTML = "<div class='muted'>Loading…</div>";
+
+    let items = [];
+    try {
+      items = await TAB_FUNCS[tab](me.uid);
+    } catch (e) {
+      console.error(e);
+      inboxList.innerHTML = "<div class='muted'>Could not load. Try again.</div>";
+      return;
+    }
+
+    const locked = gateLikesViewsLocked(tab);
+    inboxList.innerHTML = "";
+    if (!items.length) {
+      inboxList.innerHTML = "<div class='muted'>Nothing here yet.</div>";
+      return;
+    }
+
+    for (const u of items) {
+      let trailing = "";
+      if (tab === "matches" || tab === "messages") {
+        trailing = `<div style="margin-top:6px;display:flex;gap:6px">
+                      <button class="btn small" data-chat="${u.uid}">Message</button>
+                      <button class="btn secondary small" data-open="${u.uid}">View</button>
+                    </div>`;
+      }
+      const card = userCard(u, { locked, trailing });
+      if (!locked) {
+        // image click shows minimal profile instead of navigating away
+        card.querySelector("img")?.addEventListener("click", () => showPublicProfile(u));
+        // “View” button shows minimal profile
+        card.querySelector(`[data-open="${u.uid}"]`)?.addEventListener("click", () => showPublicProfile(u));
+        // message button behaves as before
+        card.querySelector(`[data-chat="${u.uid}"]`)?.addEventListener("click", () => openChatWith(u));
+      }
+      inboxList.appendChild(card);
+    }
+  }
+
+  /* ===== SECTION: (rest of your existing code follows) ===== */
+  // ... keep all remaining functions and event handlers unchanged ...
+</script>
 
     /* ===== SECTION: DOM Refs ===== */
     // Top bar
