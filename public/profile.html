@@ -46,7 +46,7 @@
     .empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#ddd;font-size:1.1rem}
 
     /* ===== SECTION: Bottom Actions ===== */
-    .actions{width:100%;max-width:480px;display:flex;justify-content:space-around;align-items:center;padding:8px 0 16px position: relative; z-index: 20; }
+    .actions{width:100%;max-width:480px;display:flex;justify-content:space-around;align-items:center;padding:8px 0 16px; position: relative; z-index: 20; }
     .action-btn{width:56px;height:56px;border-radius:50%;border:none;font-size:1.5rem;display:flex;align-items:center;justify-content:center;cursor:pointer}
     .pass-btn{background:#2a2a2a;color:var(--red)}
     .like-btn{background:#2a2a2a;color:var(--green)}
@@ -114,6 +114,7 @@
 
       <button class="btn secondary inbox-btn" id="inboxBtn" type="button"
               onclick="document.getElementById('inboxModal').style.display='flex'">Inbox</button>
+      <button class="btn danger" id="browseBtn" type="button">Browse Matches</button>
 
       <a class="chaos-btn" href="./app.html">Community Chaos</a>
 
@@ -147,9 +148,9 @@
 
     <!-- ===== SECTION: Bottom Actions ===== -->
     <div class="actions">
-      <button class="action-btn pass-btn" id="pass-btn" aria-label="Pass">âœ–</button>
+      <button class="action-btn pass-btn" id="pass-btn" aria-label="Pass">Pass</button>
       <button class="chaos-btn" onclick="location.href='./app.html'">Community Chaos</button>
-      <button class="action-btn like-btn" id="like-btn" aria-label="Like">â¤</button>
+      <button class="action-btn like-btn" id="like-btn" aria-label="Like">Like</button>
     </div>
   </div>
 
@@ -818,6 +819,13 @@
     inboxBtn?.addEventListener("click", ()=>{ openInbox(); renderInbox("likes"); });
     closeInbox?.addEventListener("click", closeInboxModal);
     inboxModal?.addEventListener("click", (e)=>{ if(e.target===inboxModal) closeInboxModal(); });
+
+    // Switch tabs on click
+    inboxTabs?.addEventListener("click", (e) => {
+      const b = e.target.closest(".inbox-tab");
+      if (!b) return;
+      renderInbox(b.dataset.tab);
+    });
 
     async function renderInbox(tab){
       if (!me || !myDocCached) return;
