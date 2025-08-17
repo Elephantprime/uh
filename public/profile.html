@@ -911,6 +911,7 @@
 
     function openInbox(){ inboxModal.style.display = "flex"; }
     function closeInboxModal(){ inboxModal.style.display = "none"; }
+    openInbox();
     inboxBtn?.addEventListener("click", ()=>{ openInbox(); renderInbox("likes"); });
     closeInbox?.addEventListener("click", closeInboxModal);
     inboxModal?.addEventListener("click", (e)=>{ if(e.target===inboxModal) closeInboxModal(); });
@@ -1222,6 +1223,7 @@
             currentIndex = 0;
             renderProfile(myDocCached);
             refreshSaveButtonState(myDocCached);
+            openInbox();
             renderInbox("likes");
             return;
           } else {
@@ -1232,6 +1234,7 @@
               currentIndex = 0;
               renderProfile(other);
               refreshSaveButtonState(myDocCached);
+              openInbox();
               renderInbox("likes");
               return;
             }
@@ -1249,6 +1252,7 @@
       currentIndex = 0;
       renderProfile(matches[currentIndex] || null);
       refreshSaveButtonState(myDocCached);
+      openInbox();
       renderInbox("likes");
     });
 
@@ -1258,6 +1262,7 @@
         const $ = (id) => document.getElementById(id);
         const bind = (el, type, fn) => { if (el && !el.dataset.bound) { el.addEventListener(type, fn); el.dataset.bound = "1"; } };
 
+        openInbox();
         bind($("inboxBtn"), "click", () => { try { openInbox(); renderInbox("likes"); } catch (e) { console.error(e); } });
         bind($("browseBtn"), "click", () => {
           try {
