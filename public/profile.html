@@ -1,9 +1,10 @@
 
 
+
 <!DOCTYPE html><html lang="en">
 <head>
   <!-- ===== SECTION: Head / Meta ===== -->
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Unhinged â€” Profile</title>
 
@@ -448,13 +449,16 @@
     
 /* ===== SECTION: Button Wiring for Membership Gating (rewired below DOM refs) ===== */
 
+// Wire up the Browse Matches button to open the inbox on the "matches" tab.
 (function () {
   const browseBtn = document.getElementById("browseBtn");
   if (!browseBtn) return;
   browseBtn.addEventListener("click", () => {
     try {
-      // Show swipeable matches on the main card instead of opening the inbox
-      browseMembers();
+      // If the user is authenticated and their document loaded, open the inbox to the matches tab.
+      if (!me || !myDocCached) return;
+      openInbox();
+      renderInbox("matches");
     } catch (err) {
       console.error("Browse Matches handler failed:", err);
     }
@@ -634,17 +638,16 @@
     passBtn.addEventListener("click", () => { showIndicator("pass"); setTimeout(()=>{ showIndicator(null); nextProfile(); }, 120); });
     likeBtn.addEventListener("click", () => { showIndicator("like"); setTimeout(()=>{ showIndicator(null); nextProfile(); }, 120); });
 
-    // --- Open public profile when you click the photo ---
-    
-mainPhoto.addEventListener("click", () => {
-  try {
-    // When clicking the main swipe photo, show a minimal profile overlay instead of navigating away
-    const p = Array.isArray(matches) ? matches[currentIndex] : null;
-    if (p) {
-      showPublicProfile(p);
-    }
-  } catch (e) { console.error(e); }
-});
+    // --- Open the selected user's profile when you click the photo ---
+    mainPhoto.addEventListener("click", () => {
+      try {
+        const p = Array.isArray(matches) ? matches[currentIndex] : null;
+        if (p && p.uid) {
+          // Navigate to the profile page with the user's UID as a query param.
+          location.href = `./profile.html?uid=${encodeURIComponent(p.uid)}`;
+        }
+      } catch (e) { console.error(e); }
+    });
 /* ===== SECTION: Data Layer (Load/Create/Save) ===== */
     async function loadOrCreateUserDoc(uid, userObj){
       const uref = doc(db,"users",uid);
@@ -861,13 +864,20 @@ async function getThreads(uid){
                       </div>`;
         }
         const card = userCard(u, { locked, trailing });
-        if (!locked){
-          // clicking the image or "View" shows a minimal public profile overlay
-          card.querySelector("img")?.addEventListener("click", () => showPublicProfile(u));
-          card.querySelector(`[data-open="${u.uid}"]`)?.addEventListener("click", () => showPublicProfile(u));
-          // message button opens the chat
-          card.querySelector(`[data-chat="${u.uid}"]`)?.addEventListener("click", () => openChatWith(u));
-        }
+            if (!locked){
+              // clicking the image or "View" navigates to the user's profile page
+              const navigateToProfile = () => {
+                try {
+                  if (u && u.uid) {
+                    location.href = `./profile.html?uid=${encodeURIComponent(u.uid)}`;
+                  }
+                } catch (e) { console.error(e); }
+              };
+              card.querySelector("img")?.addEventListener("click", navigateToProfile);
+              card.querySelector(`[data-open="${u.uid}"]`)?.addEventListener("click", navigateToProfile);
+              // message button opens the chat
+              card.querySelector(`[data-chat="${u.uid}"]`)?.addEventListener("click", () => openChatWith(u));
+            }
         inboxList.appendChild(card);
       }
     }
@@ -962,20 +972,7 @@ async function findOrCreateChat(uidA, uidB){
       currentIndex = 0;
       renderProfile(matches[currentIndex] || null);
     }
-
-    /**
-     * Show all potential matches in the swipe card. This is triggered by the
-     * Browse Matches button. It resets the matches array to all other users
-     * (or just the current user if no others exist) and shows the first profile.
-     */
-    function browseMembers(){
-      if (!me || !myDocCached) return;
-      // Use the already-loaded user list (excluding me). If not loaded yet, fall back to myDoc.
-      const others = Array.isArray(allUsers) ? allUsers.filter(u => u.uid !== me.uid) : [];
-      matches = others.length ? others : [myDocCached];
-      currentIndex = 0;
-      renderProfile(matches[currentIndex] || null);
-    }
+    /* browseMembers removed; Browse button will open Inbox and render matches */
     applyFilter?.addEventListener("click", ()=>{
       currentFilters.location = filterLocEl?.value.trim() || "";
       currentFilters.min = filterAgeMin?.value ? Number(filterAgeMin.value) : null;
@@ -1157,7 +1154,16 @@ onAuthStateChanged(auth, async (user)=>{
     const bind = (el, type, fn) => { if (el && !el.dataset.bound) { el.addEventListener(type, fn); el.dataset.bound = "1"; } };
 
     bind($("inboxBtn"), "click", () => { try { openInbox(); renderInbox("likes"); } catch (e) { console.error(e); } });
-    bind($("browseBtn"), "click", () => { try { browseMembers(); } catch (e) { console.error(e); } });
+        // Bind the browse button to open the inbox and render the matches tab
+        bind($("browseBtn"), "click", () => {
+          try {
+            if (!me || !myDocCached) return;
+            openInbox();
+            renderInbox("matches");
+          } catch (e) {
+            console.error(e);
+          }
+        });
     bind($("editBtn"), "click", () => { try { document.getElementById("editModal").style.display = "flex"; } catch (e) { console.error(e); } });
     bind($("logoutBtn"), "click", async () => { try { await signOut(auth); location.replace("./login.html"); } catch (e) { console.error(e); } });
     bind($("pass-btn"), "click", () => { try { showIndicator("pass"); setTimeout(() => { showIndicator(null); nextProfile(); }, 120); } catch (e) { console.error(e); } });
@@ -1174,20 +1180,20 @@ onAuthStateChanged(auth, async (user)=>{
       inboxTabs.dataset.bound = "1";
     }
 
-    const mainPhoto = document.getElementById("main-photo");
-    if (mainPhoto && !mainPhoto.dataset.bound) {
-      mainPhoto.addEventListener("click", () => {
-        try {
-          const p = Array.isArray(matches) ? matches[currentIndex] : null;
-          if (p) {
-            showPublicProfile(p);
-          }
-        } catch (e) {
-          console.error(e);
+        const mainPhoto = document.getElementById("main-photo");
+        if (mainPhoto && !mainPhoto.dataset.bound) {
+          mainPhoto.addEventListener("click", () => {
+            try {
+              const p = Array.isArray(matches) ? matches[currentIndex] : null;
+              if (p && p.uid) {
+                location.href = `./profile.html?uid=${encodeURIComponent(p.uid)}`;
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          });
+          mainPhoto.dataset.bound = "1";
         }
-      });
-      mainPhoto.dataset.bound = "1";
-    }
   } catch (err) {
     console.error("Safety harness failed:", err);
   }
