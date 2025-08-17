@@ -1,3 +1,4 @@
+
 <!DOCTYPE html><html lang="en">
 <head>
   <!-- ===== SECTION: Head / Meta ===== -->
@@ -544,6 +545,9 @@
         matches = Array.isArray(list) && list.length ? list : [myDocCached];
         currentIndex = 0;
         renderProfile(matches[currentIndex] || null);
+        // NEW: also open the inbox on matches tab so the user can see their matches list
+        openInbox();
+        await renderInbox("matches");
       } catch (err) {
         console.error("Browse Matches handler failed:", err);
       }
@@ -804,10 +808,7 @@
     saveEdit.addEventListener("click", saveEdits);
 
     function gateLikesViewsLocked(tab) {
-      if (!isMember(myDocCached)) {
-        if (tab === "likes" && MEMBERSHIP.requiredForLikes) return true;
-        if (tab === "views" && MEMBERSHIP.requiredForViews) return true;
-      }
+      // Always return false to ensure likes and views are never gated by membership
       return false;
     }
 
@@ -1221,6 +1222,7 @@
             currentIndex = 0;
             renderProfile(myDocCached);
             refreshSaveButtonState(myDocCached);
+            renderInbox("likes");
             return;
           } else {
             const otherSnap = await getDoc(doc(db, "users", viewUidParam));
@@ -1230,6 +1232,7 @@
               currentIndex = 0;
               renderProfile(other);
               refreshSaveButtonState(myDocCached);
+              renderInbox("likes");
               return;
             }
           }
@@ -1246,6 +1249,7 @@
       currentIndex = 0;
       renderProfile(matches[currentIndex] || null);
       refreshSaveButtonState(myDocCached);
+      renderInbox("likes");
     });
 
     /* ===== SECTION: Safety Harness ===== */
@@ -1262,6 +1266,8 @@
               matches = Array.isArray(list) && list.length ? list : [myDocCached];
               currentIndex = 0;
               renderProfile(matches[currentIndex] || null);
+              openInbox();
+              renderInbox("matches");
             }).catch(err => { console.error("Browse Matches handler failed:", err); });
           } catch (e) { console.error(e); }
         });
@@ -1282,7 +1288,6 @@
         }
       } catch (err) { console.error("Safety harness failed:", err); }
     })();
-
 </script>
 </body>
 </html>
