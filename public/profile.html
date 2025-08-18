@@ -1306,5 +1306,16 @@
       } catch (err) { console.error("Safety harness failed:", err); }
     })();
 </script>
+  <script type="module">
+  import { waitForAuth } from "/js/firebase.js";
+
+  (async () => {
+    const user = await waitForAuth();
+    console.log("Current user:", user ? user.uid : null);
+    if (!user) {
+      console.warn("Not signed in — Storage rules will block uploads (403).");
+    }
+  })();
+</script>
 </body>
 </html>
