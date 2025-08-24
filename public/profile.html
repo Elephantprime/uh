@@ -236,7 +236,7 @@
       }
       .like-btn {
         background: #2a2a2a;
-        color: var(--green);
+        color: #4CAF50;
       }
 
       /* ===== SECTION: Modal Base ===== */
@@ -855,7 +855,6 @@
       const MEMBERSHIP = { requiredForViews: false, requiredForLikes: false };
 
       /* ===== SECTION: Public Profile Modal ===== */
-      // helper to render a public profile overlay with more detail + scrollable photos
       function showPublicProfile(user) {
         const modal = document.createElement("div");
         modal.style.position = "fixed";
@@ -1405,7 +1404,6 @@
         if (!dragging) return;
         if (Math.abs(dx) > 100) {
           if (dx > 0) {
-            // like swipe
             const current = matches[currentIndex];
             if (current && current.uid && me && current.uid !== me.uid) {
               recordLike(current.uid);
@@ -1465,7 +1463,7 @@
             location: '',
             badges: [],
             flags: [],
-            membership: { tier: 'free' },
+            /* membership removed to match Firestore rule on create */
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
           };
@@ -1761,7 +1759,8 @@
         const text = chatInput.value.trim();
         if (!text || !activeChat.chatId || !me) return;
         const msgCol = collection(db, 'chats', activeChat.chatId, 'messages');
-        await addDoc(msgCol, { from: me.uid, text, createdAt: serverTimestamp() });
+        // EDIT: include uid to satisfy Firestore rule (uid == request.auth.uid)
+        await addDoc(msgCol, { uid: me.uid, from: me.uid, text, createdAt: serverTimestamp() });
         await updateDoc(doc(db, 'chats', activeChat.chatId), {
           lastMessage: text,
           lastMessageAt: serverTimestamp(),
