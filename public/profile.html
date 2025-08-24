@@ -1,19 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- ===== SECTION: Head / Meta ===== -->
-    <meta charset="UTF-8"/>
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Unhinged - Profile</title>
 
-    <!-- ===== SECTION: Styles (Design System) ===== -->
     <style>
       :root {
         --bg: #0e0e12;
         --panel: #15161b;
         --muted: #cfd0de;
-        --red: #E11D2A;
-        --green: #4CAF50;
+        --red: #e11d2a;
+        --green: #4caf50;
       }
       * {
         box-sizing: border-box;
@@ -398,7 +396,7 @@
       .inbox-tab.active {
         border-color: var(--red);
         background: #4a4a4a;
-        box-shadow: 0 0 0 2px #E11D2A33 inset;
+        box-shadow: 0 0 0 2px #e11d2a33 inset;
       }
       .inbox-list {
         display: grid;
@@ -446,7 +444,7 @@
         padding: 8px;
       }
       .lock-msg {
-        background: #E11D2A;
+        background: #e11d2a;
         border: none;
         border-radius: 999px;
         padding: 0.35rem 0.7rem;
@@ -497,7 +495,7 @@
       }
       .bubble.me {
         align-self: flex-end;
-        background: #E11D2A;
+        background: #e11d2a;
         color: #fff;
       }
       .bubble.them {
@@ -518,11 +516,20 @@
         border: 1px solid #2a2a2a;
         color: #fff;
       }
+
+      /* ===== FIX: Disable clicks on gated actions ===== */
+      [data-gated] .nav-actions .btn:not(#editBtn),
+      [data-gated] .nav-actions .chaos-btn,
+      [data-gated] .content .actions .action-btn,
+      [data-gated] .content .actions .chaos-btn {
+        pointer-events: none;
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
     </style>
   </head>
   <body>
-    <!-- ===== SECTION: Top Bar ===== -->
-    <div class="topbar">
+    <div class="topbar" data-gated="true">
       <div class="brand" id="topLine">Your Profile</div>
       <div class="nav-actions">
         <button class="btn secondary" id="filterBtn" type="button" onclick="document.getElementById('filterModal').style.display='flex'">Filter</button>
@@ -538,7 +545,6 @@
       </div>
     </div>
 
-    <!-- ===== CASUALTIES MODAL ===== -->
     <div class="modal-backdrop" id="casualtiesModal">
       <div class="modal">
         <h3>Casualties of Modern Dating</h3>
@@ -558,9 +564,7 @@
       </div>
     </div>
 
-    <!-- ===== SECTION: Content ===== -->
     <div class="content">
-      <!-- ===== SECTION: Swipe Card ===== -->
       <div class="card-frame" id="cardFrame">
         <img class="main-photo" id="main-photo" src="" alt="Profile Photo" />
         <div class="info-overlay">
@@ -575,7 +579,6 @@
         <div class="empty" id="empty" style="display: none;">No more matches</div>
       </div>
 
-      <!-- ===== SECTION: Bottom Actions ===== -->
       <div class="actions">
         <button class="action-btn pass-btn" id="pass-btn" aria-label="Pass">Pass</button>
         <button class="chaos-btn" onclick="location.href='./app.html'">Community Chaos</button>
@@ -583,7 +586,6 @@
       </div>
     </div>
 
-    <!-- ===== SECTION: Edit Profile Modal ===== -->
     <div class="modal-backdrop" id="editModal">
       <div class="modal">
         <h3>Edit Profile</h3>
@@ -595,7 +597,7 @@
           </div>
           <div>
             <label for="username">Username</label>
-            <input id "username" type="text" placeholder="yourhandle" />
+            <input id="username" type="text" placeholder="yourhandle" />
           </div>
         </div>
         <div class="row">
@@ -626,10 +628,10 @@
           </div>
           <div>
             <label for="interests">Interests</label>
-            <input id "interests" type="text" placeholder="e.g., live music, travel" />
+            <input id="interests" type="text" placeholder="e.g., live music, travel" />
           </div>
         </div>
-        <label for "bio">Bio</label>
+        <label for="bio">Bio</label>
         <textarea id="bio" rows="3" placeholder="Say something..."></textarea>
         <label for="avatar" style="margin-top: 0.5rem;">Add photos (you can select multiple) <span class="req" id="reqPhoto" hidden>*</span></label>
         <input id="avatar" type="file" accept="image/*" multiple />
@@ -646,7 +648,6 @@
       </div>
     </div>
 
-    <!-- ===== INBOX MODAL ===== -->
     <div class="inbox-modal" id="inboxModal">
       <div class="inbox-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -663,31 +664,29 @@
       </div>
     </div>
 
-    <!-- ===== CHAT MODAL ===== -->
     <div class="chat-modal" id="chatModal">
       <div class="chat-card">
         <div class="chat-head">
-          <div id "chatTitle">Chat</div>
+          <div id="chatTitle">Chat</div>
           <button class="btn secondary" id="closeChat" type="button" onclick="document.getElementById('chatModal').style.display='none'">Close</button>
         </div>
         <div class="chat-scroll" id="chatScroll"></div>
         <div class="chat-send">
-          <input id "chatInput" type="text" placeholder="Type a message..." />
+          <input id="chatInput" type="text" placeholder="Type a message..." />
           <button class="btn" id="chatSend" type="button">Send</button>
         </div>
       </div>
     </div>
 
-    <!-- ===== FILTER MODAL ===== -->
     <div class="modal-backdrop" id="filterModal">
       <div class="modal">
         <h3>Filters</h3>
-        <label for "filterLocation">Location</label>
-        <input id "filterLocation" type="text" placeholder="City, State" />
+        <label for="filterLocation">Location</label>
+        <input id="filterLocation" type="text" placeholder="City, State" />
         <label>Age Range</label>
         <div class="row">
-          <input id "filterAgeMin" type="number" min="18" max="99" placeholder="Min" />
-          <input id "filterAgeMax" type="number" min="18" max="99" placeholder="Max" />
+          <input id="filterAgeMin" type="number" min="18" max="99" placeholder="Min" />
+          <input id="filterAgeMax" type="number" min="18" max="99" placeholder="Max" />
         </div>
         <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
           <button class="btn secondary" id="cancelFilter" type="button" onclick="document.getElementById('filterModal').style.display='none'">Cancel</button>
@@ -696,7 +695,6 @@
       </div>
     </div>
 
-    <!-- ===== SECTION: Scripts ===== -->
     <script type="module">
       /* ===== SECTION: Imports ===== */
       import { auth, db, storage } from "./js/firebase.js";
@@ -943,7 +941,7 @@
       // ===== Added: track profile completeness =====
       let profileComplete = false;
 
-      /* ===== Added: Helper to determine if profile is complete ===== */
+      // ===== Added: Helper to determine if profile is complete =====
       function checkProfileComplete(doc) {
         try {
           const res = validateBeforeSave(doc || myDocCached || {}, []);
@@ -954,27 +952,19 @@
         }
       }
 
-      /* ===== Added: Enforce gating based on profile completeness ===== */
+      // ===== Added: Enforce gating based on profile completeness =====
       function enforceProfileGate() {
         try {
           profileComplete = checkProfileComplete(myDocCached);
+          const gatedEl = document.querySelector('[data-gated]');
           if (!profileComplete) {
-            // disable browsing-related buttons
-            if (passBtn) passBtn.disabled = true;
-            if (likeBtn) likeBtn.disabled = true;
-            const browseEl = document.getElementById('browseBtn');
-            if (browseEl) browseEl.disabled = true;
-            // open edit modal so user completes profile
-            openEdit();
+            if (gatedEl) gatedEl.setAttribute('data-gated', 'true');
             if (uploadStatus) {
               uploadStatus.innerHTML =
                 "<span class='prog'>Please complete your profile before browsing.</span>";
             }
           } else {
-            if (passBtn) passBtn.disabled = false;
-            if (likeBtn) likeBtn.disabled = false;
-            const browseEl = document.getElementById('browseBtn');
-            if (browseEl) browseEl.disabled = false;
+            if (gatedEl) gatedEl.setAttribute('data-gated', 'false');
           }
         } catch (e) {
           console.error('enforceProfileGate error:', e);
@@ -2101,7 +2091,6 @@
         }
       })();
     </script>
-    <!-- Optional auth status script -->
     <script type="module">
       import { waitForAuth } from '/js/firebase.js';
       (async () => {
