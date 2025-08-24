@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Unhinged - Profile</title>
 
@@ -1946,9 +1946,13 @@
         renderGallery(myDocCached.photos || []);
         topLine.textContent = myDocCached.username ? `@${myDocCached.username}` : `UID: ${me.uid}`;
         uidLine.textContent = topLine.textContent;
-        // Check for profile completeness on every auth change
-        if (checkProfileComplete(myDocCached)) {
+
+        const isProfilePage = window.location.pathname.endsWith('/profile.html');
+        const isProfileComplete = checkProfileComplete(myDocCached);
+
+        if (isProfileComplete && isProfilePage && !viewUidParam) {
             location.replace('./app.html');
+            return; // Prevent further execution
         }
 
         if (viewUidParam) {
@@ -2006,91 +2010,3 @@
                   if (!profileComplete && ['browseBtn','like-btn','pass-btn'].includes(el.id)) {
                     alert('Please complete your profile before browsing.');
                     openEdit();
-                    return;
-                  }
-                } catch (e) {
-                  console.error(e);
-                }
-                try {
-                  fn(...args);
-                } catch (e) {
-                  console.error(e);
-                }
-              });
-              el.dataset.bound = '1';
-            }
-          };
-          bind($('inboxBtn'), 'click', () => {
-            try {
-              renderInbox('likes');
-            } catch (e) {
-              console.error(e);
-            }
-          });
-          bind($('browseBtn'), 'click', () => {
-            try {
-              if (!me || !myDocCached) return;
-              getMatchesForMe(me.uid)
-                .then((list) => {
-                  matches = Array.isArray(list) && list.length ? list : [myDocCached];
-                  currentIndex = 0;
-                  renderProfile(matches[currentIndex] || null);
-                  renderInbox('matches');
-                })
-                .catch((err) => {
-                  console.error('Browse Matches handler failed:', err);
-                });
-            } catch (e) {
-              console.error(e);
-            }
-          });
-          bind($('editBtn'), 'click', () => {
-            try {
-              document.getElementById('editModal').style.display = 'flex';
-            } catch (e) {
-              console.error(e);
-            }
-          });
-          bind($('logoutBtn'), 'click', async () => {
-            try {
-              await signOut(auth);
-              location.replace('./login.html');
-            } catch (e) {
-              console.error(e);
-            }
-          });
-          bind($('pass-btn'), 'click', () => {
-            try {
-              showIndicator('pass');
-              setTimeout(() => {
-                showIndicator(null);
-                nextProfile();
-              }, 120);
-            } catch (e) {
-              console.error(e);
-            }
-          });
-          bind($('like-btn'), 'click', () => {
-            try {
-              showIndicator('like');
-              const current = Array.isArray(matches) ? matches[currentIndex] : null;
-              if (current && current.uid && me && current.uid !== me.uid) {
-                recordLike(current.uid);
-              }
-              setTimeout(() => {
-                showIndicator(null);
-                nextProfile();
-              }, 120);
-            } catch (e) {
-              console.error(e);
-            }
-          });
-          const mainPhotoBound = document.getElementById('main-photo');
-          if (mainPhotoBound && !mainPhotoBound.dataset.bound) {
-            mainPhotoBound.addEventListener('click', () => {
-              try {
-                const p = Array.isArray(matches) ? matches[currentIndex] : null;
-                if (p) showPublicProfile(p);
-              } catch (e) {
-                console.error(e);
-              }
