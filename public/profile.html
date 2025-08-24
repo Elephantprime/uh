@@ -1335,13 +1335,6 @@
           const a = Number(ageInput.value);
           if (!Number.isFinite(a) || a < 18 || a > 100) return { ok: false, message: 'Please enter a valid age (18-100).', focus: 'age' };
         }
-        // Additional required fields: gender, hobbies, interests
-        const genderVal = (genderInput?.value || '').trim();
-        if (!genderVal) return { ok: false, message: 'Please select your gender.', focus: 'gender' };
-        const hobbiesVal = (hobbiesInput?.value || '').trim();
-        if (!hobbiesVal) return { ok: false, message: 'Please list your hobbies.', focus: 'hobbies' };
-        const interestsVal = (interestsInput?.value || '').trim();
-        if (!interestsVal) return { ok: false, message: 'Please list your interests.', focus: 'interests' };
         return { ok: true };
       }
       function refreshSaveButtonState(currentDoc) {
@@ -1880,8 +1873,8 @@
               qy = query(collection(db, cfg.name), where(cfg.field, '==', uid), limit(100));
             }
             const snap = await getDocs(qy);
-            const toDelete = [];
-            snap.forEach((d) => toDelete.push(d.ref));
+            const toDelete = new Set();
+            snap.forEach((d) => toDelete.add(d.ref));
             for (const ref of toDelete) {
               await deleteDoc(ref);
             }
@@ -2049,70 +2042,4 @@
       closeCasualties?.addEventListener('click', () => {
         if (casualtiesModal) casualtiesModal.style.display = 'none';
       });
-      onAuthStateChanged(auth, async (user) => {
-        if (!user) {
-          if (!_profileNavGuard) {
-            _profileNavGuard = true;
-            location.replace('./login.html');
-          }
-          return;
-        }
-        me = user;
-        myDocCached = await loadOrCreateUserDoc(me.uid, me);
-        displayNameInput.value = myDocCached.displayName || '';
-        usernameInput.value = myDocCached.username || '';
-        genderInput.value = myDocCached.gender || '';
-        hobbiesInput.value = myDocCached.hobbies || '';
-        interestsInput.value = myDocCached.interests || '';
-        bioInput.value = myDocCached.bio || '';
-        ageInput.value = myDocCached.age || '';
-        locationInput.value = myDocCached.location || '';
-        renderGallery(myDocCached.photos || []);
-        topLine.textContent = myDocCached.username ? `@${myDocCached.username}` : `UID: ${me.uid}`;
-        uidLine.textContent = topLine.textContent;
-        if (viewUidParam) {
-          try {
-            if (viewUidParam === me.uid) {
-              matches = [myDocCached];
-              currentIndex = 0;
-              renderProfile(myDocCached);
-              refreshSaveButtonState(myDocCached);
-              await renderInbox('likes');
-              enforceProfileGate();
-              return;
-            } else {
-              const otherSnap = await getDoc(doc(db, 'users', viewUidParam));
-              if (otherSnap.exists()) {
-                const other = { uid: viewUidParam, ...otherSnap.data() };
-                matches = [other];
-                currentIndex = 0;
-                renderProfile(other);
-                refreshSaveButtonState(myDocCached);
-                await renderInbox('likes');
-                enforceProfileGate();
-                return;
-              }
-            }
-          } catch (e) {
-            console.warn('viewUidParam load failed:', e?.message);
-          }
-        }
-        try {
-          const snap = await getDocs(collection(db, 'users'));
-          allUsers = [];
-          snap.forEach((d) => {
-            if (d.id !== me.uid) allUsers.push({ uid: d.id, ...d.data() });
-          });
-        } catch {
-          allUsers = [];
-        }
-        matches = allUsers.length ? allUsers : [myDocCached];
-        currentIndex = 0;
-        renderProfile(matches[currentIndex] || null);
-        refreshSaveButtonState(myDocCached);
-        await renderInbox('likes');
-        enforceProfileGate();
-      });
-      /* ===== SECTION: Safety Harness ===== */
-      (function () {
-        try
+      onAuthStateChanged(
