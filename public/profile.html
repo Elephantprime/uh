@@ -970,6 +970,10 @@
             }
           } else {
             if (gatedEl) gatedEl.setAttribute('data-gated', 'false');
+            // If profile is now complete, redirect to the main app page
+            if (window.location.pathname.endsWith('/profile.html')) {
+              window.location.replace('./app.html');
+            }
           }
         } catch (e) {
           console.error('enforceProfileGate error:', e);
@@ -1438,9 +1442,12 @@
           showOK('Profile saved.');
           // ===== Added: after saving, re-enforce profile gate =====
           enforceProfileGate();
-          setTimeout(() => {
-            editModal.style.display = 'none';
-          }, 400);
+          // Added: check for profile completion and redirect
+          if (checkProfileComplete(myDocCached)) {
+            setTimeout(() => {
+              location.replace('./app.html');
+            }, 500); // Wait a moment for the user to see the "saved" message
+          }
         } catch (e) {
           showError(`Save failed: ${e?.message || 'error'}`);
         } finally {
@@ -1939,6 +1946,11 @@
         renderGallery(myDocCached.photos || []);
         topLine.textContent = myDocCached.username ? `@${myDocCached.username}` : `UID: ${me.uid}`;
         uidLine.textContent = topLine.textContent;
+        // Check for profile completeness on every auth change
+        if (checkProfileComplete(myDocCached)) {
+            location.replace('./app.html');
+        }
+
         if (viewUidParam) {
           try {
             if (viewUidParam === me.uid) {
@@ -2082,23 +2094,3 @@
               } catch (e) {
                 console.error(e);
               }
-            });
-            mainPhotoBound.dataset.bound = '1';
-          }
-        } catch (err) {
-          console.error('Safety harness failed:', err);
-        }
-      })();
-    </script>
-    <script type="module">
-      import { waitForAuth } from '/js/firebase.js';
-      (async () => {
-        const user = await waitForAuth();
-        console.log('Current user:', user ? user.uid : null);
-        if (!user) {
-          console.warn('Not signed in — Storage rules will block uploads (403).');
-        }
-      })();
-    </script>
-  </body>
-</html>
