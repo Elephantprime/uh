@@ -114,7 +114,7 @@
         width: 92%;
         max-width: 420px;
         height: 72vh;
-        border: 2px solid #2a2aa;
+        border: 2px solid #2a2a2a;
         border-radius: 16px;
         overflow: hidden;
         background: #000;
@@ -236,7 +236,7 @@
       }
       .like-btn {
         background: #2a2a2a;
-        color: #4CAF50;
+        color: var(--green);
       }
 
       /* ===== SECTION: Modal Base ===== */
@@ -258,8 +258,10 @@
         border-radius: 12px;
         padding: 1rem;
       }
-      .modal h3 {
-        margin: 0 0 0.5rem;
+      /* Scroll fix: allow modal to scroll */
+      #editModal .modal {
+        max-height: 90vh;
+        overflow-y: auto;
       }
       label {
         display: flex;
@@ -519,60 +521,20 @@
     </style>
   </head>
   <body>
-
     <!-- ===== SECTION: Top Bar ===== -->
     <div class="topbar">
       <div class="brand" id="topLine">Your Profile</div>
       <div class="nav-actions">
-        <button
-          class="btn secondary"
-          id="filterBtn"
-          type="button"
-          onclick="document.getElementById('filterModal').style.display='flex'"
-        >
-          Filter
-        </button>
-
-        <button
-          class="btn secondary inbox-btn"
-          id="inboxBtn"
-          type="button"
-          onclick="document.getElementById('inboxModal').style.display='flex'"
-        >
-          Inbox
-        </button>
+        <button class="btn secondary" id="filterBtn" type="button" onclick="document.getElementById('filterModal').style.display='flex'">Filter</button>
+        <button class="btn secondary inbox-btn" id="inboxBtn" type="button" onclick="document.getElementById('inboxModal').style.display='flex'">Inbox</button>
         <button class="btn danger" id="browseBtn" type="button">Browse Matches</button>
-
-        <!-- Casualties of Modern Dating upload button -->
-        <button class="btn secondary" id="casualtiesBtn" type="button">
-          Casualties Upload
-        </button>
-
+        <button class="btn secondary" id="casualtiesBtn" type="button">Casualties Upload</button>
         <a class="chaos-btn" href="./app.html">Community Chaos</a>
-
-        <button class="btn secondary" id="myProfileBtn" type="button">
-          My Profile
-        </button>
+        <button class="btn secondary" id="myProfileBtn" type="button">My Profile</button>
         <button class="btn secondary" id="upgradeBtn" type="button">Go Paid</button>
-
-        <button
-          class="btn"
-          id="editBtn"
-          type="button"
-          onclick="document.getElementById('editModal').style.display='flex'"
-        >
-          Edit Profile
-        </button>
-
+        <button class="btn" id="editBtn" type="button" onclick="document.getElementById('editModal').style.display='flex'">Edit Profile</button>
         <button class="btn secondary" id="logoutBtn" type="button">Logout</button>
-        <button
-          class="btn ghost"
-          id="deleteBtn"
-          type="button"
-          title="Delete my account"
-        >
-          Delete
-        </button>
+        <button class="btn ghost" id="deleteBtn" type="button" title="Delete my account">Delete</button>
       </div>
     </div>
 
@@ -592,9 +554,7 @@
           <input id="casualtiesCaption" type="text" placeholder="Caption" />
           <button class="btn" id="casualtiesSubmit" type="button">Upload</button>
         </div>
-        <button class="btn secondary" id="closeCasualties" type="button">
-          Close
-        </button>
+        <button class="btn secondary" id="closeCasualties" type="button">Close</button>
       </div>
     </div>
 
@@ -617,15 +577,9 @@
 
       <!-- ===== SECTION: Bottom Actions ===== -->
       <div class="actions">
-        <button class="action-btn pass-btn" id="pass-btn" aria-label="Pass">
-          Pass
-        </button>
-        <button class="chaos-btn" onclick="location.href='./app.html'">
-          Community Chaos
-        </button>
-        <button class="action-btn like-btn" id="like-btn" aria-label="Like">
-          Like
-        </button>
+        <button class="action-btn pass-btn" id="pass-btn" aria-label="Pass">Pass</button>
+        <button class="chaos-btn" onclick="location.href='./app.html'">Community Chaos</button>
+        <button class="action-btn like-btn" id="like-btn" aria-label="Like">Like</button>
       </div>
     </div>
 
@@ -634,41 +588,26 @@
       <div class="modal">
         <h3>Edit Profile</h3>
         <div class="muted" id="uidLine"></div>
-
-        <!-- Subsection: Identity -->
         <div class="row">
           <div>
-            <label for="displayName">
-              Display name
-              <span class="req" id="reqDisplayName" hidden>*</span>
-            </label>
+            <label for="displayName">Display name <span class="req" id="reqDisplayName" hidden>*</span></label>
             <input id="displayName" type="text" />
           </div>
           <div>
             <label for="username">Username</label>
-            <input id="username" type="text" placeholder="yourhandle" />
+            <input id "username" type="text" placeholder="yourhandle" />
           </div>
         </div>
-
-        <!-- Subsection: About -->
         <div class="row">
           <div>
-            <label for="age">
-              Age
-              <span class="req" id="reqAge" hidden>*</span>
-            </label>
+            <label for="age">Age <span class="req" id="reqAge" hidden>*</span></label>
             <input id="age" type="number" min="18" max="100" />
           </div>
           <div>
-            <label for="location">
-              Location
-              <span class="req" id="reqLocation" hidden>*</span>
-            </label>
+            <label for="location">Location <span class="req" id="reqLocation" hidden>*</span></label>
             <input id="location" type="text" placeholder="City, State" />
           </div>
         </div>
-
-        <!-- Subsection: Extra (Gender/Hobbies/Interests) -->
         <div class="row">
           <div>
             <label for="gender">Gender</label>
@@ -686,45 +625,22 @@
             <input id="hobbies" type="text" placeholder="e.g., hiking, gaming" />
           </div>
           <div>
-            <label for "interests">Interests</label>
-            <input id="interests" type="text" placeholder="e.g., live music, travel" />
+            <label for="interests">Interests</label>
+            <input id "interests" type="text" placeholder="e.g., live music, travel" />
           </div>
         </div>
-
-        <label for="bio">Bio</label>
+        <label for "bio">Bio</label>
         <textarea id="bio" rows="3" placeholder="Say something..."></textarea>
-
-        <!-- Subsection: Photos -->
-        <label for="avatar" style="margin-top: 0.5rem;">
-          Add photos (you can select multiple)
-          <span class="req" id="reqPhoto" hidden>*</span>
-        </label>
+        <label for="avatar" style="margin-top: 0.5rem;">Add photos (you can select multiple) <span class="req" id="reqPhoto" hidden>*</span></label>
         <input id="avatar" type="file" accept="image/*" multiple />
-        <div class="hint">
-          Click a saved photo below to set it as your <b>Primary</b>. Selected
-          files preview below before upload.
-        </div>
+        <div class="hint">Click a saved photo below to set it as your <b>Primary</b>. Selected files preview below before upload.</div>
         <div class="status" id="uploadStatus"></div>
-
-        <!-- Previews (not yet uploaded) -->
-        <div class="muted" style="margin-top: 0.5rem;" id="previewTitle" hidden>
-          Selected (not yet uploaded)
-        </div>
+        <div class="muted" style="margin-top: 0.5rem;" id="previewTitle" hidden>Selected (not yet uploaded)</div>
         <div class="gallery" id="previewGallery" hidden></div>
-
-        <!-- Saved photos -->
         <div class="muted" style="margin-top: 0.75rem;">Saved Photos</div>
         <div class="gallery" id="gallery"></div>
-
         <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
-          <button
-            class="btn secondary"
-            id="cancelEdit"
-            type="button"
-            onclick="document.getElementById('editModal').style.display='none'"
-          >
-            Cancel
-          </button>
+          <button class="btn secondary" id="cancelEdit" type="button" onclick="document.getElementById('editModal').style.display='none'">Cancel</button>
           <button class="btn" id="saveEdit" type="button">Save</button>
         </div>
       </div>
@@ -733,18 +649,9 @@
     <!-- ===== INBOX MODAL ===== -->
     <div class="inbox-modal" id="inboxModal">
       <div class="inbox-card">
-        <div
-          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;"
-        >
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <h3 style="margin: 0">Inbox</h3>
-          <button
-            class="btn secondary"
-            id="closeInbox"
-            type="button"
-            onclick="document.getElementById('inboxModal').style.display='none'"
-          >
-            Close
-          </button>
+          <button class="btn secondary" id="closeInbox" type="button" onclick="document.getElementById('inboxModal').style.display='none'">Close</button>
         </div>
         <div class="inbox-tabs" id="inboxTabs">
           <button class="inbox-tab active" data-tab="likes">Likes</button>
@@ -760,19 +667,12 @@
     <div class="chat-modal" id="chatModal">
       <div class="chat-card">
         <div class="chat-head">
-          <div id="chatTitle">Chat</div>
-          <button
-            class="btn secondary"
-            id="closeChat"
-            type="button"
-            onclick="document.getElementById('chatModal').style.display='none'"
-          >
-            Close
-          </button>
+          <div id "chatTitle">Chat</div>
+          <button class="btn secondary" id="closeChat" type="button" onclick="document.getElementById('chatModal').style.display='none'">Close</button>
         </div>
         <div class="chat-scroll" id="chatScroll"></div>
         <div class="chat-send">
-          <input id="chatInput" type="text" placeholder="Type a message..." />
+          <input id "chatInput" type="text" placeholder="Type a message..." />
           <button class="btn" id="chatSend" type="button">Send</button>
         </div>
       </div>
@@ -782,24 +682,15 @@
     <div class="modal-backdrop" id="filterModal">
       <div class="modal">
         <h3>Filters</h3>
-        <label for="filterLocation">Location</label>
-        <input id="filterLocation" type="text" placeholder="City, State" />
+        <label for "filterLocation">Location</label>
+        <input id "filterLocation" type="text" placeholder="City, State" />
         <label>Age Range</label>
         <div class="row">
-          <input id="filterAgeMin" type="number" min="18" max="99" placeholder="Min" />
-          <input id="filterAgeMax" type="number" min="18" max="99" placeholder="Max" />
+          <input id "filterAgeMin" type="number" min="18" max="99" placeholder="Min" />
+          <input id "filterAgeMax" type="number" min="18" max="99" placeholder="Max" />
         </div>
-        <div
-          style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;"
-        >
-          <button
-            class="btn secondary"
-            id="cancelFilter"
-            type="button"
-            onclick="document.getElementById('filterModal').style.display='none'"
-          >
-            Cancel
-          </button>
+        <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+          <button class="btn secondary" id="cancelFilter" type="button" onclick="document.getElementById('filterModal').style.display='none'">Cancel</button>
           <button class="btn" id="applyFilter" type="button">Apply</button>
         </div>
       </div>
@@ -850,7 +741,6 @@
       });
 
       /* ===== SECTION: Config (Requirements & Membership) ===== */
-      // Updated: Require photo, location, display name, and age
       const REQUIRED = { PHOTO: true, LOCATION: true, DISPLAY_NAME: true, AGE: true };
       const MEMBERSHIP = { requiredForViews: false, requiredForLikes: false };
 
@@ -1047,11 +937,13 @@
       let _profileNavGuard = false;
       let activeChat = { chatId: null, partner: null, unsub: null };
       let currentFilters = { location: '', min: null, max: null };
+      // Track viewed profiles in current session to avoid duplicate view writes
       let recordedViews = new Set();
 
-      // Added flag
+      // ===== Added: track profile completeness =====
       let profileComplete = false;
 
+      /* ===== Added: Helper to determine if profile is complete ===== */
       function checkProfileComplete(doc) {
         try {
           const res = validateBeforeSave(doc || myDocCached || {}, []);
@@ -1062,14 +954,17 @@
         }
       }
 
+      /* ===== Added: Enforce gating based on profile completeness ===== */
       function enforceProfileGate() {
         try {
           profileComplete = checkProfileComplete(myDocCached);
           if (!profileComplete) {
+            // disable browsing-related buttons
             if (passBtn) passBtn.disabled = true;
             if (likeBtn) likeBtn.disabled = true;
             const browseEl = document.getElementById('browseBtn');
             if (browseEl) browseEl.disabled = true;
+            // open edit modal so user completes profile
             openEdit();
             if (uploadStatus) {
               uploadStatus.innerHTML =
@@ -1086,10 +981,12 @@
         }
       }
 
+      /* ===== SECTION: Browse Matches wiring ===== */
       (function () {
         const browseBtn = document.getElementById('browseBtn');
         if (!browseBtn) return;
         browseBtn.addEventListener('click', async () => {
+          // ===== Added: gating check for profile completeness =====
           if (!profileComplete) {
             alert('Please complete your profile before browsing.');
             openEdit();
@@ -1101,6 +998,7 @@
             matches = Array.isArray(list) && list.length ? list : [myDocCached];
             currentIndex = 0;
             renderProfile(matches[currentIndex] || null);
+            // open the inbox on matches tab so the user can see their matches list
             await renderInbox('matches');
           } catch (err) {
             console.error('Browse Matches handler failed:', err);
@@ -1108,20 +1006,24 @@
         });
       })();
 
+      /* ===== SECTION: View Params ===== */
       const _params = new URLSearchParams(location.search);
       const viewUidParam = _params.get('uid');
 
+      /* Neutral placeholder */
       const NEUTRAL_PHOTO =
         'data:image/svg+xml;utf8,' +
         encodeURIComponent(
           `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1200'><rect width='100%' height='100%' fill='#0b0b0f'/><circle cx='400' cy='420' r='160' fill='#20222b'/><rect x='210' y='650' width='380' height='260' rx='28' fill='#20222b'/></svg>`
         );
 
+      /* ===== SECTION: Required Markers ===== */
       reqDisplayName.hidden = !REQUIRED.DISPLAY_NAME;
       reqAge.hidden = !REQUIRED.AGE;
       reqLocation.hidden = !REQUIRED.LOCATION;
       reqPhoto.hidden = !REQUIRED.PHOTO;
 
+      /* ===== SECTION: Helper – UI Feedback ===== */
       function showError(msg) {
         uploadStatus.innerHTML = `<span class="err">${msg}</span>`;
       }
@@ -1129,6 +1031,7 @@
         uploadStatus.innerHTML = `<span class="ok">${msg}</span>`;
       }
 
+      /* ===== SECTION: Helper – Renderers ===== */
       function isMember(userDoc) {
         return (userDoc?.membership?.tier || 'free') !== 'free';
       }
@@ -1172,6 +1075,7 @@
         return map[code] || code;
       }
 
+      // ===== New helper: record a view in Firestore =====
       async function recordView(viewedUid) {
         try {
           if (!me || !viewedUid || viewedUid === me.uid) return;
@@ -1187,6 +1091,7 @@
         }
       }
 
+      // ===== New helper: record a like and create match if reciprocal =====
       async function recordLike(likedUid) {
         try {
           if (!me || !likedUid || likedUid === me.uid) return;
@@ -1195,6 +1100,7 @@
             toUid: likedUid,
             createdAt: serverTimestamp(),
           });
+          // check reciprocal like
           const recip = await getDocs(
             query(
               collection(db, 'likes'),
@@ -1207,6 +1113,7 @@
             otherLiked = true;
           });
           if (otherLiked) {
+            // check if match already exists
             let exists = false;
             const mine = await getDocs(
               query(collection(db, 'matches'), where('uids', 'array-contains', me.uid))
@@ -1254,6 +1161,7 @@
         const flags = Array.isArray(p.flags) ? p.flags : Array.isArray(p.quiz?.flags) ? p.quiz.flags.map((f) => f.code) : [];
         renderFlagsList(flags);
 
+        // record view now
         if (p.uid) recordView(p.uid);
       }
 
@@ -1326,6 +1234,7 @@
         });
       }
 
+      /* ===== SECTION: Validation ===== */
       function validateBeforeSave(currentDoc, filesPending) {
         const pending = (filesPending && filesPending.length) || 0;
         const saved = Array.isArray(currentDoc?.photos) ? currentDoc.photos : [];
@@ -1342,6 +1251,7 @@
           const a = Number(ageInput.value);
           if (!Number.isFinite(a) || a < 18 || a > 100) return { ok: false, message: 'Please enter a valid age (18-100).', focus: 'age' };
         }
+        // Additional required fields: gender, hobbies, interests
         const genderVal = (genderInput?.value || '').trim();
         if (!genderVal) return { ok: false, message: 'Please select your gender.', focus: 'gender' };
         const hobbiesVal = (hobbiesInput?.value || '').trim();
@@ -1402,6 +1312,7 @@
         refreshSaveButtonState(myDocCached);
       });
 
+      /* ===== SECTION: Swipe (Touch/Buttons) ===== */
       function nextProfile() {
         currentIndex++;
         renderProfile(matches[currentIndex] || null);
@@ -1410,8 +1321,13 @@
         passIndicator.style.opacity = t === 'pass' ? 1 : 0;
         likeIndicator.style.opacity = t === 'like' ? 1 : 0;
       }
-      let startX = 0, dx = 0, dragging = false;
-      cardFrame.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; dragging = true; });
+      let startX = 0,
+        dx = 0,
+        dragging = false;
+      cardFrame.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        dragging = true;
+      });
       cardFrame.addEventListener('touchmove', (e) => {
         if (!dragging) return;
         dx = e.touches[0].clientX - startX;
@@ -1423,6 +1339,7 @@
         if (!dragging) return;
         if (Math.abs(dx) > 100) {
           if (dx > 0) {
+            // like swipe
             const current = matches[currentIndex];
             if (current && current.uid && me && current.uid !== me.uid) {
               recordLike(current.uid);
@@ -1435,30 +1352,7 @@
         dx = 0;
       });
 
-      // Gated click handlers
-      passBtn.addEventListener('click', () => {
-        if (!profileComplete) {
-          alert('Please complete your profile before browsing.');
-          openEdit();
-          return;
-        }
-        showIndicator('pass');
-        setTimeout(() => { showIndicator(null); nextProfile(); }, 120);
-      });
-      likeBtn.addEventListener('click', () => {
-        if (!profileComplete) {
-          alert('Please complete your profile before browsing.');
-          openEdit();
-          return;
-        }
-        showIndicator('like');
-        const current = matches[currentIndex];
-        if (current && current.uid && me && current.uid !== me.uid) {
-          recordLike(current.uid);
-        }
-        setTimeout(() => { showIndicator(null); nextProfile(); }, 120);
-      });
-
+      // Clicking the big photo opens the modal profile w/ gallery
       mainPhoto.addEventListener('click', () => {
         try {
           const p = Array.isArray(matches) ? matches[currentIndex] : null;
@@ -1468,6 +1362,7 @@
         }
       });
 
+      /* ===== SECTION: Data Layer (Load/Create/Save) ===== */
       async function loadOrCreateUserDoc(uid, userObj) {
         const uref = doc(db, 'users', uid);
         const snap = await getDoc(uref);
@@ -1525,7 +1420,9 @@
           }
           let photoURL = currentDoc.photoURL || photos[0] || '';
           if (!currentDoc.photoURL && photos[0]) {
-            try { await updateProfile(me, { photoURL: photos[0] }); } catch {}
+            try {
+              await updateProfile(me, { photoURL: photos[0] });
+            } catch {}
             photoURL = photos[0];
           }
           const payload = {
@@ -1550,8 +1447,11 @@
           avatarInput.value = '';
           clearPreviews();
           showOK('Profile saved.');
+          // ===== Added: after saving, re-enforce profile gate =====
           enforceProfileGate();
-          setTimeout(() => { editModal.style.display = 'none'; }, 400);
+          setTimeout(() => {
+            editModal.style.display = 'none';
+          }, 400);
         } catch (e) {
           showError(`Save failed: ${e?.message || 'error'}`);
         } finally {
@@ -1560,7 +1460,10 @@
       }
       saveEdit.addEventListener('click', saveEdits);
 
-      function gateLikesViewsLocked(tab) { return false; }
+      function gateLikesViewsLocked(tab) {
+        // Always return false to ensure likes, views, matches are not gated
+        return false;
+      }
       async function fetchUsersByIds(ids) {
         if (!ids?.length) return [];
         const out = [];
@@ -1616,6 +1519,8 @@
         const users = await fetchUsersByIds([...map.keys()]);
         return users.map((u) => ({ ...u, chatId: map.get(u.uid)?.chatId || null }));
       }
+
+      /* ===== SECTION: Inbox UI ===== */
       function userCard(u, { locked = false, trailing = null } = {}) {
         const primary = safePrimaryPhoto(u);
         const img = primary || NEUTRAL_PHOTO;
@@ -1647,13 +1552,31 @@
         }
         return item;
       }
-      const TAB_FUNCS = { likes: getLikesForMe, views: getViewsForMe, matches: getMatchesForMe, messages: getThreads };
-      function openInbox() { inboxModal.style.display = 'flex'; }
-      function closeInboxModal() { inboxModal.style.display = 'none'; }
-      inboxBtn?.addEventListener('click', () => { openInbox(); renderInbox('likes'); });
+      const TAB_FUNCS = {
+        likes: getLikesForMe,
+        views: getViewsForMe,
+        matches: getMatchesForMe,
+        messages: getThreads,
+      };
+      function openInbox() {
+        inboxModal.style.display = 'flex';
+      }
+      function closeInboxModal() {
+        inboxModal.style.display = 'none';
+      }
+      inboxBtn?.addEventListener('click', () => {
+        openInbox();
+        renderInbox('likes');
+      });
       closeInbox?.addEventListener('click', closeInboxModal);
-      inboxModal?.addEventListener('click', (e) => { if (e.target === inboxModal) closeInboxModal(); });
-      inboxTabs?.addEventListener('click', (e) => { const b = e.target.closest('.inbox-tab'); if (!b) return; renderInbox(b.dataset.tab); });
+      inboxModal?.addEventListener('click', (e) => {
+        if (e.target === inboxModal) closeInboxModal();
+      });
+      inboxTabs?.addEventListener('click', (e) => {
+        const b = e.target.closest('.inbox-tab');
+        if (!b) return;
+        renderInbox(b.dataset.tab);
+      });
       async function renderInbox(tab) {
         if (!me || !myDocCached) return;
         [...inboxTabs.querySelectorAll('.inbox-tab')].forEach((b) =>
@@ -1661,11 +1584,19 @@
         );
         inboxList.innerHTML = "<div class='muted'>Loading...</div>";
         let items = [];
-        try { items = await TAB_FUNCS[tab](me.uid); }
-        catch (e) { console.error(e); inboxList.innerHTML = "<div class='muted'>Could not load. Try again.</div>"; return; }
+        try {
+          items = await TAB_FUNCS[tab](me.uid);
+        } catch (e) {
+          console.error(e);
+          inboxList.innerHTML = "<div class='muted'>Could not load. Try again.</div>";
+          return;
+        }
         const locked = gateLikesViewsLocked(tab);
         inboxList.innerHTML = '';
-        if (!items.length) { inboxList.innerHTML = "<div class='muted'>Nothing here yet.</div>"; return; }
+        if (!items.length) {
+          inboxList.innerHTML = "<div class='muted'>Nothing here yet.</div>";
+          return;
+        }
         for (const u of items) {
           let trailing = '';
           if (tab === 'matches' || tab === 'messages') {
@@ -1676,7 +1607,13 @@
           }
           const card = userCard(u, { locked, trailing });
           if (!locked) {
-            const showProfile = () => { try { showPublicProfile(u); } catch (e) { console.error(e); } };
+            const showProfile = () => {
+              try {
+                showPublicProfile(u);
+              } catch (e) {
+                console.error(e);
+              }
+            };
             card.querySelector('img')?.addEventListener('click', showProfile);
             card.querySelector(`[data-open="${u.uid}"]`)?.addEventListener('click', showProfile);
             card.querySelector(`[data-chat="${u.uid}"]`)?.addEventListener('click', () => openChatWith(u));
@@ -1685,17 +1622,25 @@
         }
       }
 
-      function openChatModal() { chatModal.style.display = 'flex'; }
+      /* ===== SECTION: Chat ===== */
+      function openChatModal() {
+        chatModal.style.display = 'flex';
+      }
       function closeChatModal() {
         chatModal.style.display = 'none';
         chatTitle.textContent = 'Chat';
         chatScroll.innerHTML = '';
         chatInput.value = '';
-        if (activeChat.unsub) { activeChat.unsub(); activeChat.unsub = null; }
+        if (activeChat.unsub) {
+          activeChat.unsub();
+          activeChat.unsub = null;
+        }
         activeChat = { chatId: null, partner: null, unsub: null };
       }
       closeChat?.addEventListener('click', closeChatModal);
-      chatModal?.addEventListener('click', (e) => { if (e.target === chatModal) closeChatModal(); });
+      chatModal?.addEventListener('click', (e) => {
+        if (e.target === chatModal) closeChatModal();
+      });
       async function findOrCreateChat(uidA, uidB) {
         const snap = await getDocs(query(collection(db, 'chats'), where('uids', 'array-contains', uidA)));
         let existing = null;
@@ -1744,11 +1689,18 @@
         chatInput.value = '';
       });
 
-      function openFilter() { filterModal.style.display = 'flex'; }
-      function closeFilter() { filterModal.style.display = 'none'; }
+      /* ===== SECTION: Filter Modal Controls ===== */
+      function openFilter() {
+        filterModal.style.display = 'flex';
+      }
+      function closeFilter() {
+        filterModal.style.display = 'none';
+      }
       filterBtn?.addEventListener('click', openFilter);
       cancelFilter?.addEventListener('click', closeFilter);
-      filterModal?.addEventListener('click', (e) => { if (e.target === filterModal) closeFilter(); });
+      filterModal?.addEventListener('click', (e) => {
+        if (e.target === filterModal) closeFilter();
+      });
       const _norm = (s) => (s || '').toLowerCase().trim();
       function _ageOK(u, min, max) {
         const a = Number(u?.age);
@@ -1756,7 +1708,10 @@
         if (max != null && (!Number.isFinite(a) || a > max)) return false;
         return true;
       }
-      function _locOK(u, loc) { if (!loc) return true; return _norm(u?.location).includes(_norm(loc)); }
+      function _locOK(u, loc) {
+        if (!loc) return true;
+        return _norm(u?.location).includes(_norm(loc));
+      }
       function rebuildMatchesWithFilters() {
         let list = Array.isArray(allUsers) ? allUsers.slice() : [];
         list = list.filter((u) => _ageOK(u, currentFilters.min, currentFilters.max) && _locOK(u, currentFilters.location));
@@ -1772,13 +1727,20 @@
         closeFilter();
       });
 
+      /* ===== SECTION: Delete Account ===== */
       async function deleteStorageFolder(prefix) {
         try {
           const folderRef = sRef(storage, prefix);
           const list = await listAll(folderRef);
-          for (const f of list.items) { await deleteObject(f); }
-          for (const dir of list.prefixes) { await deleteStorageFolder(dir.fullPath); }
-        } catch (e) { console.warn('Storage cleanup warning:', e.message); }
+          for (const f of list.items) {
+            await deleteObject(f);
+          }
+          for (const dir of list.prefixes) {
+            await deleteStorageFolder(dir.fullPath);
+          }
+        } catch (e) {
+          console.warn('Storage cleanup warning:', e.message);
+        }
       }
       async function deleteRelatedDocs(uid) {
         const collectionsToClean = [
@@ -1800,8 +1762,12 @@
             const snap = await getDocs(qy);
             const toDelete = [];
             snap.forEach((d) => toDelete.push(d.ref));
-            for (const ref of toDelete) { await deleteDoc(ref); }
-          } catch (e) { console.warn(`Cleanup ${cfg.name} skip:`, e.message); }
+            for (const ref of toDelete) {
+              await deleteDoc(ref);
+            }
+          } catch (e) {
+            console.warn(`Cleanup ${cfg.name} skip:`, e.message);
+          }
         }
       }
       async function handleDeleteAccount() {
@@ -1822,9 +1788,21 @@
           alert('Re-auth failed. Cannot delete account.');
           return;
         }
-        try { await deleteDoc(doc(db, 'users', me.uid)); } catch (e) { console.warn('User doc delete:', e.message); }
-        try { await deleteStorageFolder(`avatars/${me.uid}`); } catch (e) { console.warn('Storage delete:', e.message); }
-        try { await deleteRelatedDocs(me.uid); } catch (e) { console.warn('Related cleanup:', e.message); }
+        try {
+          await deleteDoc(doc(db, 'users', me.uid));
+        } catch (e) {
+          console.warn('User doc delete:', e.message);
+        }
+        try {
+          await deleteStorageFolder(`avatars/${me.uid}`);
+        } catch (e) {
+          console.warn('Storage delete:', e.message);
+        }
+        try {
+          await deleteRelatedDocs(me.uid);
+        } catch (e) {
+          console.warn('Related cleanup:', e.message);
+        }
         try {
           await deleteUser(me);
           alert('Your account has been deleted.');
@@ -1832,25 +1810,45 @@
         } catch (e) {
           console.warn('Auth delete failed:', e?.code || e?.message);
           alert('Your data has been removed. Please sign in again to fully remove the auth account.');
-          try { await signOut(auth); } catch {}
+          try {
+            await signOut(auth);
+          } catch {}
           location.replace('./login.html');
         }
       }
       deleteBtn?.addEventListener('click', handleDeleteAccount);
 
-      function openEdit() { editModal.style.display = 'flex'; }
-      function closeEdit() { editModal.style.display = 'none'; }
-      editBtn.addEventListener('click', (e) => { e.preventDefault(); openEdit(); });
+      /* ===== SECTION: Modal Controls (Edit/Inbox/Chat) ===== */
+      function openEdit() {
+        editModal.style.display = 'flex';
+      }
+      function closeEdit() {
+        editModal.style.display = 'none';
+      }
+      editBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openEdit();
+      });
       cancelEdit.addEventListener('click', closeEdit);
-      editModal.addEventListener('click', (e) => { if (e.target === editModal) closeEdit(); });
+      editModal.addEventListener('click', (e) => {
+        if (e.target === editModal) closeEdit();
+      });
 
+      /* ===== SECTION: Auth / Init ===== */
       myProfileBtn.addEventListener('click', () => {
-        if (me) { location.replace(`./profile.html?uid=${encodeURIComponent(me.uid)}`); }
-        else { location.replace('./login.html'); }
+        if (me) {
+          location.replace(`./profile.html?uid=${encodeURIComponent(me.uid)}`);
+        } else {
+          location.replace('./login.html');
+        }
       });
       logoutBtn.addEventListener('click', async () => {
-        try { await signOut(auth); location.replace('./login.html'); }
-        catch (e) { console.error('Logout error:', e); }
+        try {
+          await signOut(auth);
+          location.replace('./login.html');
+        } catch (e) {
+          console.error('Logout error:', e);
+        }
       });
       upgradeBtn.addEventListener('click', async () => {
         if (!me) return;
@@ -1867,8 +1865,9 @@
             return;
           }
           const data = await resp.json().catch(() => ({}));
-          if (data?.checkoutUrl) { location.href = data.checkoutUrl; }
-          else {
+          if (data?.checkoutUrl) {
+            location.href = data.checkoutUrl;
+          } else {
             console.error('Checkout JSON missing checkoutUrl', data);
             alert('Checkout configuration error. Try again soon.');
           }
@@ -1878,6 +1877,7 @@
         }
       });
 
+      /* ===== SECTION: Casualties Modal Events ===== */
       casualtiesBtn?.addEventListener('click', () => {
         if (casualtiesModal) casualtiesModal.style.display = 'flex';
         if (casualtiesPassword) casualtiesPassword.value = '';
@@ -1889,21 +1889,34 @@
         if (casualtiesPassword.value === 'SPARK') {
           casualtiesPwdSection.style.display = 'none';
           casualtiesUploadSection.style.display = 'block';
-        } else { alert('Incorrect password.'); }
+        } else {
+          alert('Incorrect password.');
+        }
       });
       casualtiesSubmit?.addEventListener('click', async () => {
         try {
           const currentUser = typeof auth !== 'undefined' && auth.currentUser ? auth.currentUser : me;
-          if (!currentUser) { alert('You must be logged in to upload.'); return; }
+          if (!currentUser) {
+            alert('You must be logged in to upload.');
+            return;
+          }
           const file = casualtiesFile?.files?.[0];
-          if (!file) { alert('Please select an image.'); return; }
+          if (!file) {
+            alert('Please select an image.');
+            return;
+          }
           const safeName = (file.name || 'photo').replace(/[^\w.\-]+/g, '_');
           const path = `casualties/${currentUser.uid}/${Date.now()}_${safeName}`;
           const ref = sRef(storage, path);
           await uploadBytes(ref, file);
           const url = await getDownloadURL(ref);
           const caption = casualtiesCaption?.value || '';
-          await addDoc(collection(db, 'casualties'), { uid: currentUser.uid, url, caption, createdAt: serverTimestamp() });
+          await addDoc(collection(db, 'casualties'), {
+            uid: currentUser.uid,
+            url,
+            caption,
+            createdAt: serverTimestamp(),
+          });
           if (casualtiesModal) casualtiesModal.style.display = 'none';
           if (casualtiesFile) casualtiesFile.value = '';
           if (casualtiesCaption) casualtiesCaption.value = '';
@@ -1913,8 +1926,9 @@
           alert('Upload failed: ' + (err?.message || err));
         }
       });
-      closeCasualties?.addEventListener('click', () => { if (casualtiesModal) casualtiesModal.style.display = 'none'; });
-
+      closeCasualties?.addEventListener('click', () => {
+        if (casualtiesModal) casualtiesModal.style.display = 'none';
+      });
       onAuthStateChanged(auth, async (user) => {
         if (!user) {
           if (!_profileNavGuard) {
@@ -1966,8 +1980,12 @@
         try {
           const snap = await getDocs(collection(db, 'users'));
           allUsers = [];
-          snap.forEach((d) => { if (d.id !== me.uid) allUsers.push({ uid: d.id, ...d.data() }); });
-        } catch { allUsers = []; }
+          snap.forEach((d) => {
+            if (d.id !== me.uid) allUsers.push({ uid: d.id, ...d.data() });
+          });
+        } catch {
+          allUsers = [];
+        }
         matches = allUsers.length ? allUsers : [myDocCached];
         currentIndex = 0;
         renderProfile(matches[currentIndex] || null);
@@ -1975,12 +1993,13 @@
         renderInbox('likes');
         enforceProfileGate();
       });
-
+      /* ===== SECTION: Safety Harness ===== */
       (function () {
         try {
           const $ = (id) => document.getElementById(id);
           const bind = (el, type, fn) => {
             if (el && !el.dataset.bound) {
+              // ===== Modified: wrap event with profile-complete check =====
               el.addEventListener(type, (...args) => {
                 try {
                   if (!profileComplete && ['browseBtn','like-btn','pass-btn'].includes(el.id)) {
@@ -1988,14 +2007,24 @@
                     openEdit();
                     return;
                   }
-                } catch (e) { console.error(e); }
-                try { fn(...args); } catch (e) { console.error(e); }
+                } catch (e) {
+                  console.error(e);
+                }
+                try {
+                  fn(...args);
+                } catch (e) {
+                  console.error(e);
+                }
               });
               el.dataset.bound = '1';
             }
           };
           bind($('inboxBtn'), 'click', () => {
-            try { renderInbox('likes'); } catch (e) { console.error(e); }
+            try {
+              renderInbox('likes');
+            } catch (e) {
+              console.error(e);
+            }
           });
           bind($('browseBtn'), 'click', () => {
             try {
@@ -2007,36 +2036,72 @@
                   renderProfile(matches[currentIndex] || null);
                   renderInbox('matches');
                 })
-                .catch((err) => { console.error('Browse Matches handler failed:', err); });
-            } catch (e) { console.error(e); }
+                .catch((err) => {
+                  console.error('Browse Matches handler failed:', err);
+                });
+            } catch (e) {
+              console.error(e);
+            }
           });
           bind($('editBtn'), 'click', () => {
-            try { document.getElementById('editModal').style.display = 'flex'; } catch (e) { console.error(e); }
+            try {
+              document.getElementById('editModal').style.display = 'flex';
+            } catch (e) {
+              console.error(e);
+            }
           });
           bind($('logoutBtn'), 'click', async () => {
-            try { await signOut(auth); location.replace('./login.html'); } catch (e) { console.error(e); }
+            try {
+              await signOut(auth);
+              location.replace('./login.html');
+            } catch (e) {
+              console.error(e);
+            }
           });
           bind($('pass-btn'), 'click', () => {
-            try { showIndicator('pass'); setTimeout(() => { showIndicator(null); nextProfile(); }, 120); } catch (e) { console.error(e); }
+            try {
+              showIndicator('pass');
+              setTimeout(() => {
+                showIndicator(null);
+                nextProfile();
+              }, 120);
+            } catch (e) {
+              console.error(e);
+            }
           });
           bind($('like-btn'), 'click', () => {
             try {
               showIndicator('like');
               const current = Array.isArray(matches) ? matches[currentIndex] : null;
-              if (current && current.uid && me && current.uid !== me.uid) { recordLike(current.uid); }
-              setTimeout(() => { showIndicator(null); nextProfile(); }, 120);
-            } catch (e) { console.error(e); }
+              if (current && current.uid && me && current.uid !== me.uid) {
+                recordLike(current.uid);
+              }
+              setTimeout(() => {
+                showIndicator(null);
+                nextProfile();
+              }, 120);
+            } catch (e) {
+              console.error(e);
+            }
           });
           const mainPhotoBound = document.getElementById('main-photo');
           if (mainPhotoBound && !mainPhotoBound.dataset.bound) {
             mainPhotoBound.addEventListener('click', () => {
-              try { const p = Array.isArray(matches) ? matches[currentIndex] : null; if (p) showPublicProfile(p); } catch (e) { console.error(e); }
+              try {
+                const p = Array.isArray(matches) ? matches[currentIndex] : null;
+                if (p) showPublicProfile(p);
+              } catch (e) {
+                console.error(e);
+              }
             });
             mainPhotoBound.dataset.bound = '1';
           }
-        } catch (err) { console.error('Safety harness failed:', err); }
+        } catch (err) {
+          console.error('Safety harness failed:', err);
+        }
       })();
     </script>
+    <!-- Optional auth status script -->
     <script type="module">
       import { waitForAuth } from '/js/firebase.js';
       (async () => {
