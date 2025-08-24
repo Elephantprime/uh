@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8"/>
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Unhinged - Profile</title>
 
@@ -1052,21 +1052,86 @@
       // Enable or disable buttons based on profile completion
       function enforceProfileGate() {
         profileComplete = checkProfileComplete(myDocCached);
-        ['browseBtn', 'pass-btn', 'like-btn', 'inboxBtn', 'filterBtn', 'casualtiesBtn', 'upgradeBtn', 'myProfileBtn', 'logoutBtn', 'deleteBtn'].forEach(id => {
+        // All buttons that should be gated
+        const gatedButtons = [
+          'browseBtn', 
+          'pass-btn', 
+          'like-btn', 
+          'inboxBtn', 
+          'filterBtn', 
+          'casualtiesBtn', 
+          'upgradeBtn'
+        ];
+        
+        gatedButtons.forEach(id => {
           const el = document.getElementById(id);
           if (el) {
-            el.disabled = !profileComplete && id !== 'myProfileBtn' && id !== 'editBtn' && id !== 'logoutBtn' && id !== 'deleteBtn' && id !== 'inboxBtn' && id !== 'casualtiesBtn' && id !== 'upgradeBtn' && id !== 'filterBtn';
+            el.disabled = !profileComplete;
+            el.style.opacity = profileComplete ? 1 : 0.5;
+            el.style.cursor = profileComplete ? 'pointer' : 'not-allowed';
           }
         });
+      
         if (!profileComplete) {
-          // Optionally show a message and open the edit form
-          const uploadStatus = document.getElementById('uploadStatus');
-          if (uploadStatus) {
-            uploadStatus.innerHTML = "<span class='prog'>Please complete your profile before browsing.</span>";
-          }
+          // Force the edit modal to open and show a message
           openEdit();
+          const statusEl = document.getElementById('uploadStatus');
+          if (statusEl) {
+            statusEl.innerHTML = "<span class='prog'>Please complete your profile before you can browse.</span>";
+          }
+          // Hide the main content, but keep edit modal open
+          document.querySelector('.content').style.display = 'none';
+        } else {
+           // Allow interaction and hide the edit modal
+          editModal.style.display = 'none';
+          document.querySelector('.content').style.display = 'flex';
+          const statusEl = document.getElementById('uploadStatus');
+          if (statusEl) statusEl.innerHTML = '';
         }
       }
+      
+      // Update event listeners to check the profile status
+      inboxBtn?.addEventListener('click', (e) => {
+        if (!profileComplete) {
+          e.preventDefault();
+          alert('Please complete your profile before accessing the inbox.');
+          openEdit();
+        } else {
+          openInbox();
+          renderInbox('likes');
+        }
+      });
+      
+      filterBtn?.addEventListener('click', (e) => {
+        if (!profileComplete) {
+          e.preventDefault();
+          alert('Please complete your profile before using filters.');
+          openEdit();
+        } else {
+          openFilter();
+        }
+      });
+      
+      upgradeBtn?.addEventListener('click', (e) => {
+        if (!profileComplete) {
+          e.preventDefault();
+          alert('Please complete your profile to explore membership options.');
+          openEdit();
+        }
+      });
+
+      casualtiesBtn?.addEventListener('click', (e) => {
+        if (!profileComplete) {
+          e.preventDefault();
+          alert('Please complete your profile before uploading casualties.');
+          openEdit();
+        } else {
+          if (casualtiesModal) casualtiesModal.style.display = 'flex';
+          if (casualtiesPassword) casualtiesPassword.value = '';
+          if (casualtiesUploadSection) casualtiesUploadSection.style.display = 'none';
+          if (casualtiesPwdSection) casualtiesPwdSection.style.display = 'block';
+        }
+      });
 
       /* ===== SECTION: Browse Matches wiring ===== */
       (function () {
@@ -1413,18 +1478,23 @@
         dx = 0,
         dragging = false;
       cardFrame.addEventListener('touchstart', (e) => {
+        // Only allow swiping if the profile is complete
+        if (!profileComplete) {
+            e.preventDefault();
+            return;
+        }
         startX = e.touches[0].clientX;
         dragging = true;
       });
       cardFrame.addEventListener('touchmove', (e) => {
-        if (!dragging) return;
+        if (!dragging || !profileComplete) return;
         dx = e.touches[0].clientX - startX;
         if (dx > 50) showIndicator('like');
         else if (dx < -50) showIndicator('pass');
         else showIndicator(null);
       });
       cardFrame.addEventListener('touchend', () => {
-        if (!dragging) return;
+        if (!dragging || !profileComplete) return;
         if (Math.abs(dx) > 100) {
           if (dx > 0) {
             // like swipe
@@ -1686,10 +1756,6 @@
       function closeInboxModal() {
         inboxModal.style.display = 'none';
       }
-      inboxBtn?.addEventListener('click', () => {
-        openInbox();
-        renderInbox('likes');
-      });
       closeInbox?.addEventListener('click', closeInboxModal);
       inboxModal?.addEventListener('click', (e) => {
         if (e.target === inboxModal) closeInboxModal();
@@ -1820,7 +1886,6 @@
       function closeFilter() {
         filterModal.style.display = 'none';
       }
-      filterBtn?.addEventListener('click', openFilter);
       cancelFilter?.addEventListener('click', closeFilter);
       filterModal?.addEventListener('click', (e) => {
         if (e.target === filterModal) closeFilter();
@@ -1837,10 +1902,15 @@
         return _norm(u?.location).includes(_norm(loc));
       }
       function rebuildMatchesWithFilters() {
-        let list = Array.isArray(allUsers) ? allUsers.slice() : [];
-        list = list.filter((u) => u.uid !== me.uid && !matchedUsers.some(m => m.uid === u.uid));
-        list = list.filter((u) => _ageOK(u, currentFilters.min, currentFilters.max) && _locOK(u, currentFilters.location));
-        matches = list;
+        const all = Array.isArray(allUsers) ? allUsers : [];
+        const filtered = all.filter(u => {
+          const isMe = u.uid === me.uid;
+          const isMatched = matchedUsers.some(m => m.uid === u.uid);
+          const ageOk = _ageOK(u, currentFilters.min, currentFilters.max);
+          const locOk = _locOK(u, currentFilters.location);
+          return !isMe && !isMatched && ageOk && locOk;
+        });
+        matches = filtered;
         currentIndex = 0;
         renderProfile(matches[currentIndex] || null);
       }
@@ -1948,7 +2018,12 @@
         editModal.style.display = 'flex';
       }
       function closeEdit() {
-        editModal.style.display = 'none';
+        // Do not close if profile is incomplete
+        if (profileComplete) {
+          editModal.style.display = 'none';
+        } else {
+          alert('You must complete your profile before you can close this window.');
+        }
       }
       editBtn.addEventListener('click', (e) => {
         e.preventDefault();
@@ -2090,6 +2165,8 @@
             uidLine.textContent = `UID: ${me.uid}`;
             loadEditData(myDoc);
             renderGallery(myDoc.photos);
+            
+            // Check profile completion and enforce the gate
             profileComplete = checkProfileComplete(myDoc);
             enforceProfileGate();
 
@@ -2097,14 +2174,4 @@
               // Show a public profile from a URL parameter
               const docSnap = await getDoc(doc(db, 'users', viewUidParam));
               if (docSnap.exists()) {
-                const publicProfile = { uid: viewUidParam, ...docSnap.data() };
-                matches = [publicProfile];
-                currentIndex = 0;
-                renderProfile(publicProfile);
-              } else {
-                renderProfile(null);
-              }
-            } else {
-              // Default view: browse matches
-              await loadMyMatches();
-              await loadAllUsers
+                const publicProfile = { uid: viewUidParam, ...docSnap.data()
