@@ -739,7 +739,7 @@
       });
 
       /* ===== SECTION: Config (Requirements & Membership) ===== */
-      const REQUIRED = { PHOTO: true, LOCATION: true, DISPLAY_NAME: true, AGE: true };
+      const REQUIRED = { PHOTO: true, LOCATION: true, DISPLAY_NAME: true, AGE: true, GENDER: false };
       const MEMBERSHIP = { requiredForViews: false, requiredForLikes: false };
 
       /* ===== SECTION: Public Profile Modal ===== */
@@ -945,7 +945,12 @@
       function checkProfileComplete(doc) {
         try {
           const res = validateBeforeSave(doc || myDocCached || {}, []);
-          return res.ok;
+          // Only check for the essential fields to unlock the app
+          const photoOK = !!doc.photoURL || (Array.isArray(doc.photos) && doc.photos.length > 0);
+          const locationOK = (doc.location || '').trim().length > 0;
+          const displayNameOK = (doc.displayName || '').trim().length > 0;
+          const ageOK = typeof doc.age === 'number' && doc.age >= 18;
+          return photoOK && locationOK && displayNameOK && ageOK;
         } catch (e) {
           console.error(e);
           return false;
@@ -1241,13 +1246,7 @@
           const a = Number(ageInput.value);
           if (!Number.isFinite(a) || a < 18 || a > 100) return { ok: false, message: 'Please enter a valid age (18-100).', focus: 'age' };
         }
-        // Additional required fields: gender, hobbies, interests
-        const genderVal = (genderInput?.value || '').trim();
-        if (!genderVal) return { ok: false, message: 'Please select your gender.', focus: 'gender' };
-        const hobbiesVal = (hobbiesInput?.value || '').trim();
-        if (!hobbiesVal) return { ok: false, message: 'Please list your hobbies.', focus: 'hobbies' };
-        const interestsVal = (interestsInput?.value || '').trim();
-        if (!interestsVal) return { ok: false, message: 'Please list your interests.', focus: 'interests' };
+        // Hobbies and Interests are no longer required for validation
         return { ok: true };
       }
       function refreshSaveButtonState(currentDoc) {
