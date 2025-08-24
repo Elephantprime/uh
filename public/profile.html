@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8"/>
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Unhinged - Profile</title>
 
@@ -1317,6 +1317,17 @@
           previewGallery.appendChild(box);
         });
       }
+      function loadEditData(doc) {
+        displayNameInput.value = doc.displayName || '';
+        usernameInput.value = doc.username || '';
+        ageInput.value = doc.age || '';
+        locationInput.value = doc.location || '';
+        genderInput.value = doc.gender || '';
+        hobbiesInput.value = doc.hobbies || '';
+        interestsInput.value = doc.interests || '';
+        bioInput.value = doc.bio || '';
+        renderGallery(doc.photos);
+      }
 
       /* ===== SECTION: Validation ===== */
       function validateBeforeSave(currentDoc, filesPending) {
@@ -1827,8 +1838,9 @@
       }
       function rebuildMatchesWithFilters() {
         let list = Array.isArray(allUsers) ? allUsers.slice() : [];
+        list = list.filter((u) => u.uid !== me.uid && !matchedUsers.some(m => m.uid === u.uid));
         list = list.filter((u) => _ageOK(u, currentFilters.min, currentFilters.max) && _locOK(u, currentFilters.location));
-        matches = list.length ? list : [myDocCached];
+        matches = list;
         currentIndex = 0;
         renderProfile(matches[currentIndex] || null);
       }
@@ -2042,4 +2054,70 @@
       closeCasualties?.addEventListener('click', () => {
         if (casualtiesModal) casualtiesModal.style.display = 'none';
       });
-      onAuthStateChanged(
+
+      async function loadAllUsers() {
+        const qy = query(collection(db, 'users'), where('uid', '!=', me.uid), limit(100));
+        const snapshot = await getDocs(qy);
+        allUsers = snapshot.docs.map((doc) => doc.data());
+      }
+
+      async function loadMyMatches() {
+        const myMatches = await getMatchesForMe(me.uid);
+        matches = myMatches;
+      }
+
+      function renderFilteredMatches() {
+        const all = Array.isArray(allUsers) ? allUsers : [];
+        const filtered = all.filter(u => {
+          const isMe = u.uid === me.uid;
+          const isMatched = matchedUsers.some(m => m.uid === u.uid);
+          const ageOk = _ageOK(u, currentFilters.min, currentFilters.max);
+          const locOk = _locOK(u, currentFilters.location);
+          return !isMe && !isMatched && ageOk && locOk;
+        });
+        matches = filtered;
+        currentIndex = 0;
+        renderProfile(matches[currentIndex] || null);
+      }
+      
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          me = user;
+          try {
+            const myDoc = await loadOrCreateUserDoc(me.uid, me);
+            myDocCached = myDoc;
+            topLine.textContent = myDoc.username ? `@${myDoc.username}` : `UID: ${me.uid}`;
+            uidLine.textContent = `UID: ${me.uid}`;
+            loadEditData(myDoc);
+            renderGallery(myDoc.photos);
+            profileComplete = checkProfileComplete(myDoc);
+            enforceProfileGate();
+
+            if (viewUidParam && viewUidParam !== me.uid) {
+              // Show a public profile from a URL parameter
+              const docSnap = await getDoc(doc(db, 'users', viewUidParam));
+              if (docSnap.exists()) {
+                const publicProfile = { uid: viewUidParam, ...docSnap.data() };
+                matches = [publicProfile];
+                currentIndex = 0;
+                renderProfile(publicProfile);
+              } else {
+                renderProfile(null);
+              }
+            } else {
+              // Default view: browse matches
+              await loadMyMatches();
+              await loadAllUsers();
+              renderFilteredMatches();
+            }
+          } catch (e) {
+            console.error('Initial load failed:', e);
+            topLine.textContent = 'Error loading profile';
+          }
+        } else {
+          location.replace('./login.html');
+        }
+      });
+    </script>
+  </body>
+</html>
