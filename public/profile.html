@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- ===== SECTION: Head / Meta ===== -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Unhinged - Profile</title>
 
-    <!-- ===== SECTION: Styles (Design System) ===== -->
     <style>
       :root {
         --bg: #0e0e12;
@@ -41,10 +39,12 @@
         justify-content: center;
         text-decoration: none;
       }
+      /* Lighten the secondary buttons for better contrast */
       .btn.secondary {
         background: #3a3a3a;
         color: #fff;
       }
+      /* Lighten ghost button border for contrast */
       .btn.ghost {
         background: transparent;
         border: 1px solid #444;
@@ -150,7 +150,8 @@
         color: #ddd;
         margin-top: 2px;
       }
-      .badges, .flags {
+      .badges,
+      .flags {
         display: flex;
         flex-wrap: wrap;
         gap: 6px;
@@ -255,12 +256,14 @@
         border-radius: 12px;
         padding: 1rem;
       }
-      /* scroll fix: allow modal to scroll */
+      /* Scroll fix: allow the edit modal to scroll */
       #editModal .modal {
         max-height: 90vh;
         overflow-y: auto;
       }
-
+      .modal h3 {
+        margin: 0 0 0.5rem;
+      }
       label {
         display: flex;
         align-items: center;
@@ -271,9 +274,9 @@
         color: #ff6b6b;
         font-weight: 700;
       }
-      input[type="text"],
+      input[type='text'],
       textarea,
-      input[type="number"],
+      input[type='number'],
       select {
         width: 100%;
         padding: 0.6rem;
@@ -384,6 +387,7 @@
         margin-bottom: 10px;
         flex-wrap: wrap;
       }
+      /* Lighten the inbox tab colours for readability */
       .inbox-tab {
         border: 1px solid #444;
         background: #3a3a3a;
@@ -518,24 +522,61 @@
     </style>
   </head>
   <body>
-    <!-- ===== SECTION: Top Bar ===== -->
+
     <div class="topbar">
       <div class="brand" id="topLine">Your Profile</div>
       <div class="nav-actions">
-        <button class="btn secondary" id="filterBtn" type="button" onclick="document.getElementById('filterModal').style.display='flex'">Filter</button>
-        <button class="btn secondary inbox-btn" id="inboxBtn" type="button" onclick="document.getElementById('inboxModal').style.display='flex'">Inbox</button>
+        <button
+          class="btn secondary"
+          id="filterBtn"
+          type="button"
+          onclick="document.getElementById('filterModal').style.display='flex'"
+        >
+          Filter
+        </button>
+
+        <button
+          class="btn secondary inbox-btn"
+          id="inboxBtn"
+          type="button"
+          onclick="document.getElementById('inboxModal').style.display='flex'"
+        >
+          Inbox
+        </button>
         <button class="btn danger" id="browseBtn" type="button">Browse Matches</button>
-        <button class="btn secondary" id="casualtiesBtn" type="button">Casualties Upload</button>
+
+        <button class="btn secondary" id="casualtiesBtn" type="button">
+          Casualties Upload
+        </button>
+
         <a class="chaos-btn" href="./app.html">Community Chaos</a>
-        <button class="btn secondary" id="myProfileBtn" type="button">My Profile</button>
+
+        <button class="btn secondary" id="myProfileBtn" type="button">
+          My Profile
+        </button>
         <button class="btn secondary" id="upgradeBtn" type="button">Go Paid</button>
-        <button class="btn" id="editBtn" type="button" onclick="document.getElementById('editModal').style.display='flex'">Edit Profile</button>
+
+        <button
+          class="btn"
+          id="editBtn"
+          type="button"
+          onclick="document.getElementById('editModal').style.display='flex'"
+        >
+          Edit Profile
+        </button>
+
         <button class="btn secondary" id="logoutBtn" type="button">Logout</button>
-        <button class="btn ghost" id="deleteBtn" type="button" title="Delete my account">Delete</button>
+        <button
+          class="btn ghost"
+          id="deleteBtn"
+          type="button"
+          title="Delete my account"
+        >
+          Delete
+        </button>
       </div>
     </div>
 
-    <!-- ===== CASUALTIES MODAL ===== -->
     <div class="modal-backdrop" id="casualtiesModal">
       <div class="modal">
         <h3>Casualties of Modern Dating</h3>
@@ -551,13 +592,13 @@
           <input id="casualtiesCaption" type="text" placeholder="Caption" />
           <button class="btn" id="casualtiesSubmit" type="button">Upload</button>
         </div>
-        <button class="btn secondary" id="closeCasualties" type="button">Close</button>
+        <button class="btn secondary" id="closeCasualties" type="button">
+          Close
+        </button>
       </div>
     </div>
 
-    <!-- ===== SECTION: Content ===== -->
     <div class="content">
-      <!-- ===== SECTION: Swipe Card ===== -->
       <div class="card-frame" id="cardFrame">
         <img class="main-photo" id="main-photo" src="" alt="Profile Photo" />
         <div class="info-overlay">
@@ -572,21 +613,24 @@
         <div class="empty" id="empty" style="display: none;">No more matches</div>
       </div>
 
-      <!-- ===== SECTION: Bottom Actions ===== -->
       <div class="actions">
-        <button class="action-btn pass-btn" id="pass-btn" aria-label="Pass">Pass</button>
-        <button class="chaos-btn" onclick="location.href='./app.html'">Community Chaos</button>
-        <button class="action-btn like-btn" id="like-btn" aria-label="Like">Like</button>
+        <button class="action-btn pass-btn" id="pass-btn" aria-label="Pass">
+          Pass
+        </button>
+        <button class="chaos-btn" onclick="location.href='./app.html'">
+          Community Chaos
+        </button>
+        <button class="action-btn like-btn" id="like-btn" aria-label="Like">
+          Like
+        </button>
       </div>
     </div>
 
-    <!-- ===== SECTION: Edit Profile Modal ===== -->
     <div class="modal-backdrop" id="editModal">
       <div class="modal">
         <h3>Edit Profile</h3>
         <div class="muted" id="uidLine"></div>
 
-        <!-- Subsection: Identity -->
         <div class="row">
           <div>
             <label for="displayName">
@@ -601,7 +645,6 @@
           </div>
         </div>
 
-        <!-- Subsection: About -->
         <div class="row">
           <div>
             <label for="age">
@@ -619,7 +662,6 @@
           </div>
         </div>
 
-        <!-- Subsection: Extra -->
         <div class="row">
           <div>
             <label for="gender">Gender</label>
@@ -645,7 +687,6 @@
         <label for="bio">Bio</label>
         <textarea id="bio" rows="3" placeholder="Say something..."></textarea>
 
-        <!-- Subsection: Photos -->
         <label for="avatar" style="margin-top: 0.5rem;">
           Add photos (you can select multiple)
           <span class="req" id="reqPhoto" hidden>*</span>
@@ -657,29 +698,42 @@
         </div>
         <div class="status" id="uploadStatus"></div>
 
-        <!-- Previews (not yet uploaded) -->
         <div class="muted" style="margin-top: 0.5rem;" id="previewTitle" hidden>
           Selected (not yet uploaded)
         </div>
         <div class="gallery" id="previewGallery" hidden></div>
 
-        <!-- Saved photos -->
         <div class="muted" style="margin-top: 0.75rem;">Saved Photos</div>
         <div class="gallery" id="gallery"></div>
 
         <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
-          <button class="btn secondary" id="cancelEdit" type="button" onclick="document.getElementById('editModal').style.display='none'">Cancel</button>
+          <button
+            class="btn secondary"
+            id="cancelEdit"
+            type="button"
+            onclick="document.getElementById('editModal').style.display='none'"
+          >
+            Cancel
+          </button>
           <button class="btn" id="saveEdit" type="button">Save</button>
         </div>
       </div>
     </div>
 
-    <!-- ===== INBOX MODAL ===== -->
     <div class="inbox-modal" id="inboxModal">
       <div class="inbox-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;"
+        >
           <h3 style="margin: 0">Inbox</h3>
-          <button class="btn secondary" id="closeInbox" type="button" onclick="document.getElementById('inboxModal').style.display='none'">Close</button>
+          <button
+            class="btn secondary"
+            id="closeInbox"
+            type="button"
+            onclick="document.getElementById('inboxModal').style.display='none'"
+          >
+            Close
+          </button>
         </div>
         <div class="inbox-tabs" id="inboxTabs">
           <button class="inbox-tab active" data-tab="likes">Likes</button>
@@ -691,12 +745,18 @@
       </div>
     </div>
 
-    <!-- ===== CHAT MODAL ===== -->
     <div class="chat-modal" id="chatModal">
       <div class="chat-card">
         <div class="chat-head">
           <div id="chatTitle">Chat</div>
-          <button class="btn secondary" id="closeChat" type="button" onclick="document.getElementById('chatModal').style.display='none'">Close</button>
+          <button
+            class="btn secondary"
+            id="closeChat"
+            type="button"
+            onclick="document.getElementById('chatModal').style.display='none'"
+          >
+            Close
+          </button>
         </div>
         <div class="chat-scroll" id="chatScroll"></div>
         <div class="chat-send">
@@ -706,7 +766,6 @@
       </div>
     </div>
 
-    <!-- ===== FILTER MODAL ===== -->
     <div class="modal-backdrop" id="filterModal">
       <div class="modal">
         <h3>Filters</h3>
@@ -717,14 +776,22 @@
           <input id="filterAgeMin" type="number" min="18" max="99" placeholder="Min" />
           <input id="filterAgeMax" type="number" min="18" max="99" placeholder="Max" />
         </div>
-        <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
-          <button class="btn secondary" id="cancelFilter" type="button" onclick="document.getElementById('filterModal').style.display='none'">Cancel</button>
+        <div
+          style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;"
+        >
+          <button
+            class="btn secondary"
+            id="cancelFilter"
+            type="button"
+            onclick="document.getElementById('filterModal').style.display='none'"
+          >
+            Cancel
+          </button>
           <button class="btn" id="applyFilter" type="button">Apply</button>
         </div>
       </div>
     </div>
 
-    <!-- ===== SECTION: Scripts ===== -->
     <script type="module">
       /* ===== SECTION: Imports ===== */
       import { auth, db, storage } from "./js/firebase.js";
@@ -760,7 +827,7 @@
         deleteObject,
       } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-      // ===== Global error traps =====
+      // ===== Global error traps so we can see what's blocking button wiring =====
       window.addEventListener("error", (e) => {
         console.error("Script error", e);
       });
@@ -768,11 +835,13 @@
         console.error("Unhandled rejection", e);
       });
 
-      /* ===== SECTION: Config ===== */
+      /* ===== SECTION: Config (Requirements & Membership) ===== */
+      // Updated: Require photo, location, display name, and age
       const REQUIRED = { PHOTO: true, LOCATION: true, DISPLAY_NAME: true, AGE: true };
       const MEMBERSHIP = { requiredForViews: false, requiredForLikes: false };
 
       /* ===== SECTION: Public Profile Modal ===== */
+      // helper to render a public profile overlay with more detail + scrollable photos
       function showPublicProfile(user) {
         const modal = document.createElement("div");
         modal.style.position = "fixed";
@@ -796,6 +865,7 @@
         const ageText = typeof user.age === "number" ? `${user.age} years old` : "";
         const location = user.location || "";
 
+        // Prepare photos (primary first) and simple next/prev controls
         const photosList = Array.isArray(user.photos) ? user.photos.slice() : [];
         const fallbackPrimary = safePrimaryPhoto(user) || photosList[0] || NEUTRAL_PHOTO;
         if (photosList.length === 0 || photosList[0] !== fallbackPrimary) photosList.unshift(fallbackPrimary);
@@ -868,59 +938,300 @@
       }
 
       /* ===== SECTION: DOM Refs ===== */
+      const topLine = document.getElementById('topLine');
+      const myProfileBtn = document.getElementById('myProfileBtn');
+      const editBtn = document.getElementById('editBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const upgradeBtn = document.getElementById('upgradeBtn');
+      const inboxBtn = document.getElementById('inboxBtn');
+      const deleteBtn = document.getElementById('deleteBtn');
+      const filterBtn = document.getElementById('filterBtn');
+
+      const cardFrame = document.getElementById('cardFrame');
+      const mainPhoto = document.getElementById('main-photo');
+      if (mainPhoto) {
+        const _neutral =
+          'data:image/svg+xml;utf8,' +
+          encodeURIComponent(
+            "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1200'><rect width='100%' height='100%' fill='#0b0b0f'/><circle cx='400' cy='420' r='160' fill='#20222b'/><rect x='210' y='650' width='380' height='260' rx='28' fill='#20222b'/></svg>"
+          );
+        mainPhoto.addEventListener(
+          'error',
+          () => {
+            mainPhoto.src = _neutral;
+          },
+          { once: true }
+        );
+      }
       const nameEl = document.getElementById('name');
       const handleEl = document.getElementById('handle');
       const subInfo = document.getElementById('sub-info');
       const badgesEl = document.getElementById('badges');
       const flagsEl = document.getElementById('flags');
+      const passBtn = document.getElementById('pass-btn');
+      const likeBtn = document.getElementById('like-btn');
+      const passIndicator = document.getElementById('pass-indicator');
+      const likeIndicator = document.getElementById('like-indicator');
+      const emptyEl = document.getElementById('empty');
 
-      /* ===== SECTION: Data Loading ===== */
+      const editModal = document.getElementById('editModal');
+      const saveEdit = document.getElementById('saveEdit');
+      const cancelEdit = document.getElementById('cancelEdit');
+      const uidLine = document.getElementById('uidLine');
+      const displayNameInput = document.getElementById('displayName');
+      const usernameInput = document.getElementById('username');
+      const ageInput = document.getElementById('age');
+      const locationInput = document.getElementById('location');
+      const genderInput = document.getElementById('gender');
+      const hobbiesInput = document.getElementById('hobbies');
+      const interestsInput = document.getElementById('interests');
+      const bioInput = document.getElementById('bio');
+      const avatarInput = document.getElementById('avatar');
+      const uploadStatus = document.getElementById('uploadStatus');
+      const galleryEl = document.getElementById('gallery');
+      const previewTitle = document.getElementById('previewTitle');
+      const previewGallery = document.getElementById('previewGallery');
+      const reqDisplayName = document.getElementById('reqDisplayName');
+      const reqAge = document.getElementById('reqAge');
+      const reqLocation = document.getElementById('reqLocation');
+      const reqPhoto = document.getElementById('reqPhoto');
+
+      const inboxModal = document.getElementById('inboxModal');
+      const closeInbox = document.getElementById('closeInbox');
+      const inboxTabs = document.getElementById('inboxTabs');
+      const inboxList = document.getElementById('inboxList');
+
+      const chatModal = document.getElementById('chatModal');
+      const closeChat = document.getElementById('closeChat');
+      const chatTitle = document.getElementById('chatTitle');
+      const chatScroll = document.getElementById('chatScroll');
+      const chatInput = document.getElementById('chatInput');
+      const chatSend = document.getElementById('chatSend');
+
+      const filterModal = document.getElementById('filterModal');
+      const cancelFilter = document.getElementById('cancelFilter');
+      const applyFilter = document.getElementById('applyFilter');
+      const filterLocEl = document.getElementById('filterLocation');
+      const filterAgeMin = document.getElementById('filterAgeMin');
+      const filterAgeMax = document.getElementById('filterAgeMax');
+
+      const casualtiesBtn = document.getElementById('casualtiesBtn');
+      const casualtiesModal = document.getElementById('casualtiesModal');
+      const casualtiesPassword = document.getElementById('casualtiesPassword');
+      const casualtiesCheckBtn = document.getElementById('casualtiesCheckBtn');
+      const casualtiesUploadSection = document.getElementById('casualtiesUploadSection');
+      const casualtiesFile = document.getElementById('casualtiesFile');
+      const casualtiesCaption = document.getElementById('casualtiesCaption');
+      const casualtiesSubmit = document.getElementById('casualtiesSubmit');
+      const closeCasualties = document.getElementById('closeCasualties');
+      const casualtiesPwdSection = document.getElementById('casualtiesPwdSection');
+
+      /* ===== SECTION: State ===== */
       let me = null;
       let myDocCached = null;
       let allUsers = [];
       let matches = [];
       let currentIndex = 0;
+      let previewURLs = [];
+      let _profileNavGuard = false;
+      let activeChat = { chatId: null, partner: null, unsub: null };
+      let currentFilters = { location: '', min: null, max: null };
+      // Track viewed profiles in current session to avoid duplicate view writes
       let recordedViews = new Set();
+      let matchedUsers = []; // Store matched users to avoid duplication
+      // Track whether the profile is complete
       let profileComplete = false;
 
-      /* ===== Utility Functions ===== */
-      function showIndicator(type) {
-        document.getElementById('pass-indicator').style.opacity = type === 'pass' ? 1 : 0;
-        document.getElementById('like-indicator').style.opacity = type === 'like' ? 1 : 0;
+      // Check profile completeness using your existing validation logic
+      function checkProfileComplete(doc) {
+        try {
+          return validateBeforeSave(doc || myDocCached || {}, []).ok;
+        } catch {
+          return false;
+        }
       }
 
-      /* ===== Helper to enforce gating ===== */
+      // Enable or disable buttons based on profile completion
       function enforceProfileGate() {
-        profileComplete = validateBeforeSave(myDocCached || {}, []).ok;
-        const btns = ['pass-btn', 'like-btn', 'browseBtn'];
-        btns.forEach(id => {
+        profileComplete = checkProfileComplete(myDocCached);
+        ['pass-btn', 'like-btn', 'browseBtn'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.disabled = !profileComplete;
         });
         if (!profileComplete) {
+          // Optionally show a message and open the edit form
           const uploadStatus = document.getElementById('uploadStatus');
           if (uploadStatus) {
-            uploadStatus.innerHTML =
-              "<span class='prog'>Please complete your profile before browsing.</span>";
+            uploadStatus.innerHTML = "<span class='prog'>Please complete your profile before browsing.</span>";
           }
+          openEdit();
         }
       }
 
-      /* ===== Helper: Render Profile ===== */
+      /* ===== SECTION: Browse Matches wiring ===== */
+      (function () {
+        const browseBtn = document.getElementById('browseBtn');
+        if (!browseBtn) return;
+        browseBtn.addEventListener('click', async () => {
+          if (!profileComplete) {
+            alert('Please complete your profile before browsing.');
+            openEdit();
+            return;
+          }
+          try {
+            if (!me || !myDocCached) return;
+            // The `getMatchesForMe` function now ensures uniqueness
+            const list = await getMatchesForMe(me.uid);
+            matches = Array.isArray(list) && list.length ? list : [myDocCached];
+            currentIndex = 0;
+            renderProfile(matches[currentIndex] || null);
+            // open the inbox on matches tab so the user can see their matches list
+            await renderInbox('matches');
+          } catch (err) {
+            console.error('Browse Matches handler failed:', err);
+          }
+        });
+      })();
+
+      /* ===== SECTION: View Params ===== */
+      const _params = new URLSearchParams(location.search);
+      const viewUidParam = _params.get('uid');
+
+      /* Neutral placeholder */
+      const NEUTRAL_PHOTO =
+        'data:image/svg+xml;utf8,' +
+        encodeURIComponent(
+          `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1200'><rect width='100%' height='100%' fill='#0b0b0f'/><circle cx='400' cy='420' r='160' fill='#20222b'/><rect x='210' y='650' width='380' height='260' rx='28' fill='#20222b'/></svg>`
+        );
+
+      /* ===== SECTION: Required Markers ===== */
+      reqDisplayName.hidden = !REQUIRED.DISPLAY_NAME;
+      reqAge.hidden = !REQUIRED.AGE;
+      reqLocation.hidden = !REQUIRED.LOCATION;
+      reqPhoto.hidden = !REQUIRED.PHOTO;
+
+      /* ===== SECTION: Helper – UI Feedback ===== */
+      function showError(msg) {
+        uploadStatus.innerHTML = `<span class="err">${msg}</span>`;
+      }
+      function showOK(msg) {
+        uploadStatus.innerHTML = `<span class="ok">${msg}</span>`;
+      }
+
+      /* ===== SECTION: Helper – Renderers ===== */
+      function isMember(userDoc) {
+        return (userDoc?.membership?.tier || 'free') !== 'free';
+      }
+      function safePrimaryPhoto(p) {
+        const cand = p?.photoURL || (Array.isArray(p?.photos) && p.photos[0]) || '';
+        if (typeof cand !== 'string') return '';
+        if (/^https?:\/\//i.test(cand)) return cand;
+        if (cand.startsWith('data:image/')) return cand;
+        return '';
+      }
+      function renderBadges(badges = []) {
+        badgesEl.innerHTML = '';
+        (badges || []).forEach((url) => {
+          const img = document.createElement('img');
+          img.src = url;
+          img.alt = 'badge';
+          badgesEl.appendChild(img);
+        });
+      }
+      function renderFlagsList(flags = []) {
+        flagsEl.innerHTML = '';
+        const list = Array.isArray(flags) ? flags : [];
+        list.forEach((code) => {
+          const pill = document.createElement('span');
+          pill.className = 'flag-pill';
+          pill.textContent = flagLabel(code);
+          flagsEl.appendChild(pill);
+        });
+      }
+      function flagLabel(code) {
+        const map = {
+          anger_control: 'Anger',
+          controlling_behavior: 'Control',
+          financial_instability: 'Financial',
+          substance_risk: 'Substance',
+          accountability_low: 'Accountability',
+          harassment_persistence: 'Persistence',
+          attention_fail: 'Attention',
+          inconsistency: 'Inconsistent',
+        };
+        return map[code] || code;
+      }
+
+      // ===== New helper: record a view in Firestore =====
+      async function recordView(viewedUid) {
+        try {
+          if (!me || !viewedUid || viewedUid === me.uid) return;
+          if (recordedViews.has(viewedUid)) return;
+          recordedViews.add(viewedUid);
+          await addDoc(collection(db, 'views'), {
+            viewerUid: me.uid,
+            viewedUid,
+            createdAt: serverTimestamp(),
+          });
+        } catch (e) {
+          console.error('recordView failed:', e);
+        }
+      }
+
+      // ===== New helper: record a like and create match if reciprocal =====
+      async function recordLike(likedUid) {
+        try {
+          if (!me || !likedUid || likedUid === me.uid) return;
+          await addDoc(collection(db, 'likes'), {
+            fromUid: me.uid,
+            toUid: likedUid,
+            createdAt: serverTimestamp(),
+          });
+          // check reciprocal like
+          const recip = await getDocs(
+            query(
+              collection(db, 'likes'),
+              where('fromUid', '==', likedUid),
+              where('toUid', '==', me.uid)
+            )
+          );
+          let otherLiked = false;
+          recip.forEach(() => {
+            otherLiked = true;
+          });
+          if (otherLiked) {
+            // Check if a match document already exists for this pair
+            const matchQuery = query(
+              collection(db, 'matches'),
+              where('uids', 'in', [[me.uid, likedUid], [likedUid, me.uid]])
+            );
+            const existingMatch = await getDocs(matchQuery);
+            if (existingMatch.empty) {
+              await addDoc(collection(db, 'matches'), {
+                uids: [me.uid, likedUid],
+                createdAt: serverTimestamp(),
+              });
+            }
+          }
+        } catch (e) {
+          console.error('recordLike failed:', e);
+        }
+      }
+
       function renderProfile(p) {
         if (!p) {
-          document.getElementById('main-photo').src = NEUTRAL_PHOTO;
+          mainPhoto.src = NEUTRAL_PHOTO;
           nameEl.textContent = '';
           handleEl.textContent = '';
           subInfo.textContent = '';
           renderBadges([]);
           renderFlagsList([]);
-          document.getElementById('empty').style.display = 'flex';
+          emptyEl.style.display = 'flex';
           return;
         }
-        document.getElementById('empty').style.display = 'none';
+        emptyEl.style.display = 'none';
         const primary = safePrimaryPhoto(p) || NEUTRAL_PHOTO;
-        document.getElementById('main-photo').src = primary;
+        mainPhoto.src = primary;
         const name = p.displayName || 'Member';
         const age = typeof p.age === 'number' && p.age >= 0 ? `, ${p.age}` : '';
         nameEl.textContent = `${name}${age}`;
@@ -933,54 +1244,237 @@
         renderBadges(p.badges || []);
         const flags = Array.isArray(p.flags) ? p.flags : Array.isArray(p.quiz?.flags) ? p.quiz.flags.map((f) => f.code) : [];
         renderFlagsList(flags);
+
+        // record view now
         if (p.uid) recordView(p.uid);
       }
 
-      /* ===== Auth State and Data Load ===== */
-      onAuthStateChanged(auth, async (user) => {
-        if (!user) {
-          if (!window._profileNavGuard) {
-            window._profileNavGuard = true;
-            location.replace('./login.html');
-          }
-          return;
-        }
-        me = user;
-
-        // load user doc or create
-        myDocCached = await loadOrCreateUserDoc(me.uid, me);
-
-        // fill form
-        document.getElementById('displayName').value = myDocCached.displayName || '';
-        document.getElementById('username').value = myDocCached.username || '';
-        document.getElementById('gender').value = myDocCached.gender || '';
-        document.getElementById('hobbies').value = myDocCached.hobbies || '';
-        document.getElementById('interests').value = myDocCached.interests || '';
-        document.getElementById('bio').value = myDocCached.bio || '';
-        document.getElementById('age').value = myDocCached.age || '';
-        document.getElementById('location').value = myDocCached.location || '';
-        renderGallery(myDocCached.photos || []);
-
-        // update labels
-        document.getElementById('topLine').textContent = myDocCached.username ? `@${myDocCached.username}` : `UID: ${me.uid}`;
-        document.getElementById('uidLine').textContent = document.getElementById('topLine').textContent;
-
-        // load users
-        try {
-          const snap = await getDocs(collection(db, 'users'));
-          allUsers = [];
-          snap.forEach((d) => {
-            if (d.id !== me.uid) allUsers.push({ uid: d.id, ...d.data() });
+      function renderGallery(photos = []) {
+        galleryEl.innerHTML = '';
+        (photos || []).forEach((url, i) => {
+          const box = document.createElement('div');
+          box.className = 'thumb' + (i === 0 ? ' primary' : '');
+          const img = document.createElement('img');
+          img.src = url;
+          const lbl = document.createElement('div');
+          lbl.className = 'label-pill';
+          lbl.textContent = i === 0 ? 'Primary' : `Photo ${i + 1}`;
+          box.appendChild(img);
+          box.appendChild(lbl);
+          box.addEventListener('click', async () => {
+            try {
+              if (!me) return;
+              const uref = doc(db, 'users', me.uid);
+              const snap = await getDoc(uref);
+              const current = snap.data() || {};
+              let photosNow = Array.isArray(current.photos) ? [...current.photos] : [];
+              const idx = photosNow.indexOf(url);
+              if (idx > 0) {
+                photosNow.splice(idx, 1);
+                photosNow.unshift(url);
+              }
+              await updateProfile(me, { photoURL: url });
+              await setDoc(
+                uref,
+                { photoURL: url, photos: photosNow, updatedAt: serverTimestamp() },
+                { merge: true }
+              );
+              myDocCached = { ...(myDocCached || {}), photoURL: url, photos: photosNow };
+              renderGallery(photosNow);
+              if (!matches.length) renderProfile(myDocCached);
+              showOK('Primary photo updated.');
+            } catch (e) {
+              showError(`Could not set primary: ${e?.message || 'error'}`);
+            }
           });
-        } catch { allUsers = []; }
+          galleryEl.appendChild(box);
+        });
+      }
+      function clearPreviews() {
+        previewURLs.forEach((u) => URL.revokeObjectURL(u));
+        previewURLs = [];
+        previewGallery.innerHTML = '';
+        previewTitle.hidden = true;
+        previewGallery.hidden = true;
+      }
+      function renderPreviews(files) {
+        clearPreviews();
+        if (!files?.length) return;
+        previewTitle.hidden = false;
+        previewGallery.hidden = false;
+        [...files].forEach((f, i) => {
+          const url = URL.createObjectURL(f);
+          previewURLs.push(url);
+          const box = document.createElement('div');
+          box.className = 'thumb';
+          const img = document.createElement('img');
+          img.src = url;
+          const lbl = document.createElement('div');
+          lbl.className = 'label-pill';
+          lbl.textContent = `New ${i + 1}`;
+          box.appendChild(img);
+          box.appendChild(lbl);
+          previewGallery.appendChild(box);
+        });
+      }
 
-        matches = allUsers.length ? allUsers : [myDocCached];
-        currentIndex = 0;
-        renderProfile(matches[currentIndex] || null);
-        enforceProfileGate();
+      /* ===== SECTION: Validation ===== */
+      function validateBeforeSave(currentDoc, filesPending) {
+        const pending = (filesPending && filesPending.length) || 0;
+        const saved = Array.isArray(currentDoc?.photos) ? currentDoc.photos : [];
+        const hasPhoto = saved.length > 0 || pending > 0 || !!currentDoc?.photoURL;
+        if (REQUIRED.PHOTO && !hasPhoto)
+          return { ok: false, message: 'Add at least one photo before saving.', focus: 'photo' };
+        const loc = (locationInput.value || '').trim();
+        if (REQUIRED.LOCATION && !loc)
+          return { ok: false, message: 'Please enter your location before saving.', focus: 'location' };
+        const dn = (displayNameInput.value || '').trim();
+        if (REQUIRED.DISPLAY_NAME && !dn)
+          return { ok: false, message: 'Please enter your display name before saving.', focus: 'displayName' };
+        if (REQUIRED.AGE) {
+          const a = Number(ageInput.value);
+          if (!Number.isFinite(a) || a < 18 || a > 100) return { ok: false, message: 'Please enter a valid age (18-100).', focus: 'age' };
+        }
+        // Additional required fields: gender, hobbies, interests
+        const genderVal = (genderInput?.value || '').trim();
+        if (!genderVal) return { ok: false, message: 'Please select your gender.', focus: 'gender' };
+        const hobbiesVal = (hobbiesInput?.value || '').trim();
+        if (!hobbiesVal) return { ok: false, message: 'Please list your hobbies.', focus: 'hobbies' };
+        const interestsVal = (interestsInput?.value || '').trim();
+        if (!interestsVal) return { ok: false, message: 'Please list your interests.', focus: 'interests' };
+        return { ok: true };
+      }
+      function refreshSaveButtonState(currentDoc) {
+        const res = validateBeforeSave(currentDoc, avatarInput.files);
+        saveEdit.disabled = !res.ok;
+        if (!res.ok) uploadStatus.innerHTML = `<span class="prog">${res.message}</span>`;
+        else uploadStatus.textContent = '';
+      }
+      function focusInvalid(key) {
+        if (key === 'location') {
+          locationInput.classList.add('invalid');
+          locationInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          locationInput.focus();
+        }
+        if (key === 'displayName') {
+          displayNameInput.classList.add('invalid');
+          displayNameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          displayNameInput.focus();
+        }
+        if (key === 'age') {
+          ageInput.classList.add('invalid');
+          ageInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          ageInput.focus();
+        }
+        if (key === 'gender') {
+          genderInput.classList.add('invalid');
+          genderInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          genderInput.focus();
+        }
+        if (key === 'hobbies') {
+          hobbiesInput.classList.add('invalid');
+          hobbiesInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          hobbiesInput.focus();
+        }
+        if (key === 'interests') {
+          interestsInput.classList.add('invalid');
+          interestsInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          interestsInput.focus();
+        }
+        if (key === 'photo') {
+          avatarInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+      [displayNameInput, usernameInput, ageInput, locationInput, bioInput].forEach((el) =>
+        el?.addEventListener('input', () => refreshSaveButtonState(myDocCached))
+      );
+      genderInput?.addEventListener('input', () => refreshSaveButtonState(myDocCached));
+      hobbiesInput?.addEventListener('input', () => refreshSaveButtonState(myDocCached));
+      interestsInput?.addEventListener('input', () => refreshSaveButtonState(myDocCached));
+      avatarInput.addEventListener('change', (e) => {
+        renderPreviews(e.target.files);
+        refreshSaveButtonState(myDocCached);
       });
 
-      /* ===== Load or create user document ===== */
+      /* ===== SECTION: Swipe (Touch/Buttons) ===== */
+      function nextProfile() {
+        currentIndex++;
+        renderProfile(matches[currentIndex] || null);
+      }
+      function showIndicator(t) {
+        passIndicator.style.opacity = t === 'pass' ? 1 : 0;
+        likeIndicator.style.opacity = t === 'like' ? 1 : 0;
+      }
+      let startX = 0,
+        dx = 0,
+        dragging = false;
+      cardFrame.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        dragging = true;
+      });
+      cardFrame.addEventListener('touchmove', (e) => {
+        if (!dragging) return;
+        dx = e.touches[0].clientX - startX;
+        if (dx > 50) showIndicator('like');
+        else if (dx < -50) showIndicator('pass');
+        else showIndicator(null);
+      });
+      cardFrame.addEventListener('touchend', () => {
+        if (!dragging) return;
+        if (Math.abs(dx) > 100) {
+          if (dx > 0) {
+            // like swipe
+            const current = matches[currentIndex];
+            if (current && current.uid && me && current.uid !== me.uid) {
+              recordLike(current.uid);
+            }
+          }
+          nextProfile();
+        }
+        showIndicator(null);
+        dragging = false;
+        dx = 0;
+      });
+      passBtn.addEventListener('click', () => {
+        if (!profileComplete) {
+          alert('Please complete your profile before browsing.');
+          openEdit();
+          return;
+        }
+        showIndicator('pass');
+        setTimeout(() => {
+          showIndicator(null);
+          nextProfile();
+        }, 120);
+      });
+      likeBtn.addEventListener('click', () => {
+        if (!profileComplete) {
+          alert('Please complete your profile before browsing.');
+          openEdit();
+          return;
+        }
+        showIndicator('like');
+        const current = matches[currentIndex];
+        if (current && current.uid && me && current.uid !== me.uid) {
+          recordLike(current.uid);
+        }
+        setTimeout(() => {
+          showIndicator(null);
+          nextProfile();
+        }, 120);
+      });
+
+      // Clicking the big photo opens the modal profile w/ gallery
+      mainPhoto.addEventListener('click', () => {
+        try {
+          const p = Array.isArray(matches) ? matches[currentIndex] : null;
+          if (p) showPublicProfile(p);
+        } catch (e) {
+          console.error(e);
+        }
+      });
+
+      /* ===== SECTION: Data Layer (Load/Create/Save) ===== */
       async function loadOrCreateUserDoc(uid, userObj) {
         const uref = doc(db, 'users', uid);
         const snap = await getDoc(uref);
@@ -1008,142 +1502,214 @@
         }
         return snap.data();
       }
+      async function saveEdits() {
+        if (!me) return;
+        saveEdit.disabled = true;
+        uploadStatus.innerHTML = `<span class="prog">Saving...</span>`;
+        try {
+          const uref = doc(db, 'users', me.uid);
+          const pre = await getDoc(uref);
+          const currentDoc = pre.data() || {};
+          const files = Array.from(avatarInput.files || []);
+          const check = validateBeforeSave(currentDoc, files);
+          if (!check.ok) {
+            showError(check.message);
+            focusInvalid(check.focus);
+            saveEdit.disabled = false;
+            return;
+          }
+          let photos = Array.isArray(currentDoc.photos) ? [...currentDoc.photos] : [];
+          if (files.length) {
+            uploadStatus.innerHTML = `<span class="prog">Uploading ${files.length} photo(s)...</span>`;
+          }
+          for (const f of files) {
+            const safeName = (f.name || 'photo').replace(/[^\w.\-]+/g, '_');
+            const path = `avatars/${me.uid}/${Date.now()}_${safeName}`;
+            const r = sRef(storage, path);
+            await uploadBytes(r, f);
+            const url = await getDownloadURL(r);
+            photos.push(url);
+          }
+          let photoURL = currentDoc.photoURL || photos[0] || '';
+          if (!currentDoc.photoURL && photos[0]) {
+            try {
+              await updateProfile(me, { photoURL: photos[0] });
+            } catch {}
+            photoURL = photos[0];
+          }
+          const payload = {
+            displayName: (displayNameInput.value || '').trim(),
+            username: (usernameInput.value || '').trim(),
+            gender: (genderInput?.value || '').trim(),
+            hobbies: (hobbiesInput?.value || '').trim(),
+            interests: (interestsInput?.value || '').trim(),
+            bio: (bioInput.value || '').trim(),
+            age: ageInput.value ? Number(ageInput.value) : null,
+            location: (locationInput.value || '').trim(),
+            photoURL,
+            photos,
+            updatedAt: serverTimestamp(),
+          };
+          await setDoc(uref, payload, { merge: true });
+          myDocCached = { ...(myDocCached || {}), ...payload };
+          topLine.textContent = myDocCached.username ? `@${myDocCached.username}` : `UID: ${me.uid}`;
+          handleEl.textContent = myDocCached.username ? `@${myDocCached.username}` : '';
+          renderGallery(photos);
+          if (!matches.length) renderProfile(myDocCached);
+          avatarInput.value = '';
+          clearPreviews();
+          showOK('Profile saved.');
+          setTimeout(() => {
+            editModal.style.display = 'none';
+          }, 400);
+          enforceProfileGate();
+        } catch (e) {
+          showError(`Save failed: ${e?.message || 'error'}`);
+        } finally {
+          saveEdit.disabled = false;
+        }
+      }
+      saveEdit.addEventListener('click', saveEdits);
 
-      /* ===== getMatches helper ===== */
-      async function getMatchesForMe(uid) {
-        const qy = query(collection(db, 'matches'), where('uids', 'array-contains', uid));
-        const snap = await getDocs(qy);
-        const rows = [];
-        snap.forEach((d) => rows.push({ id: d.id, ...d.data() }));
-        rows.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
-        const partnerIds = [];
-        rows.forEach((d) => {
-          const arr = d.uids || [];
-          const other = arr.find((x) => x !== uid);
-          if (other) partnerIds.push(other);
-        });
+      function gateLikesViewsLocked(tab) {
+        // Always return false to ensure likes, views, matches are not gated
+        return false;
+      }
+      async function fetchUsersByIds(ids) {
+        if (!ids?.length) return [];
+        const uniqueIds = [...new Set(ids)];
         const out = [];
-        for (const uid of partnerIds) {
-          const snapUser = await getDoc(doc(db, 'users', uid));
-          if (snapUser.exists()) out.push({ uid, ...snapUser.data() });
+        for (const uid of uniqueIds) {
+          const snap = await getDoc(doc(db, 'users', uid));
+          if (snap.exists()) out.push({ uid, ...snap.data() });
         }
         return out;
       }
-
-      /* ===== Browse button ===== */
-      document.getElementById('browseBtn').addEventListener('click', async () => {
-        if (!profileComplete) {
-          alert('Please complete your profile before browsing.');
-          document.getElementById('editModal').style.display = 'flex';
-          return;
-        }
-        if (!me || !myDocCached) return;
-        const list = await getMatchesForMe(me.uid);
-        matches = Array.isArray(list) && list.length ? list : [myDocCached];
-        currentIndex = 0;
-        renderProfile(matches[currentIndex] || null);
-        // open matches inbox tab
-        await renderInbox('matches');
-      });
-
-      /* ===== Swipe and Like / Pass Buttons ===== */
-      document.getElementById('pass-btn').addEventListener('click', () => {
-        showIndicator('pass');
-        setTimeout(() => {
-          showIndicator(null);
-          currentIndex++;
-          renderProfile(matches[currentIndex] || null);
-        }, 120);
-      });
-      document.getElementById('like-btn').addEventListener('click', () => {
-        showIndicator('like');
-        const current = matches[currentIndex];
-        if (current && current.uid && me && current.uid !== me.uid) {
-          recordLike(current.uid);
-        }
-        setTimeout(() => {
-          showIndicator(null);
-          currentIndex++;
-          renderProfile(matches[currentIndex] || null);
-        }, 120);
-      });
-
-      /* ===== Editing and Saving ===== */
-      function validateBeforeSave(currentDoc, filesPending) {
-        const pending = (filesPending && filesPending.length) || 0;
-        const saved = Array.isArray(currentDoc?.photos) ? currentDoc.photos : [];
-        const hasPhoto = saved.length > 0 || pending > 0 || !!currentDoc?.photoURL;
-        if (REQUIRED.PHOTO && !hasPhoto)
-          return { ok: false, message: 'Add at least one photo before saving.', focus: 'photo' };
-        const loc = (locationInput.value || '').trim();
-        if (REQUIRED.LOCATION && !loc)
-          return { ok: false, message: 'Please enter your location before saving.', focus: 'location' };
-        const dn = (displayNameInput.value || '').trim();
-        if (REQUIRED.DISPLAY_NAME && !dn)
-          return { ok: false, message: 'Please enter your display name before saving.', focus: 'displayName' };
-        if (REQUIRED.AGE) {
-          const a = Number(ageInput.value);
-          if (!Number.isFinite(a) || a < 18 || a > 100) return { ok: false, message: 'Please enter a valid age (18-100).', focus: 'age' };
-        }
-        const genderVal = (genderInput?.value || '').trim();
-        if (!genderVal) return { ok: false, message: 'Please select your gender.', focus: 'gender' };
-        const hobbiesVal = (hobbiesInput?.value || '').trim();
-        if (!hobbiesVal) return { ok: false, message: 'Please list your hobbies.', focus: 'hobbies' };
-        const interestsVal = (interestsInput?.value || '').trim();
-        if (!interestsVal) return { ok: false, message: 'Please list your interests.', focus: 'interests' };
-        return { ok: true };
+      async function getLikesForMe(uid) {
+        const qy = query(collection(db, 'likes'), where('toUid', '==', uid));
+        const snap = await getDocs(qy);
+        const rows = [];
+        snap.forEach((d) => rows.push(d.data()));
+        rows.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+        const ids = rows.map((r) => r.fromUid).filter(Boolean);
+        return fetchUsersByIds(ids);
       }
-      function refreshSaveButtonState(currentDoc) {
-        const res = validateBeforeSave(currentDoc, avatarInput.files);
-        document.getElementById('saveEdit').disabled = !res.ok;
-        if (!res.ok) uploadStatus.innerHTML = `<span class="prog">${res.message}</span>`;
-        else uploadStatus.textContent = '';
+      async function getViewsForMe(uid) {
+        const qy = query(collection(db, 'views'), where('viewedUid', '==', uid));
+        const snap = await getDocs(qy);
+        const rows = [];
+        snap.forEach((d) => rows.push(d.data()));
+        rows.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+        const ids = rows.map((r) => r.viewerUid).filter(Boolean);
+        return fetchUsersByIds(ids);
       }
-      function focusInvalid(key) {
-        const elMap = {
-          location: locationInput,
-          displayName: displayNameInput,
-          age: ageInput,
-          gender: genderInput,
-          hobbies: hobbiesInput,
-          interests: interestsInput
-        };
-        const el = elMap[key];
-        if (el) {
-          el.classList.add('invalid');
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          el.focus();
-        }
-        if (key === 'photo') {
-          avatarInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+      async function getMatchesForMe(uid) {
+        const qy = query(collection(db, 'matches'), where('uids', 'array-contains', uid));
+        const snap = await getDocs(qy);
+        const partnerIds = new Set();
+        snap.forEach((d) => {
+          const arr = d.data().uids || [];
+          const other = arr.find((x) => x !== uid);
+          if (other) {
+            partnerIds.add(other);
+          }
+        });
+        const users = await fetchUsersByIds([...partnerIds]);
+        // Sort the users based on the creation date of the match document
+        const matchData = snap.docs.reduce((acc, doc) => {
+          acc[doc.data().uids.find(id => id !== uid)] = doc.data().createdAt?.toMillis() || 0;
+          return acc;
+        }, {});
+        users.sort((a, b) => matchData[b.uid] - matchData[a.uid]);
+        matchedUsers = users; // Store the unique matched users
+        return users;
       }
-      [displayNameInput, usernameInput, ageInput, locationInput, bioInput].forEach((el) =>
-        el?.addEventListener('input', () => refreshSaveButtonState(myDocCached))
-      );
-      genderInput?.addEventListener('input', () => refreshSaveButtonState(myDocCached));
-      hobbiesInput?.addEventListener('input', () => refreshSaveButtonState(myDocCached));
-      interestsInput?.addEventListener('input', () => refreshSaveButtonState(myDocCached));
-      avatarInput.addEventListener('change', (e) => {
-        renderPreviews(e.target.files);
-        refreshSaveButtonState(myDocCached);
+      async function getThreads(uid) {
+        const qy = query(collection(db, 'chats'), where('uids', 'array-contains', uid));
+        const snap = await getDocs(qy);
+        const rows = [];
+        snap.forEach((d) => rows.push({ id: d.id, ...d.data() }));
+        rows.sort((a, b) => (b.lastMessageAt?.toMillis?.() || 0) - (a.lastMessageAt?.toMillis?.() || 0));
+        const map = new Map();
+        rows.forEach((d) => {
+          const other = (d.uids || []).find((x) => x !== uid);
+          if (other && !map.has(other)) map.set(other, { chatId: d.id, ...d });
+        });
+        const users = await fetchUsersByIds([...map.keys()]);
+        return users.map((u) => ({ ...u, chatId: map.get(u.uid)?.chatId || null }));
+      }
+      /* ===== SECTION: Inbox UI ===== */
+      function userCard(u, { locked = false, trailing = null } = {}) {
+        const primary = safePrimaryPhoto(u);
+        const img = primary || NEUTRAL_PHOTO;
+        const name = u.displayName || 'Member';
+        const age = typeof u.age === 'number' ? `, ${u.age}` : '';
+        const loc = u.location || '';
+        const item = document.createElement('div');
+        item.className = 'inbox-item' + (locked ? ' locked' : '');
+        item.innerHTML = `
+          <div class="thumb">
+            <img class="${locked ? 'blur' : ''}" src="${img}" alt="">
+          </div>
+          <div class="inbox-meta">
+            <div class="inbox-name">${name}${age}</div>
+            <div class="inbox-sub">${loc}</div>
+            ${trailing || ''}
+          </div>
+        `;
+        if (locked) {
+          const overlay = document.createElement('div');
+          overlay.className = 'lock-badge';
+          overlay.innerHTML = `
+            <div>
+              <div>Members Only</div>
+              <button class="lock-msg" data-upg>Unlock</button>
+            </div>`;
+          item.appendChild(overlay);
+          overlay.querySelector('[data-upg]').addEventListener('click', () => upgradeBtn?.click());
+        }
+        return item;
+      }
+      const TAB_FUNCS = {
+        likes: getLikesForMe,
+        views: getViewsForMe,
+        matches: getMatchesForMe,
+        messages: getThreads,
+      };
+      function openInbox() {
+        inboxModal.style.display = 'flex';
+      }
+      function closeInboxModal() {
+        inboxModal.style.display = 'none';
+      }
+      inboxBtn?.addEventListener('click', () => {
+        openInbox();
+        renderInbox('likes');
       });
-
-      /* ===== Inbox UI ===== */
+      closeInbox?.addEventListener('click', closeInboxModal);
+      inboxModal?.addEventListener('click', (e) => {
+        if (e.target === inboxModal) closeInboxModal();
+      });
+      inboxTabs?.addEventListener('click', (e) => {
+        const b = e.target.closest('.inbox-tab');
+        if (!b) return;
+        renderInbox(b.dataset.tab);
+      });
       async function renderInbox(tab) {
-        // update tab highlight
-        const allTabs = inboxTabs.querySelectorAll('.inbox-tab');
-        allTabs.forEach((tabBtn) => tabBtn.classList.toggle('active', tabBtn.dataset.tab === tab));
+        if (!me || !myDocCached) return;
+        [...inboxTabs.querySelectorAll('.inbox-tab')].forEach((b) =>
+          b.classList.toggle('active', b.dataset.tab === tab)
+        );
         inboxList.innerHTML = "<div class='muted'>Loading...</div>";
         let items = [];
         try {
           items = await TAB_FUNCS[tab](me.uid);
-        } catch (err) {
-          console.error(err);
+        } catch (e) {
+          console.error(e);
           inboxList.innerHTML = "<div class='muted'>Could not load. Try again.</div>";
           return;
         }
-        // render items
+        const locked = gateLikesViewsLocked(tab);
         inboxList.innerHTML = '';
         if (!items.length) {
           inboxList.innerHTML = "<div class='muted'>Nothing here yet.</div>";
@@ -1157,15 +1723,173 @@
                           <button class="btn danger small" data-open="${u.uid}">View</button>
                         </div>`;
           }
-          const card = userCard(u, { locked: false, trailing });
-          card.querySelector('img')?.addEventListener('click', () => showPublicProfile(u));
-          card.querySelector(`[data-open="${u.uid}"]`)?.addEventListener('click', () => showPublicProfile(u));
-          card.querySelector(`[data-chat="${u.uid}"]`)?.addEventListener('click', () => openChatWith(u));
+          const card = userCard(u, { locked, trailing });
+          if (!locked) {
+            const showProfile = () => {
+              try {
+                showPublicProfile(u);
+              } catch (e) {
+                console.error(e);
+              }
+            };
+            card.querySelector('img')?.addEventListener('click', showProfile);
+            card.querySelector(`[data-open="${u.uid}"]`)?.addEventListener('click', showProfile);
+            card.querySelector(`[data-chat="${u.uid}"]`)?.addEventListener('click', () => openChatWith(u));
+          }
           inboxList.appendChild(card);
         }
       }
+      /* ===== SECTION: Chat ===== */
+      function openChatModal() {
+        chatModal.style.display = 'flex';
+      }
+      function closeChatModal() {
+        chatModal.style.display = 'none';
+        chatTitle.textContent = 'Chat';
+        chatScroll.innerHTML = '';
+        chatInput.value = '';
+        if (activeChat.unsub) {
+          activeChat.unsub();
+          activeChat.unsub = null;
+        }
+        activeChat = { chatId: null, partner: null, unsub: null };
+      }
+      closeChat?.addEventListener('click', closeChatModal);
+      chatModal?.addEventListener('click', (e) => {
+        if (e.target === chatModal) closeChatModal();
+      });
+      async function findOrCreateChat(uidA, uidB) {
+        const snap = await getDocs(query(collection(db, 'chats'), where('uids', 'array-contains', uidA)));
+        let existing = null;
+        snap.forEach((d) => {
+          const arr = d.data().uids || [];
+          // Ensure we don't accidentally create a new chat if one already exists for this pair
+          if (arr.length === 2 && arr.includes(uidA) && arr.includes(uidB)) {
+            existing = { id: d.id, ...d.data() };
+          }
+        });
+        if (existing) return existing.id;
+        const ref = await addDoc(collection(db, 'chats'), {
+          uids: [uidA, uidB],
+          createdAt: serverTimestamp(),
+          lastMessage: '',
+          lastMessageAt: serverTimestamp(),
+        });
+        return ref.id;
+      }
+      async function openChatWith(user) {
+        if (!me) return;
+        const chatId = await findOrCreateChat(me.uid, user.uid);
+        activeChat.chatId = chatId;
+        activeChat.partner = user;
+        chatTitle.textContent = user.displayName ? `Chat with ${user.displayName}` : 'Chat';
+        openChatModal();
+        const msgCol = collection(db, 'chats', chatId, 'messages');
+        activeChat.unsub = onSnapshot(query(msgCol, orderBy('createdAt', 'asc'), limit(200)), (snap) => {
+          chatScroll.innerHTML = '';
+          snap.forEach((d) => {
+            const m = d.data();
+            const div = document.createElement('div');
+            div.className = 'bubble ' + (m.from === me.uid ? 'me' : 'them');
+            div.textContent = m.text || '';
+            chatScroll.appendChild(div);
+          });
+          chatScroll.scrollTop = chatScroll.scrollHeight;
+        });
+      }
+      chatSend?.addEventListener('click', async () => {
+        const text = chatInput.value.trim();
+        if (!text || !activeChat.chatId || !me) return;
+        const msgCol = collection(db, 'chats', activeChat.chatId, 'messages');
+        await addDoc(msgCol, { from: me.uid, text, createdAt: serverTimestamp() });
+        await updateDoc(doc(db, 'chats', activeChat.chatId), {
+          lastMessage: text,
+          lastMessageAt: serverTimestamp(),
+        });
+        chatInput.value = '';
+      });
 
-      /* ===== Delete Account ===== */
+      /* ===== SECTION: Filter Modal Controls ===== */
+      function openFilter() {
+        filterModal.style.display = 'flex';
+      }
+      function closeFilter() {
+        filterModal.style.display = 'none';
+      }
+      filterBtn?.addEventListener('click', openFilter);
+      cancelFilter?.addEventListener('click', closeFilter);
+      filterModal?.addEventListener('click', (e) => {
+        if (e.target === filterModal) closeFilter();
+      });
+      const _norm = (s) => (s || '').toLowerCase().trim();
+      function _ageOK(u, min, max) {
+        const a = Number(u?.age);
+        if (min != null && (!Number.isFinite(a) || a < min)) return false;
+        if (max != null && (!Number.isFinite(a) || a > max)) return false;
+        return true;
+      }
+      function _locOK(u, loc) {
+        if (!loc) return true;
+        return _norm(u?.location).includes(_norm(loc));
+      }
+      function rebuildMatchesWithFilters() {
+        let list = Array.isArray(allUsers) ? allUsers.slice() : [];
+        list = list.filter((u) => _ageOK(u, currentFilters.min, currentFilters.max) && _locOK(u, currentFilters.location));
+        matches = list.length ? list : [myDocCached];
+        currentIndex = 0;
+        renderProfile(matches[currentIndex] || null);
+      }
+      applyFilter?.addEventListener('click', () => {
+        currentFilters.location = filterLocEl?.value.trim() || '';
+        currentFilters.min = filterAgeMin?.value ? Number(filterAgeMin.value) : null;
+        currentFilters.max = filterAgeMax?.value ? Number(filterAgeMax.value) : null;
+        rebuildMatchesWithFilters();
+        closeFilter();
+      });
+
+      /* ===== SECTION: Delete Account ===== */
+      async function deleteStorageFolder(prefix) {
+        try {
+          const folderRef = sRef(storage, prefix);
+          const list = await listAll(folderRef);
+          for (const f of list.items) {
+            await deleteObject(f);
+          }
+          for (const dir of list.prefixes) {
+            await deleteStorageFolder(dir.fullPath);
+          }
+        } catch (e) {
+          console.warn('Storage cleanup warning:', e.message);
+        }
+      }
+      async function deleteRelatedDocs(uid) {
+        const collectionsToClean = [
+          { name: 'likes', field: 'fromUid' },
+          { name: 'likes', field: 'toUid' },
+          { name: 'views', field: 'viewerUid' },
+          { name: 'views', field: 'viewedUid' },
+          { name: 'matches', field: 'uids', array: true },
+          { name: 'chats', field: 'uids', array: true },
+        ];
+        for (const cfg of collectionsToClean) {
+          try {
+            let qy;
+            if (cfg.array) {
+              qy = query(collection(db, cfg.name), where(cfg.field, 'array-contains', uid), limit(100));
+            } else {
+              qy = query(collection(db, cfg.name), where(cfg.field, '==', uid), limit(100));
+            }
+            const snap = await getDocs(qy);
+            const toDelete = [];
+            snap.forEach((d) => toDelete.push(d.ref));
+            for (const ref of toDelete) {
+              await deleteDoc(ref);
+            }
+          } catch (e) {
+            console.warn(`Cleanup ${cfg.name} skip:`, e.message);
+          }
+        }
+      }
       async function handleDeleteAccount() {
         if (!me) return;
         const confirmText = prompt('Type DELETE to permanently remove your account (this cannot be undone).');
@@ -1212,20 +1936,183 @@
           location.replace('./login.html');
         }
       }
-      document.getElementById('deleteBtn')?.addEventListener('click', handleDeleteAccount);
+      deleteBtn?.addEventListener('click', handleDeleteAccount);
 
-    </script>
+      /* ===== SECTION: Modal Controls (Edit/Inbox/Chat) ===== */
+      function openEdit() {
+        editModal.style.display = 'flex';
+      }
+      function closeEdit() {
+        editModal.style.display = 'none';
+      }
+      editBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openEdit();
+      });
+      cancelEdit.addEventListener('click', closeEdit);
+      editModal.addEventListener('click', (e) => {
+        if (e.target === editModal) closeEdit();
+      });
 
-    <!-- Optional auth status script -->
-    <script type="module">
-      import { waitForAuth } from '/js/firebase.js';
-      (async () => {
-        const user = await waitForAuth();
-        console.log('Current user:', user ? user.uid : null);
-        if (!user) {
-          console.warn('Not signed in — Storage rules will block uploads (403).');
+      /* ===== SECTION: Auth / Init ===== */
+      myProfileBtn.addEventListener('click', () => {
+        if (me) {
+          location.replace(`./profile.html?uid=${encodeURIComponent(me.uid)}`);
+        } else {
+          location.replace('./login.html');
         }
-      })();
-    </script>
-  </body>
-</html>
+      });
+      logoutBtn.addEventListener('click', async () => {
+        try {
+          await signOut(auth);
+          location.replace('./login.html');
+        } catch (e) {
+          console.error('Logout error:', e);
+        }
+      });
+      upgradeBtn.addEventListener('click', async () => {
+        if (!me) return;
+        try {
+          const resp = await fetch('/api/create-checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ uid: me.uid, email: me.email }),
+          });
+          if (!resp.ok) {
+            const text = await resp.text().catch(() => '');
+            console.error('Checkout HTTP error', resp.status, text);
+            alert('Unable to start checkout right now.');
+            return;
+          }
+          const data = await resp.json().catch(() => ({}));
+          if (data?.checkoutUrl) {
+            location.href = data.checkoutUrl;
+          } else {
+            console.error('Checkout JSON missing checkoutUrl', data);
+            alert('Checkout configuration error. Try again soon.');
+          }
+        } catch (e) {
+          console.error('Checkout fetch error', e);
+          alert('Network issue starting checkout. Please try again.');
+        }
+      });
+
+      /* ===== SECTION: Casualties Modal Events ===== */
+      casualtiesBtn?.addEventListener('click', () => {
+        if (casualtiesModal) casualtiesModal.style.display = 'flex';
+        if (casualtiesPassword) casualtiesPassword.value = '';
+        if (casualtiesUploadSection) casualtiesUploadSection.style.display = 'none';
+        if (casualtiesPwdSection) casualtiesPwdSection.style.display = 'block';
+      });
+      casualtiesCheckBtn?.addEventListener('click', () => {
+        if (!casualtiesPassword || !casualtiesPwdSection || !casualtiesUploadSection) return;
+        if (casualtiesPassword.value === 'SPARK') {
+          casualtiesPwdSection.style.display = 'none';
+          casualtiesUploadSection.style.display = 'block';
+        } else {
+          alert('Incorrect password.');
+        }
+      });
+      casualtiesSubmit?.addEventListener('click', async () => {
+        try {
+          const currentUser = typeof auth !== 'undefined' && auth.currentUser ? auth.currentUser : me;
+          if (!currentUser) {
+            alert('You must be logged in to upload.');
+            return;
+          }
+          const file = casualtiesFile?.files?.[0];
+          if (!file) {
+            alert('Please select an image.');
+            return;
+          }
+          const safeName = (file.name || 'photo').replace(/[^\w.\-]+/g, '_');
+          const path = `casualties/${currentUser.uid}/${Date.now()}_${safeName}`;
+          const ref = sRef(storage, path);
+          await uploadBytes(ref, file);
+          const url = await getDownloadURL(ref);
+          const caption = casualtiesCaption?.value || '';
+          await addDoc(collection(db, 'casualties'), {
+            uid: currentUser.uid,
+            url,
+            caption,
+            createdAt: serverTimestamp(),
+          });
+          if (casualtiesModal) casualtiesModal.style.display = 'none';
+          if (casualtiesFile) casualtiesFile.value = '';
+          if (casualtiesCaption) casualtiesCaption.value = '';
+          alert('Photo uploaded successfully.');
+        } catch (err) {
+          console.error(err);
+          alert('Upload failed: ' + (err?.message || err));
+        }
+      });
+      closeCasualties?.addEventListener('click', () => {
+        if (casualtiesModal) casualtiesModal.style.display = 'none';
+      });
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          if (!_profileNavGuard) {
+            _profileNavGuard = true;
+            location.replace('./login.html');
+          }
+          return;
+        }
+        me = user;
+        myDocCached = await loadOrCreateUserDoc(me.uid, me);
+        displayNameInput.value = myDocCached.displayName || '';
+        usernameInput.value = myDocCached.username || '';
+        genderInput.value = myDocCached.gender || '';
+        hobbiesInput.value = myDocCached.hobbies || '';
+        interestsInput.value = myDocCached.interests || '';
+        bioInput.value = myDocCached.bio || '';
+        ageInput.value = myDocCached.age || '';
+        locationInput.value = myDocCached.location || '';
+        renderGallery(myDocCached.photos || []);
+        topLine.textContent = myDocCached.username ? `@${myDocCached.username}` : `UID: ${me.uid}`;
+        uidLine.textContent = topLine.textContent;
+        if (viewUidParam) {
+          try {
+            if (viewUidParam === me.uid) {
+              matches = [myDocCached];
+              currentIndex = 0;
+              renderProfile(myDocCached);
+              refreshSaveButtonState(myDocCached);
+              await renderInbox('likes');
+              enforceProfileGate();
+              return;
+            } else {
+              const otherSnap = await getDoc(doc(db, 'users', viewUidParam));
+              if (otherSnap.exists()) {
+                const other = { uid: viewUidParam, ...otherSnap.data() };
+                matches = [other];
+                currentIndex = 0;
+                renderProfile(other);
+                refreshSaveButtonState(myDocCached);
+                await renderInbox('likes');
+                enforceProfileGate();
+                return;
+              }
+            }
+          } catch (e) {
+            console.warn('viewUidParam load failed:', e?.message);
+          }
+        }
+        try {
+          const snap = await getDocs(collection(db, 'users'));
+          allUsers = [];
+          snap.forEach((d) => {
+            if (d.id !== me.uid) allUsers.push({ uid: d.id, ...d.data() });
+          });
+        } catch {
+          allUsers = [];
+        }
+        matches = allUsers.length ? allUsers : [myDocCached];
+        currentIndex = 0;
+        renderProfile(matches[currentIndex] || null);
+        refreshSaveButtonState(myDocCached);
+        await renderInbox('likes');
+        enforceProfileGate();
+      });
+      /* ===== SECTION: Safety Harness ===== */
+      (function () {
+        try
