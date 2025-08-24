@@ -566,7 +566,7 @@
 
         <button class="btn secondary" id="logoutBtn" type="button">Logout</button>
         <button
-          class="btn ghost"
+          class "btn ghost"
           id="deleteBtn"
           type="button"
           title="Delete my account"
@@ -854,241 +854,21 @@
       const REQUIRED = { PHOTO: true, LOCATION: true, DISPLAY_NAME: true, AGE: true };
       const MEMBERSHIP = { requiredForViews: false, requiredForLikes: false };
 
-      /* ===== SECTION: Public Profile Modal ===== */
-      function showPublicProfile(user) {
-        const modal = document.createElement("div");
-        modal.style.position = "fixed";
-        modal.style.inset = "0";
-        modal.style.background = "rgba(0,0,0,0.65)";
-        modal.style.display = "flex";
-        modal.style.alignItems = "center";
-        modal.style.justifyContent = "center";
-        modal.style.zIndex = "100";
-
-        const card = document.createElement("div");
-        card.style.background = "var(--panel)";
-        card.style.color = "#fff";
-        card.style.padding = "1rem";
-        card.style.borderRadius = "10px";
-        card.style.maxWidth = "400px";
-        card.style.textAlign = "left";
-
-        const name = user.displayName || "Member";
-        const username = user.username ? `@${user.username}` : "";
-        const ageText = typeof user.age === "number" ? `${user.age} years old` : "";
-        const location = user.location || "";
-
-        // Prepare photos (primary first) and simple next/prev controls
-        const photosList = Array.isArray(user.photos) ? user.photos.slice() : [];
-        const fallbackPrimary = safePrimaryPhoto(user) || photosList[0] || NEUTRAL_PHOTO;
-        if (photosList.length === 0 || photosList[0] !== fallbackPrimary) photosList.unshift(fallbackPrimary);
-        let currentPhotoIndex = 0;
-
-        let photoHtml = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:.75rem;">
-          <button id="photoPrev" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer">&lt;</button>
-          <img id="modalPrimaryPhoto" src="${photosList[0]}" style="flex:1;max-height:360px;object-fit:cover;border-radius:8px;" alt="Profile photo">
-          <button id="photoNext" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer">&gt;</button>
-        </div>`;
-        if (photosList.length > 1) {
-          photoHtml += `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.75rem">`;
-          for (let i = 0; i < photosList.length; i++) {
-            const url = photosList[i];
-            const border = i === 0 ? '2px solid var(--red)' : '2px solid transparent';
-            photoHtml += `<img class="modal-photo-thumb" data-index="${i}" src="${encodeURI(url)}" style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:${border};cursor:pointer;" alt="Photo ${i + 1}">`;
-          }
-          photoHtml += `</div>`;
-        }
-
-        card.innerHTML = `
-          ${photoHtml}
-          <h2 style="margin-top:0;margin-bottom:0">${name}</h2>
-          ${username ? `<div style="font-size:.9rem;color:var(--muted);margin-bottom:.25rem">${username}</div>` : ""}
-          ${ageText || location ? `<div style="font-size:.9rem;color:var(--muted);margin-bottom:.25rem">${[ageText, location].filter(Boolean).join(' • ')}</div>` : ""}
-          <div style="text-align:center;margin-top:.5rem"><button class="btn small secondary" id="closeMinimalProfile">Close</button></div>
-        `;
-        modal.appendChild(card);
-        document.body.appendChild(modal);
-
-        modal.querySelector("#closeMinimalProfile").addEventListener("click", () => document.body.removeChild(modal));
-        modal.addEventListener("click", (ev) => {
-          if (ev.target === modal) document.body.removeChild(modal);
-        });
-
-        // Gallery interactions
-        try {
-          const modalPrimary = modal.querySelector('#modalPrimaryPhoto');
-          const thumbElems = modal.querySelectorAll('.modal-photo-thumb');
-          const highlight = (index) => {
-            thumbElems.forEach((t) => (t.style.border = '2px solid transparent'));
-            const currentThumb = modal.querySelector(`.modal-photo-thumb[data-index="${index}"]`);
-            if (currentThumb) currentThumb.style.border = '2px solid var(--red)';
-          };
-          thumbElems.forEach((imgThumb) => {
-            imgThumb.addEventListener('click', () => {
-              const idx = Number(imgThumb.dataset.index);
-              if (!Number.isNaN(idx)) {
-                currentPhotoIndex = idx;
-                modalPrimary.src = photosList[idx];
-                highlight(idx);
-              }
-            });
-          });
-          modal.querySelector('#photoPrev').addEventListener('click', () => {
-            if (photosList.length < 2) return;
-            currentPhotoIndex = (currentPhotoIndex - 1 + photosList.length) % photosList.length;
-            modalPrimary.src = photosList[currentPhotoIndex];
-            highlight(currentPhotoIndex);
-          });
-          modal.querySelector('#photoNext').addEventListener('click', () => {
-            if (photosList.length < 2) return;
-            currentPhotoIndex = (currentPhotoIndex + 1) % photosList.length;
-            modalPrimary.src = photosList[currentPhotoIndex];
-            highlight(currentPhotoIndex);
-          });
-        } catch (err) {
-          console.error(err);
-        }
-      }
-
-      /* ===== SECTION: DOM Refs ===== */
-      const topLine = document.getElementById('topLine');
-      const myProfileBtn = document.getElementById('myProfileBtn');
-      const editBtn = document.getElementById('editBtn');
-      const logoutBtn = document.getElementById('logoutBtn');
-      const upgradeBtn = document.getElementById('upgradeBtn');
-      const inboxBtn = document.getElementById('inboxBtn');
-      const deleteBtn = document.getElementById('deleteBtn');
-      const filterBtn = document.getElementById('filterBtn');
-
-      const cardFrame = document.getElementById('cardFrame');
-      const mainPhoto = document.getElementById('main-photo');
-      if (mainPhoto) {
-        const _neutral =
-          'data:image/svg+xml;utf8,' +
-          encodeURIComponent(
-            "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1200'><rect width='100%' height='100%' fill='#0b0b0f'/><circle cx='400' cy='420' r='160' fill='#20222b'/><rect x='210' y='650' width='380' height='260' rx='28' fill='#20222b'/></svg>"
-          );
-        mainPhoto.addEventListener(
-          'error',
-          () => {
-            mainPhoto.src = _neutral;
-          },
-          { once: true }
+      /* ===== Helper functions ===== */
+      function isProfileComplete(doc) {
+        if (!doc) return false;
+        const hasPhoto = doc.photoURL || (Array.isArray(doc.photos) && doc.photos.length > 0);
+        return (
+          hasPhoto &&
+          Boolean((doc.displayName || '').trim()) &&
+          Number.isFinite(doc.age) && doc.age >= 18 && doc.age <= 100 &&
+          Boolean((doc.location || '').trim()) &&
+          Boolean((doc.gender || '').trim()) &&
+          Boolean((doc.hobbies || '').trim()) &&
+          Boolean((doc.interests || '').trim())
         );
       }
-      const nameEl = document.getElementById('name');
-      const handleEl = document.getElementById('handle');
-      const subInfo = document.getElementById('sub-info');
-      const badgesEl = document.getElementById('badges');
-      const flagsEl = document.getElementById('flags');
-      const passBtn = document.getElementById('pass-btn');
-      const likeBtn = document.getElementById('like-btn');
-      const passIndicator = document.getElementById('pass-indicator');
-      const likeIndicator = document.getElementById('like-indicator');
-      const emptyEl = document.getElementById('empty');
 
-      const editModal = document.getElementById('editModal');
-      const saveEdit = document.getElementById('saveEdit');
-      const cancelEdit = document.getElementById('cancelEdit');
-      const uidLine = document.getElementById('uidLine');
-      const displayNameInput = document.getElementById('displayName');
-      const usernameInput = document.getElementById('username');
-      const ageInput = document.getElementById('age');
-      const locationInput = document.getElementById('location');
-      const genderInput = document.getElementById('gender');
-      const hobbiesInput = document.getElementById('hobbies');
-      const interestsInput = document.getElementById('interests');
-      const bioInput = document.getElementById('bio');
-      const avatarInput = document.getElementById('avatar');
-      const uploadStatus = document.getElementById('uploadStatus');
-      const galleryEl = document.getElementById('gallery');
-      const previewTitle = document.getElementById('previewTitle');
-      const previewGallery = document.getElementById('previewGallery');
-      const reqDisplayName = document.getElementById('reqDisplayName');
-      const reqAge = document.getElementById('reqAge');
-      const reqLocation = document.getElementById('reqLocation');
-      const reqPhoto = document.getElementById('reqPhoto');
-
-      const inboxModal = document.getElementById('inboxModal');
-      const closeInbox = document.getElementById('closeInbox');
-      const inboxTabs = document.getElementById('inboxTabs');
-      const inboxList = document.getElementById('inboxList');
-
-      const chatModal = document.getElementById('chatModal');
-      const closeChat = document.getElementById('closeChat');
-      const chatTitle = document.getElementById('chatTitle');
-      const chatScroll = document.getElementById('chatScroll');
-      const chatInput = document.getElementById('chatInput');
-      const chatSend = document.getElementById('chatSend');
-
-      const filterModal = document.getElementById('filterModal');
-      const cancelFilter = document.getElementById('cancelFilter');
-      const applyFilter = document.getElementById('applyFilter');
-      const filterLocEl = document.getElementById('filterLocation');
-      const filterAgeMin = document.getElementById('filterAgeMin');
-      const filterAgeMax = document.getElementById('filterAgeMax');
-
-      const casualtiesBtn = document.getElementById('casualtiesBtn');
-      const casualtiesModal = document.getElementById('casualtiesModal');
-      const casualtiesPassword = document.getElementById('casualtiesPassword');
-      const casualtiesCheckBtn = document.getElementById('casualtiesCheckBtn');
-      const casualtiesUploadSection = document.getElementById('casualtiesUploadSection');
-      const casualtiesFile = document.getElementById('casualtiesFile');
-      const casualtiesCaption = document.getElementById('casualtiesCaption');
-      const casualtiesSubmit = document.getElementById('casualtiesSubmit');
-      const closeCasualties = document.getElementById('closeCasualties');
-      const casualtiesPwdSection = document.getElementById('casualtiesPwdSection');
-
-      /* ===== SECTION: State ===== */
-      let me = null;
-      let myDocCached = null;
-      let allUsers = [];
-      let matches = [];
-      let currentIndex = 0;
-      let previewURLs = [];
-      let _profileNavGuard = false;
-      let activeChat = { chatId: null, partner: null, unsub: null };
-      let currentFilters = { location: '', min: null, max: null };
-      // Track viewed profiles in current session to avoid duplicate view writes
-      let recordedViews = new Set();
-
-      /* ===== SECTION: Browse Matches wiring ===== */
-      (function () {
-        const browseBtn = document.getElementById('browseBtn');
-        if (!browseBtn) return;
-        browseBtn.addEventListener('click', async () => {
-          try {
-            if (!me || !myDocCached) return;
-            const list = await getMatchesForMe(me.uid);
-            matches = Array.isArray(list) && list.length ? list : [myDocCached];
-            currentIndex = 0;
-            renderProfile(matches[currentIndex] || null);
-            // open the inbox on matches tab so the user can see their matches list
-            await renderInbox('matches');
-          } catch (err) {
-            console.error('Browse Matches handler failed:', err);
-          }
-        });
-      })();
-
-      /* ===== SECTION: View Params ===== */
-      const _params = new URLSearchParams(location.search);
-      const viewUidParam = _params.get('uid');
-
-      /* Neutral placeholder */
-      const NEUTRAL_PHOTO =
-        'data:image/svg+xml;utf8,' +
-        encodeURIComponent(
-          `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 1200'><rect width='100%' height='100%' fill='#0b0b0f'/><circle cx='400' cy='420' r='160' fill='#20222b'/><rect x='210' y='650' width='380' height='260' rx='28' fill='#20222b'/></svg>`
-        );
-
-      /* ===== SECTION: Required Markers ===== */
-      reqDisplayName.hidden = !REQUIRED.DISPLAY_NAME;
-      reqAge.hidden = !REQUIRED.AGE;
-      reqLocation.hidden = !REQUIRED.LOCATION;
-      reqPhoto.hidden = !REQUIRED.PHOTO;
-
-      /* ===== SECTION: Helper – UI Feedback ===== */
       function showError(msg) {
         uploadStatus.innerHTML = `<span class="err">${msg}</span>`;
       }
@@ -1096,10 +876,7 @@
         uploadStatus.innerHTML = `<span class="ok">${msg}</span>`;
       }
 
-      /* ===== SECTION: Helper – Renderers ===== */
-      function isMember(userDoc) {
-        return (userDoc?.membership?.tier || 'free') !== 'free';
-      }
+      /* ===== Helper – Renderers ===== */
       function safePrimaryPhoto(p) {
         const cand = p?.photoURL || (Array.isArray(p?.photos) && p.photos[0]) || '';
         if (typeof cand !== 'string') return '';
@@ -1141,6 +918,7 @@
       }
 
       // ===== New helper: record a view in Firestore =====
+      let recordedViews = new Set();
       async function recordView(viewedUid) {
         try {
           if (!me || !viewedUid || viewedUid === me.uid) return;
@@ -1225,7 +1003,6 @@
         renderBadges(p.badges || []);
         const flags = Array.isArray(p.flags) ? p.flags : Array.isArray(p.quiz?.flags) ? p.quiz.flags.map((f) => f.code) : [];
         renderFlagsList(flags);
-
         // record view now
         if (p.uid) recordView(p.uid);
       }
@@ -1404,6 +1181,7 @@
         if (!dragging) return;
         if (Math.abs(dx) > 100) {
           if (dx > 0) {
+            // like swipe
             const current = matches[currentIndex];
             if (current && current.uid && me && current.uid !== me.uid) {
               recordLike(current.uid);
@@ -1463,7 +1241,7 @@
             location: '',
             badges: [],
             flags: [],
-            /* membership removed to match Firestore rule on create */
+            // membership intentionally omitted to satisfy Firestore rule
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
           };
@@ -1568,8 +1346,16 @@
         const rows = [];
         snap.forEach((d) => rows.push(d.data()));
         rows.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
-        const ids = rows.map((r) => r.viewerUid).filter(Boolean);
-        return fetchUsersByIds(ids);
+        // Unique viewer IDs
+        const unique = new Set();
+        const uniqueIds = [];
+        for (const r of rows) {
+          if (r.viewerUid && !unique.has(r.viewerUid)) {
+            unique.add(r.viewerUid);
+            uniqueIds.push(r.viewerUid);
+          }
+        }
+        return fetchUsersByIds(uniqueIds);
       }
       async function getMatchesForMe(uid) {
         const qy = query(collection(db, 'matches'), where('uids', 'array-contains', uid));
@@ -1599,6 +1385,7 @@
         const users = await fetchUsersByIds([...map.keys()]);
         return users.map((u) => ({ ...u, chatId: map.get(u.uid)?.chatId || null }));
       }
+
       /* ===== SECTION: Inbox UI ===== */
       function userCard(u, { locked = false, trailing = null } = {}) {
         const primary = safePrimaryPhoto(u);
@@ -1759,7 +1546,7 @@
         const text = chatInput.value.trim();
         if (!text || !activeChat.chatId || !me) return;
         const msgCol = collection(db, 'chats', activeChat.chatId, 'messages');
-        // EDIT: include uid to satisfy Firestore rule (uid == request.auth.uid)
+        // Include uid to satisfy Firestore rule (uid == request.auth.uid)
         await addDoc(msgCol, { uid: me.uid, from: me.uid, text, createdAt: serverTimestamp() });
         await updateDoc(doc(db, 'chats', activeChat.chatId), {
           lastMessage: text,
@@ -2029,6 +1816,16 @@
         renderGallery(myDocCached.photos || []);
         topLine.textContent = myDocCached.username ? `@${myDocCached.username}` : `UID: ${me.uid}`;
         uidLine.textContent = topLine.textContent;
+
+        // Force user to complete profile before browsing
+        if (!isProfileComplete(myDocCached)) {
+          editModal.style.display = 'flex';
+          matches = [];
+          renderProfile(null);
+          refreshSaveButtonState(myDocCached);
+          return;
+        }
+
         if (viewUidParam) {
           try {
             if (viewUidParam === me.uid) {
