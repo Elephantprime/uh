@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <!-- ===== SECTION: Head / Meta ===== -->
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Unhinged - Profile</title>
 
@@ -593,7 +592,7 @@
           <input id="casualtiesCaption" type="text" placeholder="Caption" />
           <button class="btn" id="casualtiesSubmit" type="button">Upload</button>
         </div>
-        <button class="btn secondary" id="closeCasualties" type="button">
+        <button class "btn secondary" id="closeCasualties" type="button">
           Close
         </button>
       </div>
@@ -608,7 +607,7 @@
           <h2 id="name"></h2>
           <div class="handle" id="handle"></div>
           <div class="sub" id="sub-info"></div>
-          <div class="badges" id="badges"></div>
+          <div class="badges" id "badges"></div>
           <div class="flags" id="flags"></div>
         </div>
         <div class="indicator pass" id="pass-indicator">PASS</div>
@@ -688,7 +687,7 @@
           </div>
           <div>
             <label for="interests">Interests</label>
-            <input id="interests" type="text" placeholder="e.g., live music, travel" />
+            <input id="interests" type="text" placeholder "e.g., live music, travel" />
           </div>
         </div>
 
@@ -774,7 +773,7 @@
         <div class="chat-scroll" id="chatScroll"></div>
         <div class="chat-send">
           <input id="chatInput" type="text" placeholder="Type a message..." />
-          <button class="btn" id="chatSend" type="button">Send</button>
+          <button class="btn" id "chatSend" type="button">Send</button>
         </div>
       </div>
     </div>
@@ -905,7 +904,7 @@
           ${photoHtml}
           <h2 style="margin-top:0;margin-bottom:0">${name}</h2>
           ${username ? `<div style="font-size:.9rem;color:var(--muted);margin-bottom:.25rem">${username}</div>` : ""}
-          ${ageText || location ? `<div style="font-size:.9rem;color:var(--muted);margin-bottom:.25rem">${[ageText, location].filter(Boolean).join(' â€¢ ')}</div>` : ""}
+          ${ageText || location ? `<div style="font-size:.9rem;color:var(--muted);margin-bottom:.25rem">${[ageText, location].filter(Boolean).join(' • ')}</div>` : ""}
           <div style="text-align:center;margin-top:.5rem"><button class="btn small secondary" id="closeMinimalProfile">Close</button></div>
         `;
         modal.appendChild(card);
@@ -1051,6 +1050,8 @@
       let _profileNavGuard = false;
       let activeChat = { chatId: null, partner: null, unsub: null };
       let currentFilters = { location: '', min: null, max: null };
+      // Track viewed profiles in current session to avoid duplicate view writes
+      let recordedViews = new Set();
 
       /* ===== SECTION: Browse Matches wiring ===== */
       (function () {
@@ -1088,7 +1089,7 @@
       reqLocation.hidden = !REQUIRED.LOCATION;
       reqPhoto.hidden = !REQUIRED.PHOTO;
 
-      /* ===== SECTION: Helper â€“ UI Feedback ===== */
+      /* ===== SECTION: Helper – UI Feedback ===== */
       function showError(msg) {
         uploadStatus.innerHTML = `<span class="err">${msg}</span>`;
       }
@@ -1096,7 +1097,7 @@
         uploadStatus.innerHTML = `<span class="ok">${msg}</span>`;
       }
 
-      /* ===== SECTION: Helper â€“ Renderers ===== */
+      /* ===== SECTION: Helper – Renderers ===== */
       function isMember(userDoc) {
         return (userDoc?.membership?.tier || 'free') !== 'free';
       }
@@ -1139,6 +1140,66 @@
         };
         return map[code] || code;
       }
+
+      // ===== New helper: record a view in Firestore =====
+      async function recordView(viewedUid) {
+        try {
+          if (!me || !viewedUid || viewedUid === me.uid) return;
+          if (recordedViews.has(viewedUid)) return;
+          recordedViews.add(viewedUid);
+          await addDoc(collection(db, 'views'), {
+            viewerUid: me.uid,
+            viewedUid,
+            createdAt: serverTimestamp(),
+          });
+        } catch (e) {
+          console.error('recordView failed:', e);
+        }
+      }
+
+      // ===== New helper: record a like and create match if reciprocal =====
+      async function recordLike(likedUid) {
+        try {
+          if (!me || !likedUid || likedUid === me.uid) return;
+          await addDoc(collection(db, 'likes'), {
+            fromUid: me.uid,
+            toUid: likedUid,
+            createdAt: serverTimestamp(),
+          });
+          // check reciprocal like
+          const recip = await getDocs(
+            query(
+              collection(db, 'likes'),
+              where('fromUid', '==', likedUid),
+              where('toUid', '==', me.uid)
+            )
+          );
+          let otherLiked = false;
+          recip.forEach(() => {
+            otherLiked = true;
+          });
+          if (otherLiked) {
+            // check if match already exists
+            let exists = false;
+            const mine = await getDocs(
+              query(collection(db, 'matches'), where('uids', 'array-contains', me.uid))
+            );
+            mine.forEach((d) => {
+              const arr = d.data().uids || [];
+              if (arr.includes(likedUid)) exists = true;
+            });
+            if (!exists) {
+              await addDoc(collection(db, 'matches'), {
+                uids: [me.uid, likedUid],
+                createdAt: serverTimestamp(),
+              });
+            }
+          }
+        } catch (e) {
+          console.error('recordLike failed:', e);
+        }
+      }
+
       function renderProfile(p) {
         if (!p) {
           mainPhoto.src = NEUTRAL_PHOTO;
@@ -1159,13 +1220,17 @@
         handleEl.textContent = p.username ? `@${p.username}` : '';
         const hobbyRaw = (p.hobbies || '').trim();
         const interestRaw = (p.interests || '').trim();
-        const hobbyHint = hobbyRaw ? ` â€¢ ${hobbyRaw.slice(0, 20)}${hobbyRaw.length > 20 ? '...' : ''}` : '';
-        const interestHint = interestRaw ? ` â€¢ ${interestRaw.slice(0, 20)}${interestRaw.length > 20 ? '...' : ''}` : '';
+        const hobbyHint = hobbyRaw ? ` • ${hobbyRaw.slice(0, 20)}${hobbyRaw.length > 20 ? '...' : ''}` : '';
+        const interestHint = interestRaw ? ` • ${interestRaw.slice(0, 20)}${interestRaw.length > 20 ? '...' : ''}` : '';
         subInfo.textContent = (p.location || '') + hobbyHint + interestHint;
         renderBadges(p.badges || []);
         const flags = Array.isArray(p.flags) ? p.flags : Array.isArray(p.quiz?.flags) ? p.quiz.flags.map((f) => f.code) : [];
         renderFlagsList(flags);
+
+        // record view now
+        if (p.uid) recordView(p.uid);
       }
+
       function renderGallery(photos = []) {
         galleryEl.innerHTML = '';
         (photos || []).forEach((url, i) => {
@@ -1316,7 +1381,16 @@
       });
       cardFrame.addEventListener('touchend', () => {
         if (!dragging) return;
-        if (Math.abs(dx) > 100) nextProfile();
+        if (Math.abs(dx) > 100) {
+          if (dx > 0) {
+            // like swipe
+            const current = matches[currentIndex];
+            if (current && current.uid && me && current.uid !== me.uid) {
+              recordLike(current.uid);
+            }
+          }
+          nextProfile();
+        }
         showIndicator(null);
         dragging = false;
         dx = 0;
@@ -1330,6 +1404,10 @@
       });
       likeBtn.addEventListener('click', () => {
         showIndicator('like');
+        const current = matches[currentIndex];
+        if (current && current.uid && me && current.uid !== me.uid) {
+          recordLike(current.uid);
+        }
         setTimeout(() => {
           showIndicator(null);
           nextProfile();
@@ -2032,6 +2110,10 @@
           bind($('like-btn'), 'click', () => {
             try {
               showIndicator('like');
+              const current = Array.isArray(matches) ? matches[currentIndex] : null;
+              if (current && current.uid && me && current.uid !== me.uid) {
+                recordLike(current.uid);
+              }
               setTimeout(() => {
                 showIndicator(null);
                 nextProfile();
@@ -2064,9 +2146,9 @@
         const user = await waitForAuth();
         console.log('Current user:', user ? user.uid : null);
         if (!user) {
-          console.warn('Not signed in â€” Storage rules will block uploads (403).');
+          console.warn('Not signed in — Storage rules will block uploads (403).');
         }
       })();
     </script>
   </body>
-            </html>
+</html>
