@@ -2174,4 +2174,26 @@
               // Show a public profile from a URL parameter
               const docSnap = await getDoc(doc(db, 'users', viewUidParam));
               if (docSnap.exists()) {
-                const publicProfile = { uid: viewUidParam, ...docSnap.data()
+                const publicProfile = { uid: viewUidParam, ...docSnap.data() };
+                renderProfile(publicProfile);
+              }
+            } else {
+              // Load users for swiping
+              await loadMyMatches();
+              await loadAllUsers();
+              renderFilteredMatches();
+            }
+
+          } catch (e) {
+            console.error('Initialization error:', e);
+            if (!profileComplete) {
+              enforceProfileGate();
+            }
+          }
+        } else {
+          location.replace('./login.html');
+        }
+      });
+    </script>
+  </body>
+</html>
