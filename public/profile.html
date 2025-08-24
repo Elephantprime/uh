@@ -592,7 +592,7 @@
           <input id="casualtiesCaption" type="text" placeholder="Caption" />
           <button class="btn" id="casualtiesSubmit" type="button">Upload</button>
         </div>
-        <button class "btn secondary" id="closeCasualties" type="button">
+        <button class="btn secondary" id="closeCasualties" type="button">
           Close
         </button>
       </div>
@@ -607,7 +607,7 @@
           <h2 id="name"></h2>
           <div class="handle" id="handle"></div>
           <div class="sub" id="sub-info"></div>
-          <div class="badges" id "badges"></div>
+          <div class="badges" id="badges"></div>
           <div class="flags" id="flags"></div>
         </div>
         <div class="indicator pass" id="pass-indicator">PASS</div>
@@ -687,7 +687,7 @@
           </div>
           <div>
             <label for="interests">Interests</label>
-            <input id="interests" type="text" placeholder "e.g., live music, travel" />
+            <input id="interests" type="text" placeholder="e.g., live music, travel" />
           </div>
         </div>
 
@@ -773,7 +773,7 @@
         <div class="chat-scroll" id="chatScroll"></div>
         <div class="chat-send">
           <input id="chatInput" type="text" placeholder="Type a message..." />
-          <button class="btn" id "chatSend" type="button">Send</button>
+          <button class="btn" id="chatSend" type="button">Send</button>
         </div>
       </div>
     </div>
@@ -850,7 +850,7 @@
       });
 
       /* ===== SECTION: Config (Requirements & Membership) ===== */
-      // Require photo, location, display name, and age to create a profile
+      // Updated: Require photo, location, display name, and age
       const REQUIRED = { PHOTO: true, LOCATION: true, DISPLAY_NAME: true, AGE: true };
       const MEMBERSHIP = { requiredForViews: false, requiredForLikes: false };
 
@@ -1317,7 +1317,7 @@
           const a = Number(ageInput.value);
           if (!Number.isFinite(a) || a < 18 || a > 100) return { ok: false, message: 'Please enter a valid age (18-100).', focus: 'age' };
         }
-        // require gender, hobbies, and interests to be filled
+        // Additional required fields: gender, hobbies, interests
         const genderVal = (genderInput?.value || '').trim();
         if (!genderVal) return { ok: false, message: 'Please select your gender.', focus: 'gender' };
         const hobbiesVal = (hobbiesInput?.value || '').trim();
@@ -1503,7 +1503,7 @@
             photos.push(url);
           }
           let photoURL = currentDoc.photoURL || photos[0] || '';
-          if (!currentDoc.photoURL and photos[0]) {
+          if (!currentDoc.photoURL && photos[0]) {
             try {
               await updateProfile(me, { photoURL: photos[0] });
             } catch {}
@@ -1543,7 +1543,7 @@
       saveEdit.addEventListener('click', saveEdits);
 
       function gateLikesViewsLocked(tab) {
-        // Always return false to ensure all tabs (likes, views, matches, messages) are never gated
+        // Always return false to ensure likes, views, matches are not gated
         return false;
       }
       async function fetchUsersByIds(ids) {
@@ -1784,8 +1784,8 @@
       const _norm = (s) => (s || '').toLowerCase().trim();
       function _ageOK(u, min, max) {
         const a = Number(u?.age);
-        if (min != null and (!Number.isFinite(a) || a < min)) return false;
-        if (max != null and (!Number.isFinite(a) || a > max)) return false;
+        if (min != null && (!Number.isFinite(a) || a < min)) return false;
+        if (max != null && (!Number.isFinite(a) || a > max)) return false;
         return true;
       }
       function _locOK(u, loc) {
@@ -1857,7 +1857,7 @@
         try {
           const lastSignIn = me.metadata?.lastSignInTime ? new Date(me.metadata.lastSignInTime).getTime() : 0;
           const needsReauth = Date.now() - lastSignIn > 5 * 60 * 1000;
-          if (needsReauth and me.providerData.some((p) => p.providerId === 'password')) {
+          if (needsReauth && me.providerData.some((p) => p.providerId === 'password')) {
             const email = me.email;
             const pwd = prompt('Re-enter your password to confirm delete:');
             if (!pwd) return alert('Deletion cancelled.');
@@ -1956,6 +1956,7 @@
           alert('Network issue starting checkout. Please try again.');
         }
       });
+
       /* ===== SECTION: Casualties Modal Events ===== */
       casualtiesBtn?.addEventListener('click', () => {
         if (casualtiesModal) casualtiesModal.style.display = 'flex';
@@ -2074,7 +2075,7 @@
         try {
           const $ = (id) => document.getElementById(id);
           const bind = (el, type, fn) => {
-            if (el and !el.dataset.bound) {
+            if (el && !el.dataset.bound) {
               el.addEventListener(type, fn);
               el.dataset.bound = '1';
             }
@@ -2088,10 +2089,10 @@
           });
           bind($('browseBtn'), 'click', () => {
             try {
-              if (!me or !myDocCached) return;
+              if (!me || !myDocCached) return;
               getMatchesForMe(me.uid)
                 .then((list) => {
-                  matches = Array.isArray(list) and list.length ? list : [myDocCached];
+                  matches = Array.isArray(list) && list.length ? list : [myDocCached];
                   currentIndex = 0;
                   renderProfile(matches[currentIndex] || null);
                   renderInbox('matches');
@@ -2133,7 +2134,7 @@
             try {
               showIndicator('like');
               const current = Array.isArray(matches) ? matches[currentIndex] : null;
-              if (current and current.uid and me and current.uid !== me.uid) {
+              if (current && current.uid && me && current.uid !== me.uid) {
                 recordLike(current.uid);
               }
               setTimeout(() => {
@@ -2144,9 +2145,9 @@
               console.error(e);
             }
           });
-          const mainPhoto = document.getElementById('main-photo');
-          if (mainPhoto and !mainPhoto.dataset.bound) {
-            mainPhoto.addEventListener('click', () => {
+          const mainPhotoBound = document.getElementById('main-photo');
+          if (mainPhotoBound && !mainPhotoBound.dataset.bound) {
+            mainPhotoBound.addEventListener('click', () => {
               try {
                 const p = Array.isArray(matches) ? matches[currentIndex] : null;
                 if (p) showPublicProfile(p);
@@ -2154,7 +2155,7 @@
                 console.error(e);
               }
             });
-            mainPhoto.dataset.bound = '1';
+            mainPhotoBound.dataset.bound = '1';
           }
         } catch (err) {
           console.error('Safety harness failed:', err);
