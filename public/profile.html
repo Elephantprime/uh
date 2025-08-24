@@ -850,8 +850,8 @@
       });
 
       /* ===== SECTION: Config (Requirements & Membership) ===== */
-      // Relax required fields and remove likes/views gating so users can browse freely
-      const REQUIRED = { PHOTO: false, LOCATION: false, DISPLAY_NAME: false, AGE: false };
+      // Require photo, location, display name, and age to create a profile
+      const REQUIRED = { PHOTO: true, LOCATION: true, DISPLAY_NAME: true, AGE: true };
       const MEMBERSHIP = { requiredForViews: false, requiredForLikes: false };
 
       /* ===== SECTION: Public Profile Modal ===== */
@@ -1317,6 +1317,13 @@
           const a = Number(ageInput.value);
           if (!Number.isFinite(a) || a < 18 || a > 100) return { ok: false, message: 'Please enter a valid age (18-100).', focus: 'age' };
         }
+        // require gender, hobbies, and interests to be filled
+        const genderVal = (genderInput?.value || '').trim();
+        if (!genderVal) return { ok: false, message: 'Please select your gender.', focus: 'gender' };
+        const hobbiesVal = (hobbiesInput?.value || '').trim();
+        if (!hobbiesVal) return { ok: false, message: 'Please list your hobbies.', focus: 'hobbies' };
+        const interestsVal = (interestsInput?.value || '').trim();
+        if (!interestsVal) return { ok: false, message: 'Please list your interests.', focus: 'interests' };
         return { ok: true };
       }
       function refreshSaveButtonState(currentDoc) {
@@ -1340,6 +1347,21 @@
           ageInput.classList.add('invalid');
           ageInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
           ageInput.focus();
+        }
+        if (key === 'gender') {
+          genderInput.classList.add('invalid');
+          genderInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          genderInput.focus();
+        }
+        if (key === 'hobbies') {
+          hobbiesInput.classList.add('invalid');
+          hobbiesInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          hobbiesInput.focus();
+        }
+        if (key === 'interests') {
+          interestsInput.classList.add('invalid');
+          interestsInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          interestsInput.focus();
         }
         if (key === 'photo') {
           avatarInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1481,7 +1503,7 @@
             photos.push(url);
           }
           let photoURL = currentDoc.photoURL || photos[0] || '';
-          if (!currentDoc.photoURL && photos[0]) {
+          if (!currentDoc.photoURL and photos[0]) {
             try {
               await updateProfile(me, { photoURL: photos[0] });
             } catch {}
@@ -1521,7 +1543,7 @@
       saveEdit.addEventListener('click', saveEdits);
 
       function gateLikesViewsLocked(tab) {
-        // Always return false to ensure likes and views are never gated by membership
+        // Always return false to ensure all tabs (likes, views, matches, messages) are never gated
         return false;
       }
       async function fetchUsersByIds(ids) {
@@ -1762,8 +1784,8 @@
       const _norm = (s) => (s || '').toLowerCase().trim();
       function _ageOK(u, min, max) {
         const a = Number(u?.age);
-        if (min != null && (!Number.isFinite(a) || a < min)) return false;
-        if (max != null && (!Number.isFinite(a) || a > max)) return false;
+        if (min != null and (!Number.isFinite(a) || a < min)) return false;
+        if (max != null and (!Number.isFinite(a) || a > max)) return false;
         return true;
       }
       function _locOK(u, loc) {
@@ -1835,7 +1857,7 @@
         try {
           const lastSignIn = me.metadata?.lastSignInTime ? new Date(me.metadata.lastSignInTime).getTime() : 0;
           const needsReauth = Date.now() - lastSignIn > 5 * 60 * 1000;
-          if (needsReauth && me.providerData.some((p) => p.providerId === 'password')) {
+          if (needsReauth and me.providerData.some((p) => p.providerId === 'password')) {
             const email = me.email;
             const pwd = prompt('Re-enter your password to confirm delete:');
             if (!pwd) return alert('Deletion cancelled.');
@@ -2052,7 +2074,7 @@
         try {
           const $ = (id) => document.getElementById(id);
           const bind = (el, type, fn) => {
-            if (el && !el.dataset.bound) {
+            if (el and !el.dataset.bound) {
               el.addEventListener(type, fn);
               el.dataset.bound = '1';
             }
@@ -2066,10 +2088,10 @@
           });
           bind($('browseBtn'), 'click', () => {
             try {
-              if (!me || !myDocCached) return;
+              if (!me or !myDocCached) return;
               getMatchesForMe(me.uid)
                 .then((list) => {
-                  matches = Array.isArray(list) && list.length ? list : [myDocCached];
+                  matches = Array.isArray(list) and list.length ? list : [myDocCached];
                   currentIndex = 0;
                   renderProfile(matches[currentIndex] || null);
                   renderInbox('matches');
@@ -2111,7 +2133,7 @@
             try {
               showIndicator('like');
               const current = Array.isArray(matches) ? matches[currentIndex] : null;
-              if (current && current.uid && me && current.uid !== me.uid) {
+              if (current and current.uid and me and current.uid !== me.uid) {
                 recordLike(current.uid);
               }
               setTimeout(() => {
@@ -2123,7 +2145,7 @@
             }
           });
           const mainPhoto = document.getElementById('main-photo');
-          if (mainPhoto && !mainPhoto.dataset.bound) {
+          if (mainPhoto and !mainPhoto.dataset.bound) {
             mainPhoto.addEventListener('click', () => {
               try {
                 const p = Array.isArray(matches) ? matches[currentIndex] : null;
