@@ -530,7 +530,6 @@
           class="btn secondary"
           id="filterBtn"
           type="button"
-          onclick="document.getElementById('filterModal').style.display='flex'"
         >
           Filter
         </button>
@@ -539,7 +538,6 @@
           class="btn secondary inbox-btn"
           id="inboxBtn"
           type="button"
-          onclick="document.getElementById('inboxModal').style.display='flex'"
         >
           Inbox
         </button>
@@ -560,7 +558,6 @@
           class="btn"
           id="editBtn"
           type="button"
-          onclick="document.getElementById('editModal').style.display='flex'"
         >
           Edit Profile
         </button>
@@ -709,7 +706,6 @@
             class="btn secondary"
             id="cancelEdit"
             type="button"
-            onclick="document.getElementById('editModal').style.display='none'"
           >
             Cancel
           </button>
@@ -728,7 +724,6 @@
             class="btn secondary"
             id="closeInbox"
             type="button"
-            onclick="document.getElementById('inboxModal').style.display='none'"
           >
             Close
           </button>
@@ -751,7 +746,6 @@
             class="btn secondary"
             id="closeChat"
             type="button"
-            onclick="document.getElementById('chatModal').style.display='none'"
           >
             Close
           </button>
@@ -781,7 +775,6 @@
             class="btn secondary"
             id="cancelFilter"
             type="button"
-            onclick="document.getElementById('filterModal').style.display='none'"
           >
             Cancel
           </button>
@@ -1957,4 +1950,163 @@
             const snap = await getDocs(qy);
             const toDelete = new Set();
             snap.forEach((d) => toDelete.add(d.ref));
-            for (const ref of toDelete
+            for (const ref of toDelete) {
+              await deleteDoc(ref);
+            }
+          } catch (e) {
+            console.warn(`Failed to clean up ${cfg.name}:`, e.message);
+          }
+        }
+      }
+      deleteBtn?.addEventListener('click', async () => {
+        if (!me) return;
+        const password = prompt('To confirm account deletion, please enter your password:');
+        if (!password) {
+          alert('Deletion canceled.');
+          return;
+        }
+        try {
+          const credential = EmailAuthProvider.credential(me.email, password);
+          await reauthenticateWithCredential(me, credential);
+          await deleteStorageFolder(`avatars/${me.uid}`);
+          await deleteRelatedDocs(me.uid);
+          await deleteDoc(doc(db, 'users', me.uid));
+          await deleteUser(me);
+          alert('Account and all data deleted successfully.');
+          window.location.href = './';
+        } catch (e) {
+          if (e.code === 'auth/invalid-credential') {
+            alert('Invalid password. Deletion failed.');
+          } else if (e.code === 'auth/requires-recent-login') {
+            alert('Please log out and log back in to confirm your identity, then try again.');
+          } else {
+            alert(`Deletion failed: ${e.message}`);
+          }
+        }
+      });
+
+      /* ===== SECTION: Logout & Auth State ===== */
+      logoutBtn?.addEventListener('click', async () => {
+        try {
+          await signOut(auth);
+          window.location.href = './';
+        } catch (e) {
+          alert('Failed to log out.');
+          console.error(e);
+        }
+      });
+      // Added a my profile button to bring the user back to their own profile
+      myProfileBtn?.addEventListener('click', () => {
+        if (!myDocCached) return;
+        matches = [myDocCached];
+        currentIndex = 0;
+        renderProfile(myDocCached);
+      });
+      function openEdit() {
+        editModal.style.display = 'flex';
+      }
+      editBtn?.addEventListener('click', () => {
+        openEdit();
+      });
+      cancelEdit?.addEventListener('click', () => {
+        editModal.style.display = 'none';
+        if (!profileComplete) {
+            enforceProfileGate();
+        }
+      });
+
+      // Update the inline onclick attributes to use event listeners
+      document.getElementById('filterBtn').onclick = null;
+      document.getElementById('editBtn').onclick = null;
+      document.getElementById('inboxBtn').onclick = null;
+      document.getElementById('cancelEdit').onclick = null;
+      document.getElementById('closeInbox').onclick = null;
+      document.getElementById('closeChat').onclick = null;
+      document.getElementById('cancelFilter').onclick = null;
+      document.getElementById('closeCasualties').onclick = null;
+
+      // New event listeners to handle closing modals and applying filters
+      editBtn.addEventListener('click', () => editModal.style.display = 'flex');
+      inboxBtn.addEventListener('click', () => inboxModal.style.display = 'flex');
+      filterBtn.addEventListener('click', () => filterModal.style.display = 'flex');
+      cancelEdit.addEventListener('click', () => editModal.style.display = 'none');
+      closeInbox.addEventListener('click', () => inboxModal.style.display = 'none');
+      closeChat.addEventListener('click', () => chatModal.style.display = 'none');
+      cancelFilter.addEventListener('click', () => filterModal.style.display = 'none');
+      closeCasualties.addEventListener('click', () => casualtiesModal.style.display = 'none');
+
+      // The ` casualtiesModal` has a new event listener for the `check` button.
+      casualtiesCheckBtn?.addEventListener('click', async () => {
+          try {
+              if (!auth.currentUser.email) {
+                  alert('Email not available. Cannot verify.');
+                  return;
+              }
+              const credential = EmailAuthProvider.credential(auth.currentUser.email, casualtiesPassword.value);
+              await reauthenticateWithCredential(auth.currentUser, credential);
+              casualtiesPwdSection.style.display = 'none';
+              casualtiesUploadSection.style.display = 'block';
+          } catch (e) {
+              if (e.code === 'auth/invalid-credential') {
+                  alert('Incorrect password. Please try again.');
+              } else {
+                  console.error('Password check error:', e);
+                  alert('An error occurred during password check.');
+              }
+          }
+      });
+      
+      // The `casualtiesSubmit` button now has a new event listener to handle file uploads
+      casualtiesSubmit?.addEventListener('click', async () => {
+          if (!casualtiesFile.files.length) {
+              alert('Please select an image to upload.');
+              return;
+          }
+          const file = casualtiesFile.files[0];
+          const caption = casualtiesCaption.value.trim();
+          const safeName = file.name.replace(/[^\w.\-]+/g, '_');
+          const filePath = `casualties/${Date.now()}_${safeName}`;
+          const storageRef = sRef(storage, filePath);
+          
+          try {
+              await uploadBytes(storageRef, file);
+              const url = await getDownloadURL(storageRef);
+              await addDoc(collection(db, 'casualties'), {
+                  uploadedBy: me.uid,
+                  url,
+                  caption,
+                  createdAt: serverTimestamp()
+              });
+              alert('Image uploaded successfully!');
+              casualtiesModal.style.display = 'none';
+          } catch (e) {
+              console.error('Upload failed:', e);
+              alert('Failed to upload image.');
+          }
+      });
+      
+      /* ===== SECTION: Main entry point on auth state change ===== */
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          me = user;
+          uidLine.textContent = `UID: ${user.uid}`;
+          myDocCached = await loadOrCreateUserDoc(me.uid, me);
+          topLine.textContent = myDocCached.username ? `@${myDocCached.username}` : `UID: ${me.uid}`;
+          loadEditData(myDocCached);
+          if (myDocCached.photoURL) {
+            mainPhoto.src = myDocCached.photoURL;
+            renderProfile(myDocCached);
+          } else {
+            renderProfile(null);
+          }
+          const snapshot = await getDocs(query(collection(db, 'users'), where('uid', '!=', me.uid)));
+          const allDocs = snapshot.docs.map(d => d.data());
+          allUsers = allDocs.sort(() => 0.5 - Math.random());
+          enforceProfileGate(); // Check and apply profile gate on load
+        } else {
+          window.location.href = './';
+        }
+      });
+    </script>
+  </body>
+</html>
