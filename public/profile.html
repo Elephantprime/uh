@@ -547,7 +547,7 @@
           Casualties Upload
         </button>
 
-        <button class="chaos-btn" id="chaosBtn" type="button">Community Chaos</button>
+        <a class="chaos-btn" href="./app.html">Community Chaos</a>
 
         <button class="btn secondary" id="myProfileBtn" type="button">
           My Profile
@@ -614,7 +614,7 @@
         <button class="action-btn pass-btn" id="pass-btn" aria-label="Pass">
           Pass
         </button>
-        <button class="chaos-btn" id="chaosBtnBottom" type="button">Community Chaos</button>
+        <a class="chaos-btn" href="./app.html">Community Chaos</a>
         <button class="action-btn like-btn" id="like-btn" aria-label="Like">
           Like
         </button>
@@ -937,8 +937,6 @@
       const inboxBtn = document.getElementById('inboxBtn');
       const deleteBtn = document.getElementById('deleteBtn');
       const filterBtn = document.getElementById('filterBtn');
-      const chaosBtn = document.getElementById('chaosBtn');
-      const chaosBtnBottom = document.getElementById('chaosBtnBottom');
 
       const cardFrame = document.getElementById('cardFrame');
       const mainPhoto = document.getElementById('main-photo');
@@ -1055,9 +1053,7 @@
           'inboxBtn', 
           'filterBtn', 
           'casualtiesBtn', 
-          'upgradeBtn',
-          'chaosBtn',
-          'chaosBtnBottom'
+          'upgradeBtn'
         ];
         
         gatedButtons.forEach(id => {
@@ -1097,26 +1093,6 @@
           openInbox();
           renderInbox('likes');
         }
-      });
-
-      // New event listener for the Community Chaos buttons
-      chaosBtn?.addEventListener('click', (e) => {
-          if (!profileComplete) {
-              e.preventDefault();
-              alert('Please complete your profile before entering Community Chaos.');
-              openEdit();
-          } else {
-              window.location.href = './app.html';
-          }
-      });
-      chaosBtnBottom?.addEventListener('click', (e) => {
-          if (!profileComplete) {
-              e.preventDefault();
-              alert('Please complete your profile before entering Community Chaos.');
-              openEdit();
-          } else {
-              window.location.href = './app.html';
-          }
       });
       
       filterBtn?.addEventListener('click', (e) => {
@@ -1889,4 +1865,248 @@
         if (!text || !activeChat.chatId || !me) return;
         const msgCol = collection(db, 'chats', activeChat.chatId, 'messages');
         await addDoc(msgCol, { from: me.uid, text, createdAt: serverTimestamp() });
-        await updateDoc(doc(db, 'chats', activeChat.chat
+        await updateDoc(doc(db, 'chats', activeChat.chatId), {
+          lastMessage: text,
+          lastMessageAt: serverTimestamp(),
+        });
+        chatInput.value = '';
+      });
+
+      /* ===== SECTION: Filter Modal Controls ===== */
+      function openFilter() {
+        filterModal.style.display = 'flex';
+      }
+      function closeFilter() {
+        filterModal.style.display = 'none';
+      }
+      cancelFilter?.addEventListener('click', closeFilter);
+      filterModal?.addEventListener('click', (e) => {
+        if (e.target === filterModal) closeFilter();
+      });
+      const _norm = (s) => (s || '').toLowerCase().trim();
+      function _ageOK(u, min, max) {
+        const a = Number(u?.age);
+        if (min != null && (!Number.isFinite(a) || a < min)) return false;
+        if (max != null && (!Number.isFinite(a) || a > max)) return false;
+        return true;
+      }
+      function _locOK(u, loc) {
+        if (!loc) return true;
+        return _norm(u?.location).includes(_norm(loc));
+      }
+      function rebuildMatchesWithFilters() {
+        const all = Array.isArray(allUsers) ? allUsers : [];
+        const filtered = all.filter(u => {
+          const isMe = u.uid === me.uid;
+          const isMatched = matchedUsers.some(m => m.uid === u.uid);
+          const ageOk = _ageOK(u, currentFilters.min, currentFilters.max);
+          const locOk = _locOK(u, currentFilters.location);
+          return !isMe && !isMatched && ageOk && locOk;
+        });
+        matches = filtered;
+        currentIndex = 0;
+        renderProfile(matches[currentIndex] || null);
+      }
+      applyFilter?.addEventListener('click', () => {
+        currentFilters.location = filterLocEl?.value.trim() || '';
+        currentFilters.min = filterAgeMin?.value ? Number(filterAgeMin.value) : null;
+        currentFilters.max = filterAgeMax?.value ? Number(filterAgeMax.value) : null;
+        rebuildMatchesWithFilters();
+        closeFilter();
+      });
+
+      /* ===== SECTION: Delete Account ===== */
+      async function deleteStorageFolder(prefix) {
+        try {
+          const folderRef = sRef(storage, prefix);
+          const list = await listAll(folderRef);
+          for (const f of list.items) {
+            await deleteObject(f);
+          }
+          for (const dir of list.prefixes) {
+            await deleteStorageFolder(dir.fullPath);
+          }
+        } catch (e) {
+          console.warn('Storage cleanup warning:', e.message);
+        }
+      }
+      async function deleteRelatedDocs(uid) {
+        const collectionsToClean = [
+          { name: 'likes', field: 'fromUid' },
+          { name: 'likes', field: 'toUid' },
+          { name: 'views', field: 'viewerUid' },
+          { name: 'views', field: 'viewedUid' },
+          { name: 'matches', field: 'uids', array: true },
+          { name: 'chats', field: 'uids', array: true },
+        ];
+        for (const cfg of collectionsToClean) {
+          try {
+            let qy;
+            if (cfg.array) {
+              qy = query(collection(db, cfg.name), where(cfg.field, 'array-contains', uid), limit(100));
+            } else {
+              qy = query(collection(db, cfg.name), where(cfg.field, '==', uid), limit(100));
+            }
+            const snap = await getDocs(qy);
+            const toDelete = new Set();
+            snap.forEach((d) => toDelete.add(d.ref));
+            for (const ref of toDelete) {
+              await deleteDoc(ref);
+            }
+          } catch (e) {
+            console.warn(`Failed to clean up ${cfg.name}:`, e.message);
+          }
+        }
+      }
+      deleteBtn?.addEventListener('click', async () => {
+        if (!me) return;
+        const password = prompt('To confirm account deletion, please enter your password:');
+        if (!password) {
+          alert('Deletion canceled.');
+          return;
+        }
+        try {
+          const credential = EmailAuthProvider.credential(me.email, password);
+          await reauthenticateWithCredential(me, credential);
+          await deleteStorageFolder(`avatars/${me.uid}`);
+          await deleteRelatedDocs(me.uid);
+          await deleteDoc(doc(db, 'users', me.uid));
+          await deleteUser(me);
+          alert('Account and all data deleted successfully.');
+          window.location.href = './';
+        } catch (e) {
+          if (e.code === 'auth/invalid-credential') {
+            alert('Invalid password. Deletion failed.');
+          } else if (e.code === 'auth/requires-recent-login') {
+            alert('Please log out and log back in to confirm your identity, then try again.');
+          } else {
+            alert(`Deletion failed: ${e.message}`);
+          }
+        }
+      });
+
+      /* ===== SECTION: Logout & Auth State ===== */
+      logoutBtn?.addEventListener('click', async () => {
+        try {
+          await signOut(auth);
+          window.location.href = './';
+        } catch (e) {
+          alert('Failed to log out.');
+          console.error(e);
+        }
+      });
+      // Added a my profile button to bring the user back to their own profile
+      myProfileBtn?.addEventListener('click', () => {
+        if (!myDocCached) return;
+        matches = [myDocCached];
+        currentIndex = 0;
+        renderProfile(myDocCached);
+      });
+      function openEdit() {
+        editModal.style.display = 'flex';
+      }
+      editBtn?.addEventListener('click', () => {
+        openEdit();
+      });
+      cancelEdit?.addEventListener('click', () => {
+        editModal.style.display = 'none';
+        if (!profileComplete) {
+            enforceProfileGate();
+        }
+      });
+
+      // Update the inline onclick attributes to use event listeners
+      document.getElementById('filterBtn').onclick = null;
+      document.getElementById('editBtn').onclick = null;
+      document.getElementById('inboxBtn').onclick = null;
+      document.getElementById('cancelEdit').onclick = null;
+      document.getElementById('closeInbox').onclick = null;
+      document.getElementById('closeChat').onclick = null;
+      document.getElementById('cancelFilter').onclick = null;
+      document.getElementById('closeCasualties').onclick = null;
+
+      // New event listeners to handle closing modals and applying filters
+      editBtn.addEventListener('click', () => editModal.style.display = 'flex');
+      inboxBtn.addEventListener('click', () => inboxModal.style.display = 'flex');
+      filterBtn.addEventListener('click', () => filterModal.style.display = 'flex');
+      cancelEdit.addEventListener('click', () => editModal.style.display = 'none');
+      closeInbox.addEventListener('click', () => inboxModal.style.display = 'none');
+      closeChat.addEventListener('click', () => chatModal.style.display = 'none');
+      cancelFilter.addEventListener('click', () => filterModal.style.display = 'none');
+      closeCasualties.addEventListener('click', () => casualtiesModal.style.display = 'none');
+
+      // The ` casualtiesModal` has a new event listener for the `check` button.
+      casualtiesCheckBtn?.addEventListener('click', async () => {
+          try {
+              if (!auth.currentUser.email) {
+                  alert('Email not available. Cannot verify.');
+                  return;
+              }
+              const credential = EmailAuthProvider.credential(auth.currentUser.email, casualtiesPassword.value);
+              await reauthenticateWithCredential(auth.currentUser, credential);
+              casualtiesPwdSection.style.display = 'none';
+              casualtiesUploadSection.style.display = 'block';
+          } catch (e) {
+              if (e.code === 'auth/invalid-credential') {
+                  alert('Incorrect password. Please try again.');
+              } else {
+                  console.error('Password check error:', e);
+                  alert('An error occurred during password check.');
+              }
+          }
+      });
+      
+      // The `casualtiesSubmit` button now has a new event listener to handle file uploads
+      casualtiesSubmit?.addEventListener('click', async () => {
+          if (!casualtiesFile.files.length) {
+              alert('Please select an image to upload.');
+              return;
+          }
+          const file = casualtiesFile.files[0];
+          const caption = casualtiesCaption.value.trim();
+          const safeName = file.name.replace(/[^\w.\-]+/g, '_');
+          const filePath = `casualties/${Date.now()}_${safeName}`;
+          const storageRef = sRef(storage, filePath);
+          
+          try {
+              await uploadBytes(storageRef, file);
+              const url = await getDownloadURL(storageRef);
+              await addDoc(collection(db, 'casualties'), {
+                  uploadedBy: me.uid,
+                  url,
+                  caption,
+                  createdAt: serverTimestamp()
+              });
+              alert('Image uploaded successfully!');
+              casualtiesModal.style.display = 'none';
+          } catch (e) {
+              console.error('Upload failed:', e);
+              alert('Failed to upload image.');
+          }
+      });
+      
+      /* ===== SECTION: Main entry point on auth state change ===== */
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          me = user;
+          uidLine.textContent = `UID: ${user.uid}`;
+          myDocCached = await loadOrCreateUserDoc(me.uid, me);
+          topLine.textContent = myDocCached.username ? `@${myDocCached.username}` : `UID: ${me.uid}`;
+          loadEditData(myDocCached);
+          if (myDocCached.photoURL) {
+            mainPhoto.src = myDocCached.photoURL;
+            renderProfile(myDocCached);
+          } else {
+            renderProfile(null);
+          }
+          const snapshot = await getDocs(query(collection(db, 'users'), where('uid', '!=', me.uid)));
+          const allDocs = snapshot.docs.map(d => d.data());
+          allUsers = allDocs.sort(() => 0.5 - Math.random());
+          enforceProfileGate(); // Check and apply profile gate on load
+        } else {
+          window.location.href = './';
+        }
+      });
+    </script>
+  </body>
+</html>
