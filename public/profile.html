@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Unhinged - Profile</title>
 
@@ -617,9 +617,7 @@
         <button class="action-btn pass-btn" id="pass-btn" aria-label="Pass">
           Pass
         </button>
-        <button class="chaos-btn" onclick="location.href='./app.html'">
-          Community Chaos
-        </button>
+        <a class="chaos-btn" href="./app.html">Community Chaos</a>
         <button class="action-btn like-btn" id="like-btn" aria-label="Like">
           Like
         </button>
@@ -1054,9 +1052,11 @@
       // Enable or disable buttons based on profile completion
       function enforceProfileGate() {
         profileComplete = checkProfileComplete(myDocCached);
-        ['pass-btn', 'like-btn', 'browseBtn'].forEach(id => {
+        ['browseBtn', 'pass-btn', 'like-btn', 'inboxBtn', 'filterBtn', 'casualtiesBtn', 'upgradeBtn', 'myProfileBtn', 'logoutBtn', 'deleteBtn'].forEach(id => {
           const el = document.getElementById(id);
-          if (el) el.disabled = !profileComplete;
+          if (el) {
+            el.disabled = !profileComplete && id !== 'myProfileBtn' && id !== 'editBtn' && id !== 'logoutBtn' && id !== 'deleteBtn' && id !== 'inboxBtn' && id !== 'casualtiesBtn' && id !== 'upgradeBtn' && id !== 'filterBtn';
+          }
         });
         if (!profileComplete) {
           // Optionally show a message and open the edit form
@@ -2107,17 +2107,4 @@
             } else {
               // Default view: browse matches
               await loadMyMatches();
-              await loadAllUsers();
-              renderFilteredMatches();
-            }
-          } catch (e) {
-            console.error('Initial load failed:', e);
-            topLine.textContent = 'Error loading profile';
-          }
-        } else {
-          location.replace('./login.html');
-        }
-      });
-    </script>
-  </body>
-</html>
+              await loadAllUsers
